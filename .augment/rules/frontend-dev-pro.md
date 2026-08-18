@@ -959,36 +959,34 @@ export default defineConfig({
     "preview": "bun --bun vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "bun test",
-    "lint": "eslint . && prettier --check .",
-    "format": "prettier --write ."
+    "lint": "biome check .",
+    "format": "biome check --write ."
   }
 }
 ```
 
-`svelte-check` (not `tsc`) type-checks `.svelte` templates — a green `tsc --noEmit` alone is meaningless for Svelte files. Treat `svelte-check`, `eslint`, and `vite build` as the three gates before a change is done.
-
-```js
-// eslint.config.js — flat config
-import js from '@eslint/js';
-import ts from 'typescript-eslint';
-import svelte from 'eslint-plugin-svelte';
-
-export default ts.config(
-  js.configs.recommended,
-  ...ts.configs.recommended,
-  ...svelte.configs['flat/recommended'],
-  {
-    files: ['**/*.svelte'],
-    languageOptions: { parserOptions: { parser: ts.parser } }
-  }
-);
-```
+`svelte-check` (not `tsc`) type-checks `.svelte` templates — a green `tsc --noEmit` alone is meaningless for Svelte files. Treat `svelte-check`, `biome check`, and `vite build` as the three gates before a change is done.
 
 ```json
-// .prettierrc
+// biome.json
 {
-  "plugins": ["prettier-plugin-svelte"],
-  "overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }]
+  "$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "formatter": { "enabled": true, "indentStyle": "tab", "lineWidth": 100 },
+  "javascript": { "formatter": { "quoteStyle": "single", "trailingCommas": "none" } },
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "overrides": [
+    {
+      "includes": ["**/*.svelte"],
+      "linter": {
+        "rules": {
+          "style": { "useConst": "off", "useImportType": "off" },
+          "correctness": { "noUnusedVariables": "off", "noUnusedImports": "off" }
+        }
+      }
+    }
+  ]
 }
 ```
 
