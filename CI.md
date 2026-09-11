@@ -19,4 +19,6 @@ and the annotated prek version.
 Add stack-specific formatting, linting, type checks, real tests, builds, and smoke
 checks when the application is implemented. Current content checks establish a
 development baseline; they provide no evidence about an unimplemented application.
-Automerge stays off until protection and policy readiness are verified.
+Automerge stays off. Merges require manual review of the exact head and base,
+author and DCO sign-off, full diff, and every expected CI job. No branch
+protections or repository rulesets are configured.
