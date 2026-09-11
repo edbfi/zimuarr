@@ -5,17 +5,13 @@ repository.
 
 ## Repository state
 
-Pre-implementation. The entire tracked tree is:
+Pre-implementation. The tracked tree contains the normative specification in
+`docs/zimuarr-idea.md`, stack references in `.agents/rules/`, repository guidance,
+README, LICENSE, `.gitignore`, Renovate configuration, and content-only CI/prek.
 
-```
-.agents/rules/{backend,frontend}-dev-pro.md   stack coding references
-docs/zimuarr-idea.md                          normative spec (846 lines)
-.gitignore  LICENSE (AGPL-3.0)
-```
-
-There is no `backend/`, `frontend/`, `prek.toml`, `README.md`, or CI workflow yet, and
-therefore **no build, test, or lint command exists.** Do not invent one, and do not report a
-command as verified until the manifest defining it exists.
+There is no `backend/` or `frontend/`, application manifest, runtime, or application
+test suite. `CI.md` documents the existing content checks. Do not invent application
+build, test, or lint commands, or report them as verified before their manifests exist.
 
 `docs/zimuarr-idea.md` is authoritative for every design and implementation decision. Its
 Bazarr findings come from source inspection and are normative, not aspirational.
@@ -79,8 +75,8 @@ locks need it — despite the `arr` ecosystem's SQLite norm.
 
 Follow the spec's sequence rather than improvising:
 
-1. Establish repository quality controls **first**; § "Engineering Baseline" has a copy-ready
-   `prek.toml`.
+1. Preserve the existing content-only quality controls. When application source exists,
+   extend them using § "Engineering Baseline"; its `prek.toml` includes future stack checks.
 2. Add the backend `[tool.basedpyright]` table exactly as § "Strict Typing Policy" specifies
    (allowlisted keys only), plus `backend/tools/check_basedpyright_config.py`, the gate that
    rejects global suppressions and baselines.
@@ -90,7 +86,7 @@ Follow the spec's sequence rather than improvising:
    enforcement boundary.
 5. Do Phase 0 (the Bazarr contract spike) before building reconciliation infrastructure.
 
-Once `prek.toml` exists, the gate commands it defines are
+Once the backend and frontend manifests and corresponding hooks exist, their gate commands are
 `uv run --project backend ruff format`, `uv run --project backend ruff check --fix`,
 `uv run --project backend basedpyright`, `bun run --cwd frontend lint`, and
 `bun run --cwd frontend check`. Use `--project backend`, **not** `--directory backend`: prek
@@ -100,10 +96,10 @@ passes repo-relative paths and `--directory` breaks them.
 
 - **`docs/` and `artifacts/` are meant to be gitignored.** Commit `6edf1d7` commented both
   entries out at the bottom of `.gitignore`. `docs/zimuarr-idea.md` is already tracked, so
-  re-enabling them needs `git rm --cached` handling.
-- The spec's `prek.toml` adds `no-commit-to-branch --branch main` and Conventional Commit
-  enforcement. Once installed, work on a branch; the current direct-to-`main` history predates
-  the hook.
+  keep the specification tracked during migration. Any future ignore-policy change is
+  separate work and must preserve it.
+- The saved `prek.toml` includes `no-commit-to-branch --branch main` and Conventional Commit
+  enforcement. Work on a branch; the original direct-to-`main` history predates the hook.
 - **Perevoditarr is a structural quarry, not a dependency.** Port its module decomposition,
   auth/first-admin flow, SSE infrastructure, and basedpyright config gate structurally — but
   audit for three-party assumptions, and strip any Lingarr client, health-check, or
@@ -116,10 +112,10 @@ passes repo-relative paths and `--directory` breaks them.
 - `docs/zimuarr-idea.md` — the normative spec. Read before any design or implementation work;
   § "Bazarr Wire Contract" before touching the integration boundary, § "Suggested Delivery
   Sequence" before starting a new area of work.
-- `.agents/rules/backend-dev-pro.md` — Litestar routing/DI, msgspec modeling, SQLAlchemy async
+- `.agents/rules/python-3_14-litestar-api.md` — Litestar routing/DI, msgspec modeling, SQLAlchemy async
   pitfalls (`MissingGreenlet`, eager loading), Granian, Alembic, and the uv/Ruff/basedpyright
   workflow. Read before writing Python.
-- `.agents/rules/frontend-dev-pro.md` — runes, SvelteKit routing and form actions, Bun tooling,
+- `.agents/rules/svelte5-sveltekit-app.md` — runes, SvelteKit routing and form actions, Bun tooling,
   and the non-obvious UnoCSS `presetWind4` + shadcn-svelte integration (do **not** run
   `shadcn-svelte init`; create `components.json` and the `cn()` utility manually; keep an empty
   `tailwind.config.js` solely to satisfy the shadcn CLI). Read before writing Svelte or
