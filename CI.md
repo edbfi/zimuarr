@@ -19,6 +19,10 @@ and the annotated prek version.
 Add stack-specific formatting, linting, type checks, real tests, builds, and smoke
 checks when the application is implemented. Current content checks establish a
 development baseline; they provide no evidence about an unimplemented application.
-Automerge stays off. Merges require manual review of the exact head and base,
-author and DCO sign-off, full diff, and every expected CI job. No branch
-protections or repository rulesets are configured.
+The v1.1.0 default and automerge presets make all dependency update types eligible,
+including majors and shared-policy updates, without dashboard approval. All three
+current-head checks in `.github/merge-policy.json` must pass before unattended
+Renovate merging; genuine sign-offs are preserved and full CI runs for the exact
+merged commit. Other changes retain manual review of the exact head/base, full
+diff, authors/DCO and every expected CI job through ghmerge. No branch protections
+or repository rulesets are configured.
