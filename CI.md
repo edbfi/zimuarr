@@ -19,7 +19,7 @@ and the annotated prek version.
 Add stack-specific formatting, linting, type checks, real tests, builds, and smoke
 checks when the application is implemented. Current content checks establish a
 development baseline; they provide no evidence about an unimplemented application.
-Shared actions, workflows and presets use immutable `v3.0.0` references.
+Shared actions, workflows and presets use immutable `v3.0.1` references.
 Renovate is the sole ongoing dependency merge owner. Direct automerge remains
 explicitly disabled, including matching package rules, until the hosted rollout
 proves native Renovate operation behind complete required CI. The legacy Actions
