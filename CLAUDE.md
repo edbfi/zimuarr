@@ -72,7 +72,7 @@ silently corrupt.
 - `.gitignore` ends with `#docs/` and `#artifacts/` commented out. Uncommenting `docs/` would stop
   new spec files from being tracked, so keep the spec tracked.
 - Renovate owns dependency and action-version bumps (see `renovate.json`, `CI.md`). Don't
-  hand-bump the pinned `edbfi/automation@v3.0.1` refs or hook revs as a side effect of other work.
+  hand-bump the pinned `edbfi/automation@v4.0.0` refs or hook revs as a side effect of other work.
 
 ## Reference files
 
