@@ -71,8 +71,6 @@ silently corrupt.
   `Signed-off-by` (`git commit -s`).
 - `.gitignore` ends with `#docs/` and `#artifacts/` commented out. Uncommenting `docs/` would stop
   new spec files from being tracked, so keep the spec tracked.
-- Renovate owns dependency and action-version bumps (see `renovate.json`, `CI.md`). Don't
-  hand-bump the pinned `edbfi/automation@v4.0.0` refs or hook revs as a side effect of other work.
 
 ## Reference files
 
@@ -87,5 +85,3 @@ silently corrupt.
 - `.agents/rules/svelte5-sveltekit-app.md` covers Svelte 5 runes, SvelteKit 2, Bun, UnoCSS, and
   the shadcn-svelte manual setup (no `shadcn-svelte init`). Read it before writing Svelte or
   TypeScript, subject to the precedence table above.
-- `CI.md` covers the CI gate, PR policy, and Renovate merge ownership. Read it before editing
-  `.github/workflows/`, `prek.toml`, or `renovate.json`.
