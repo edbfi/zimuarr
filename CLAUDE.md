@@ -62,10 +62,9 @@ silently corrupt.
 - `.agents/rules/*.md` is synced from an external agent-rules repo (see the `chore: sync agent
   rules` commits), so local edits get overwritten. Record repo-specific overrides here or in the
   spec.
-- CI runs `git diff --exit-code HEAD` after prek, so any hook that rewrites files fails CI. The
-  live `prek.toml` leaves out the spec's fixer hooks (`trailing-whitespace`,
-  `end-of-file-fixer`, and others). Enabling them rewrites existing content (`.gitignore` has
-  trailing whitespace), so fix that content in the same change.
+- CI runs `git diff --exit-code HEAD` after prek, so any hook that rewrites files fails CI.
+  The live `prek.toml` includes whitespace, end-of-file, and line-ending fixers. Run prek
+  locally and commit its formatting fixes before pushing.
 - `no-commit-to-branch --branch main` blocks local commits to `main` once `prek install` has run.
   Work on a branch. The PR policy also requires a Conventional Commit title and a matching
   `Signed-off-by` (`git commit -s`).

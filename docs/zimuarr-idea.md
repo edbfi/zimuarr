@@ -843,4 +843,3 @@ It uses Bazarr as the subtitle execution and file-integration layer while indepe
 The project should be built from the start with strict typing, automated repository safeguards, secret protection, Conventional Commits, deterministic quality gates, a modular monorepo structure, and its own authentication — with the riskiest integration behavior proven in a Phase 0 spike before the reconciliation engine is built.
 
 The result should feel native to the `arr` ecosystem while solving a different class of problem: not merely translating subtitles, but continuously managing translated subtitles as durable, auditable, safe, and upgradeable artifacts.
-
