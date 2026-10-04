@@ -29,6 +29,7 @@ generic and disagree with it in places. Where they conflict, follow the spec:
 | UnoCSS + shadcn | `presetWind4` + `unocss-preset-animations` + `presetShadcn` | `presetWind3` via `unocss-preset-shadcn/v3` |
 | Svelte component tests | Vitest + Testing Library; Bun's test runner only for pure TS modules | `vitest-browser-svelte` Browser Mode instead of Testing Library |
 | `.svelte` formatting | Biome only; ESLint/Prettier need an explicitly approved exception | Allows `prettier-plugin-svelte` |
+| Frontend serving | Single-page app: `@sveltejs/adapter-static` (fallback page, `ssr = false`), served by Litestar on the same origin as `/api` under `litestar run` with `GranianPlugin()` (until Litestar 3 is stable; never a bare `granian`). Origin, cookies, and proxy trust are the backend's | `adapter-bun`, an app-owned front, and server-side cookie and origin sections; none apply to an SPA |
 
 Backend packages go under `backend/src/zimuarr/`, not the rule file's `bookstore` example layout.
 
