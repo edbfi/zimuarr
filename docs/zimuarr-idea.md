@@ -248,7 +248,6 @@ zimuarr/
 │   ├── bun.lock
 │   ├── biome.json
 │   ├── uno.config.ts
-│   ├── svelte.config.js
 │   ├── vite.config.ts
 │   ├── tests/
 │   └── src/
