@@ -671,7 +671,7 @@ Correctness must not depend on only one Granian process being present. Worker cl
 
 * Bun
 * Svelte 5
-* SvelteKit 2
+* SvelteKit 3
 * TypeScript
 * UnoCSS with `presetWind4`
 * shadcn-svelte

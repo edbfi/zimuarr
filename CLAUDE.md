@@ -81,6 +81,6 @@ silently corrupt.
 - `.agents/rules/python-3_14-litestar-api.md` covers Litestar, msgspec, SQLAlchemy async,
   Granian, Alembic, and uv/Ruff/basedpyright usage. Read it before writing Python, subject to the
   precedence table above.
-- `.agents/rules/svelte5-sveltekit-app.md` covers Svelte 5 runes, SvelteKit 2, Bun, UnoCSS, and
+- `.agents/rules/svelte5-sveltekit-app.md` covers Svelte 5 runes, SvelteKit 3, Bun, UnoCSS, and
   the shadcn-svelte manual setup (no `shadcn-svelte init`). Read it before writing Svelte or
   TypeScript, subject to the precedence table above.
