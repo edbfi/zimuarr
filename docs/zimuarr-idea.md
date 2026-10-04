@@ -248,7 +248,6 @@ zimuarr/
 │   ├── bun.lock
 │   ├── biome.json
 │   ├── uno.config.ts
-│   ├── svelte.config.js
 │   ├── vite.config.ts
 │   ├── tests/
 │   └── src/
@@ -671,7 +670,7 @@ Correctness must not depend on only one Granian process being present. Worker cl
 
 * Bun
 * Svelte 5
-* SvelteKit 2
+* SvelteKit 3
 * TypeScript
 * UnoCSS with `presetWind4`
 * shadcn-svelte
@@ -683,7 +682,7 @@ Correctness must not depend on only one Granian process being present. Worker cl
 
 shadcn-svelte and UnoCSS `presetWind4` do not combine out of the box. The integration follows the `unocss-preset-shadcn` path per the frontend guidelines: do **not** run `shadcn-svelte init`; create `components.json` and the `cn()` utility manually; keep an empty `tailwind.config.js` solely to satisfy the shadcn CLI; configure `uno.config.ts` with `presetWind4`, `unocss-preset-animations`, and `presetShadcn`, with the content pipeline widened to scan `.ts`/`.js`. This is spelled out here so an implementer does not fight the CLI.
 
-During development, the SvelteKit development server should proxy `/api` to the Litestar backend. This includes the `/api/v1/events` server-sent event stream.
+During development, the SvelteKit development server should proxy `/api` to the Litestar backend. This includes the `/api/v1/events` server-sent event stream. In production, the Litestar backend serves the static build (`@sveltejs/adapter-static` with a fallback page and `ssr = false`) on the same origin as `/api`, under `litestar run` with `litestar-granian`'s `GranianPlugin()` (never a bare `granian` invocation) until Litestar 3 is stable.
 
 The frontend should be implemented using modern Svelte 5 patterns:
 
