@@ -1,13 +1,18 @@
 # Zimuarr
 
-Zimuarr is a planning-stage subtitle translation control plane for Bazarr.
-No functional application, runtime, or deployment is available yet.
+> [!IMPORTANT]
+> **Rewrite in progress.** Zimuarr is being rebuilt from scratch, and `main` is now the
+> starting point for the new version. The previous version is preserved on the
+> [`legacy-old/v1`](https://github.com/edbfi/zimuarr/tree/legacy-old/v1) branch.
 
-The [project specification](docs/zimuarr-idea.md) describes the intended design,
-completeness guarantees, safety controls, and delivery sequence. It is the
-normative design document; the stack references provide supporting guidance.
+## Tech stack
 
-Run the repository content hooks locally with `SKIP=no-commit-to-branch prek run --all-files`.
-Application tests and build commands will be added with actual implementation.
-
-Licensed under [AGPL-3.0](LICENSE).
+| Concern | Choice |
+| --- | --- |
+| Language | TypeScript 6, strict type checking |
+| Framework | Svelte 5 and SvelteKit 3, server rendering on one origin |
+| Runtime and packages | Bun for development, CI and production |
+| Database | Embedded Turso through Drizzle, on a persistent data volume |
+| Styling and primitives | Panda CSS 2 and Ark UI for Svelte |
+| HTTP API clients | `@hey-api/openapi-ts`, generated from the app's OpenAPI document |
+| Deployment | `@sveltejs/adapter-bun`: one container, one process, one HTTP port |
