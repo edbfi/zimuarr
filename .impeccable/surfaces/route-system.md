@@ -13,7 +13,7 @@ Proposed design seed for review. Mode: **operate**. Audience: **Operator admin**
 
 ## Purpose and composition
 
-Administrative health page with connection/provider/worker table, recent diagnostics and a global pause reason dialog example. Same shell as daily workspace.
+Administrative health page with connection/provider/background-jobs table, recent diagnostics and a global pause reason dialog example. Same shell as daily workspace.
 
 ## Visual reference
 
@@ -23,7 +23,7 @@ Use the shared [design system](../../DESIGN.md). Match hierarchy, density and pa
 
 ## Required content
 
-'System health'. Bazarr main Connected / observed 2 min ago / contract compatible. Translation provider Available. Worker Ready. 'Run diagnostics'. Global pause dialog 'Pause translations', Reason field 'Maintenance', 'Pause new work', Cancel. Text 'In-flight attempts finish; no new work starts.'
+'System health'. Bazarr main Connected / observed 2 min ago / contract compatible. Translation provider Available. Background jobs Ready. 'Run diagnostics'. Global pause dialog 'Pause translations', Reason field 'Maintenance', 'Pause new work', Cancel. Text 'In-flight attempts finish; no new work starts.'
 
 ## Acceptance criteria
 
