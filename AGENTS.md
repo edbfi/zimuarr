@@ -161,12 +161,15 @@ subtitle state, plans translations from declarative policies, sends them to conf
 and calls a subtitle Verified only once Bazarr durably confirms the complete result. It is being
 rewritten from scratch; the previous version is on the `legacy-old/v1` branch, for reference only.
 
-**Status:** context only, with no spec yet. A tooling-only `package.json` and `bun.lock` that run
-Biome come next. `docs/SPEC.md` and `tasks/` start when the application does; product modules come
-later, each through an owner-approved `docs/SPEC-<id>.md`.
+**Status:** context and tooling only, with no spec yet. A tooling-only `package.json` and
+`bun.lock` run Biome; CI runs the Bun web `checks` and `audit` jobs, with no smoke job or `tests`
+hook until an application exists. `docs/SPEC.md` and `tasks/` start when the application does;
+product modules come later, each through an owner-approved `docs/SPEC-<id>.md`.
 
-**Commands:** none yet beyond `prek run --all-files --hook-stage manual`. The tooling-only
-`package.json` adds Biome.
+**Commands:**
+- `bun ci`: install the locked tooling.
+- `bun run --bun lint`: Biome checks (`bunx --bun biome check --write` fixes formatting).
+- `prek run --all-files --hook-stage manual`: every check CI runs, Biome included.
 
 **Boundaries.**
 - No application code before an approved `docs/SPEC.md` and task list (the gates above).
