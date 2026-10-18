@@ -1,0 +1,13 @@
+{
+	"name": "zimuarr",
+	"private": true,
+	"license": "AGPL-3.0-only",
+	"type": "module",
+	"packageManager": "bun@1.4.3",
+	"scripts": {
+		"lint": "biome check"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.15"
+	}
+}
