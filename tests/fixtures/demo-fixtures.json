@@ -1,0 +1,39 @@
+{
+	"note": "Fictional historical fixture, deliberately independent of the current date. Production values come from server responses; screenshots never define calculations.",
+	"snapshotDate": "2025-10-15",
+	"zimuarr": {
+		"classifications": {
+			"verified": 1248,
+			"missing": 24,
+			"stale": 12,
+			"quarantined": 3
+		},
+		"telemetry": {
+			"inProgress": 2,
+			"note": "A separate overlay; do not sum with durable classifications."
+		},
+		"budget": {
+			"monthlyCap": 20,
+			"dailyCap": 2,
+			"settled": 6.4,
+			"reserved": 1.2,
+			"available": 12.4
+		},
+		"quarantine": {
+			"source": "English",
+			"target": "Swedish",
+			"expectedCues": 312,
+			"returnedCues": 311,
+			"state": "Rejected",
+			"allowedActions": ["Re-attempt", "Discard result"]
+		},
+		"provider": {
+			"name": "Demo Translate",
+			"model": "Standard",
+			"pricingRevision": "demo-2025-10",
+			"inputPerMillion": 0.8,
+			"outputPerMillion": 2.4,
+			"note": "Fictional prices for UI fixtures only."
+		}
+	}
+}
