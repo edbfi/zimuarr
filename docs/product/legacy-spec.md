@@ -8,7 +8,10 @@
 > repository) and, in "Deployment shape", the separate API and worker roles, the multi-process
 > deployment and the server-grade relational store (the rewrite runs one process on embedded Turso:
 > D4, D5 and D16). The durable claims, leases and no-duplicate-dispatch requirements still apply. The
-> visual language this text leaves open is now [DESIGN.md](../../DESIGN.md). Sections are deleted as
+> visual language this text leaves open is now [DESIGN.md](../../DESIGN.md). Light appearance
+> ("Visual direction, density and theming") is deferred, not dropped: the design seed is dark-first,
+> and its colour tokens sit behind a colour-mode condition so a light theme can follow later without
+> a flash of the wrong theme. Sections are deleted as
 > approved `docs/SPEC-<id>.md` files cover them, and the file goes once nothing is left (AGENTS.md,
 > cleanup procedures).
 
