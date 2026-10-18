@@ -172,7 +172,8 @@ product modules come later, each through an owner-approved `docs/SPEC-<id>.md`.
 - `prek run --all-files --hook-stage manual`: every check CI runs, Biome included.
 
 **Boundaries.**
-- No application code before an approved `docs/SPEC.md` and task list (the gates above).
+- No application code or application dependencies before an approved `docs/SPEC.md` and task list (the
+  gates above); the tooling-only `package.json` holds Biome only.
 - The legacy spec describes behaviour to keep, not the technology: its header names the superseded
   sections.
 - Never bring code over from `legacy-old/v1`; rebuild from the spec.
