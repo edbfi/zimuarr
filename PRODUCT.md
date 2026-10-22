@@ -10,7 +10,7 @@ web
 
 ## Users
 
-Operational shell: 224px sidebar Dashboard, Inventory, Policies, Plans, Activity, Quarantine, Budgets, Providers, System, Settings. Global Pause translations at upper right. v1 all authenticated operators are admins; 'operator' and 'admin' here are task perspectives, not invented permission roles.
+Operational shell: 224px sidebar Dashboard, Inventory, Policies, Plans, Activity, Quarantine, Budgets, Providers, System, Settings. Global Pause translations at upper right. One owner account runs the instance; 'operator' and 'admin' here are task perspectives, not invented permission roles.
 
 ## Primary tasks
 
@@ -25,8 +25,6 @@ Operational shell: 224px sidebar Dashboard, Inventory, Policies, Plans, Activity
 
 ## Positioning
 
-> **Proposed, not yet confirmed by the owner.** Inferred from docs/product/legacy-spec.md, AGENTS.md, PRODUCT.md.
-
 The claim is a guarantee, not more AI features: a translation is either provably complete or it did not happen. Bazarr's own external-translator hook is fire-and-forget. It does not record why a translation was made, from which source or with which model, and it accepts partial output as success. Zimuarr adds the missing control plane:
 
 - **Declarative, continuous reconciliation.** Operators declare translation policies. Zimuarr keeps comparing that desired state with what Bazarr reports and turns every gap or drift into an explained plan, instead of running one-off jobs.
@@ -36,13 +34,11 @@ The claim is a guarantee, not more AI features: a translation is either provably
 
 ## Operating Context
 
-> **Proposed, not yet confirmed by the owner.** Inferred from docs/product/legacy-spec.md, docs/decisions.md, README.md, AGENTS.md, .impeccable/surfaces/route-setup-bazarr.md, .impeccable/surfaces/route-dashboard.md, .impeccable/surfaces/route-quarantine-case.md.
-
-- **Where it runs.** A self-hosted media stack: Sonarr and Radarr manage series and movies, and Bazarr fetches subtitles and writes the files. Zimuarr connects to one or more Bazarr instances. It never talks to Sonarr or Radarr directly; it handles their identifiers only because Bazarr's contract uses them. Behaviour across instances (the same media on two instances, shared budgets) is unspecified.
+- **Where it runs.** A self-hosted media stack: Sonarr and Radarr manage series and movies, and Bazarr fetches subtitles and writes the files. Zimuarr connects to one or more Bazarr instances from the first release, each with its own key, limits and breakers. It never talks to Sonarr or Radarr directly; it handles their identifiers only because Bazarr's contract uses them. Behaviour across instances (the same media on two instances, shared budgets) is still to be decided in the spec.
 - **How it is installed.** A single self-hosted instance: one container, one process and one HTTP port, with an embedded database on a persistent data volume (D4, D5, D16). Sign-in must work on a plain home network as well as behind an encrypting reverse proxy. Bazarr's callback is held open for up to Bazarr's client timeout (currently thirty minutes), so every proxy on that path must allow long requests, and the callback endpoint must be safe to expose when Bazarr runs on a different network.
 - **How Bazarr is wired in.** Bazarr's external translator is a single global setting, so the operator points it at Zimuarr with the address and per-instance key Zimuarr issues. Zimuarr then cannot coexist with Bazarr's built-in translators on that instance. Bazarr strips source markup such as italics and positioning before it calls, and Zimuarr cannot preserve it. Observation polls Bazarr because Bazarr has no change feed, and it stays incremental, paginated and rate-limited for large personal libraries (tens of thousands of episodes).
 - **Providers the operator brings.** Operators configure their own AI translation providers, credentials and models. Subtitle text goes to those providers; beyond provider and Bazarr calls, no telemetry leaves the instance.
-- **The working rhythm.** First run creates the administrator, connects Bazarr, checks its version, issues the callback key, verifies Bazarr points at Zimuarr and runs a self-test round trip. The instance then starts observation-only. The operator adds a provider and model, writes a policy, previews the plan and only then activates it. After that, routine work is reading classified subtitle state on the dashboard, reviewing quarantine cases, watching budgets and pausing when needed. Desktop comes first, with mobile web check-ins for the dashboard, global pause and quarantine detail.
+- **The working rhythm.** First run creates the owner account, connects Bazarr, checks its version, issues the callback key, verifies Bazarr points at Zimuarr and runs a self-test round trip. The instance then starts observation-only. The operator adds a provider and model, writes a policy, previews the plan and only then activates it. After that, routine work is reading classified subtitle state on the dashboard, reviewing quarantine cases, watching budgets and pausing when needed. Desktop comes first. Mobile web is a real but secondary use: checking the dashboard, pausing and reviewing quarantine.
 
 ## Product requirements
 
@@ -58,18 +54,15 @@ Polar Control. Deep polar blue, seafoam primary actions, ice-blue informational 
 
 ## Evidence on Hand
 
-> **Proposed, not yet confirmed by the owner.** Inferred from AGENTS.md, README.md, DESIGN.md, docs/product/legacy-spec.md, docs/decisions.md, docs/design/, tests/fixtures/demo-fixtures.json, .impeccable/surfaces/, LICENSE.
-
 What exists:
 
 - **Product source:** [docs/product/legacy-spec.md](docs/product/legacy-spec.md), the imported pre-rewrite specification. Two parts were checked against the source code of the external systems rather than guessed, and were accurate when written: the predecessor failure modes and Bazarr's undocumented, unversioned external-translator wire contract. Everything else in it is intended behaviour.
-- **Decisions:** [docs/decisions.md](docs/decisions.md), with D1–D11 decided and D12–D16 open. The only runtime evidence so far is one focused Drizzle and Turso rollback-isolation check (D14).
+- **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions. The only runtime evidence so far is one focused Drizzle and Turso rollback-isolation check (D14).
 - **Design mockups:** ten generated raster boards in `docs/design/screens/` (`01-entry-and-onboarding.webp` to `10-states-and-components.webp`), plus the selected direction reference `docs/design/references/polar-control.webp`. They guide composition only; their text, numbers, icons and incidental actions are illustrative (see each brief's raster corrections).
 - **Seed tokens:** `docs/design/tokens.json` and `docs/design/tokens.css`, a proposed seed that matches DESIGN.md.
 - **Surface briefs:** nine proposed route briefs in `.impeccable/surfaces/` (login, Bazarr setup, dashboard, inventory item, policy, quarantine case, system, provider settings, budgets).
 - **Demo data:** [tests/fixtures/demo-fixtures.json](tests/fixtures/demo-fixtures.json), a fictional historical snapshot (2025-10-15) with classification counts, budget figures, a quarantine case and the fictional provider "Demo Translate" with fictional prices.
-- **License:** `LICENSE` (AGPL-3.0). Per the legacy spec, the web UI links to the corresponding source from the first release.
-- **History:** the previous version on the `legacy-old/v1` branch, for reference only; no code is brought over.
+- **License:** `LICENSE` (AGPL-3.0). The web UI links to the corresponding source from the first release.
 
 What does not exist, and must not be invented:
 
@@ -80,15 +73,14 @@ What does not exist, and must not be invented:
 - No real integration logos or marks for Bazarr, Sonarr, Radarr or any provider in the repo. Do not reproduce generated connector logos.
 - No screenshots of a real interface, and no pricing, hosted offering or support terms for Zimuarr itself.
 - No backup and restore procedure yet (D15).
+- No evidence from the previous version: the `legacy-old/v1` branch is behaviour reference only, and no code is brought over.
 
 ## Product Principles
 
-> **Proposed, not yet confirmed by the owner.** Inferred from docs/product/legacy-spec.md, PRODUCT.md, DESIGN.md, AGENTS.md.
-
 1. **Provably complete or it did not happen.** Partial output is never success, and an empty response never stands in for a finished translation. In-progress telemetry never replaces durable verification: Verified means Bazarr confirmed the complete result.
-2. **Nothing spends or overwrites without a deliberate decision.** New connections and policies start observation-only; the preview uses the same planner as dispatch; safety decisions and budget reservations happen before any provider cost; global pause is always available. Unmanaged and manually edited subtitles stay protected unless a policy or approval explicitly allows replacing them.
+2. **Nothing spends or overwrites without a deliberate decision.** New connections and policies start observation-only; the preview uses the same planner as dispatch; safety decisions and budget reservations happen before any provider cost; global pause is always available; retries never create duplicate work or duplicate cost. Unmanaged and manually edited subtitles stay protected unless a policy or approval explicitly allows replacing them.
 3. **Every decision is explained, every artifact is traceable.** Plans give a reason for each action; refusals name the rule, window, cap, budget, breaker or protection behind them; managed subtitles carry full provenance, and staleness follows changed inputs, never age. When in doubt, refuse and explain.
-4. **Work with Bazarr, never around it.** Bazarr is not modified and keeps owning media and subtitle files. Its undocumented contract is pinned by tests, gated by version at registration and watched for drift. Retries never create duplicate work or duplicate cost.
+4. **Work with Bazarr, never around it.** Bazarr is not modified and keeps owning media and subtitle files. Its undocumented contract is pinned by tests, gated by version at registration and watched for drift.
 5. **The server decides; the interface presents.** Classifications, admission verdicts, status transitions and budget arithmetic come from the backend. The UI shows them and never re-derives them.
 
 ## Accessibility and inclusion
@@ -99,4 +91,4 @@ Keyboard access throughout, visible focus, labelled inputs, text plus icon for s
 
 Read [the legacy product specification](docs/product/legacy-spec.md) for domain behavior and current gaps. Routes in this handoff describe proposed information architecture, not implemented endpoints.
 
-This application is a planned control plane. Operator and admin labels describe tasks in the same authenticated workspace; no member portal or new permission roles are introduced.
+This application is a planned control plane. Operator and admin labels describe tasks of the one owner account; no member portal or further roles are introduced.
