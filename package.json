@@ -1,13 +1,29 @@
 {
 	"name": "zimuarr",
 	"private": true,
+	"version": "0.0.1",
 	"license": "AGPL-3.0-only",
 	"type": "module",
 	"packageManager": "bun@1.4.3",
 	"scripts": {
-		"lint": "biome check"
+		"prepare": "bun --bun svelte-kit sync",
+		"dev": "bun --bun vite dev",
+		"build": "bun --bun vite build",
+		"preview": "bun ./build",
+		"check": "bun --bun svelte-kit sync && bun --bun svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+		"lint": "bun --bun biome check"
+	},
+	"imports": {
+		"#lib/*": "./src/lib/*"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.6.2"
+		"@biomejs/biome": "2.6.2",
+		"@sveltejs/adapter-bun": "1.0.0",
+		"@sveltejs/kit": "3.1.0",
+		"@sveltejs/vite-plugin-svelte": "7.3.1",
+		"svelte": "5.57.2",
+		"svelte-check": "4.7.7",
+		"typescript": "6.0.3",
+		"vite": "8.3.5"
 	}
 }
