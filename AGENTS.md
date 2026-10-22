@@ -57,7 +57,9 @@ stacks and package managers; treat them as illustrations, never as instructions.
 ### Workflow
 
 **A feature starts with a spec.** No feature code without an approved spec, a plan and a task list.
-Invoke each skill by name; its `SKILL.md` is in `.agents/skills/<skill>/`.
+Invoke each skill by name; its `SKILL.md` is in `.agents/skills/<skill>/`. Every phase follows
+[Code structure](#code-structure): specs and plans name files in its layout, builds keep to it
+and review checks it.
 
 | Phase | Skill | Artifact |
 |---|---|---|
@@ -79,8 +81,9 @@ Also installed, for when their description fits: `context-engineering`,
    and always by the review rules below, which win where they differ.
 
 **Spec boundaries.**
-- **Always:** follow the approved spec and task list; write the test first; run prek and the repo's
-  tests before each commit; keep each fact in one place; validate external input at runtime.
+- **Always:** follow the approved spec, the task list and Code structure; write the test first;
+  run prek and the repo's tests before each commit; keep each fact in one place; validate external
+  input at runtime.
 - **Ask first:** new dependencies; database schema changes; CI, prek, Biome or Dependabot changes;
   scope beyond the spec; deviating from DESIGN.md tokens or a surface brief.
 - **Never:** commit secrets; edit installed skills; weaken a test or hook to get to green; delete a
@@ -100,6 +103,48 @@ Also installed, for when their description fits: `context-engineering`,
   the `pr-policy` run of the last title or body edit has finished. A stacked PR gets it only after
   its parent merged and it targets `main`.
 - The PR body records the review outcome (findings with verdicts) and the final head's checks.
+
+### Code structure
+
+Hard principles, not size limits. No tool counts lines or files, because a cap forces arbitrary
+splits that are worse than a long, coherent file. Review enforces these.
+
+- **Same skeleton in every app.** Role folders are identical across the edbfi apps:
+  `lib/server/{db,providers,services,jobs,http,config,security,logging}/`,
+  `lib/components/{ui,layout,<feature>}/` and `lib/shared/`. A folder exists only once it holds a
+  real file. A new role folder is a decision (`docs/decisions.md`) and goes into every app.
+- **One purpose per file.** The test is reasons to change, not verbs: if two unrelated changes
+  would both land in a file, split it. One component, service, job, or schema aggregate (its
+  tables and relations) per file; a route file keeps all its handlers, `load` and `actions`.
+  Private helpers that only that thing uses stay with it.
+- **Share, but with a named home.** Keep each rule in one place, but extract only behaviour that
+  is truly shared, never code that merely looks alike. Name files after what they hold
+  (`format-duration.ts`, `plex/responses.ts`), never after their shape (`utils`, `helpers`,
+  `common`, `misc`). Code used by one domain stays in it; code used by several moves to the lowest
+  folder above them: server-only code under `lib/server/<what>/`, browser-safe code under
+  `lib/shared/<what>/` (no secrets, env or server imports).
+- **Folders group by domain.** Below the role folders, group by domain
+  (`services/subscribers/provision/`). Add a subfolder when files form groups; a single file
+  doesn't get a folder of its own. A component used by one route sits next to that route; one used
+  by several moves to `lib/components/<feature>/`.
+- **The folder says where; the name says what.** Kebab-case files that don't repeat the folder
+  (`providers/plex/client.ts`, not `plex-client.ts`); a folder's one entry file may carry the
+  folder's name. Components are PascalCase and may repeat it (`SubscriberCard.svelte`).
+  `.svelte.ts` modules are kebab-case. No hand-written `index.ts` that only re-exports; a compound
+  component may have one entry that names its parts.
+- **Imports only go downwards.** `routes/`, `hooks.server.ts` and `jobs/` → `services/` →
+  `providers/` and `db/` → `http/` and `security/` → `logging/` → `config/`. Routes, hooks and
+  jobs stay thin and call services, never a provider or `db/` directly. Services may use other
+  services; providers and `db/` never import each other or anything above them. `lib/shared/`
+  imports nothing else from `lib/` and anything may import it; `lib/components/` is imported only
+  by routes and other components. Browser code never imports server code.
+- **The framework wins.** SvelteKit's files keep their names (`+page.svelte`, `+server.ts`,
+  `+page.server.ts`, `hooks.server.ts`, `app.d.ts`, `./$types`), and generated code is exempt.
+- **Tests sit next to their source** (`client.ts` + `client.test.ts`). In `routes/` drop the `+`,
+  which SvelteKit reserves: `+server.ts` + `server.test.ts`. End-to-end tests go in `tests/e2e/`.
+- **Size is a question, not a verdict.** A long file or crowded folder means "does this have more
+  than one purpose?" If not, it stays. The review skill's size signal is this question, not a
+  blocker.
 
 ### Design
 
