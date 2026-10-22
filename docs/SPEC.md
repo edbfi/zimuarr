@@ -1,7 +1,7 @@
 # Spec: zimuarr
 
-**Status:** the ground floor (skeleton) is specified here and approved by the orchestrator
-(2026-10-22). Product modules aren't specified yet (see the capability map).
+**Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
+(2026-10-22) and built. Product modules aren't specified yet (see the capability map).
 
 ## Objective
 
@@ -24,13 +24,13 @@ module id exists yet.
 
 ## Tech stack
 
-The stack decisions are in [decisions.md](decisions.md) (D1–D11). The skeleton uses the package set
-and versions of the other rewrite apps' skeletons (edbfi/zondarr#306) and locks what it resolves;
-after that, `package.json` and `bun.lock` are the source.
+The stack decisions are in [decisions.md](decisions.md) (D1–D11). Versions are exact pins in
+`package.json` (Bun from its `packageManager` field) and `bun.lock`; Dependabot moves them. Every
+package is a dev dependency, so adapter-bun bundles it and `bun ./build` needs no `node_modules`.
 
 | Part | Package |
 |---|---|
-| Runtime and package manager | Bun (`packageManager: "bun@1.4.3"`) |
+| Runtime and package manager | Bun |
 | Language | `typescript` (6.x) |
 | UI framework | `svelte` / `@sveltejs/kit` |
 | Build | `vite` / `@sveltejs/vite-plugin-svelte` |
@@ -40,16 +40,22 @@ after that, `package.json` and `bun.lock` are the source.
 | Type check | `svelte-check` |
 | Unit tests | `vitest` (`node` environment); `happy-dom` joins with the first component test |
 | e2e | `@playwright/test` (Chromium) |
-| Lint and format | `@biomejs/biome` (already on main) |
+| Lint and format | `@biomejs/biome` |
 
-Setup facts already proven for this stack:
-- SvelteKit 3 is configured through the Vite plugin, and its library alias is `#lib` (a
-  `package.json` `imports` entry), not `$lib`.
-- `svelte-kit sync` runs before Panda's codegen.
-- Package subpath imports need explicit file targets.
+Setup facts for this stack:
+- SvelteKit 3 is configured through its Vite plugin (`vite.config.ts`); there's no
+  `svelte.config.js`. `tsconfig.json` extends `$app/tsconfig`, which `svelte-kit sync` generates.
+- Package subpath imports replace `$lib` and need explicit file targets: `#lib/*` maps to
+  `./src/lib/*` and imports name the file with its extension (`#lib/server/services/health.ts`);
+  `#styled-system/*` maps to the generated `./styled-system/*/index.js`.
+- `svelte-kit sync` runs before Panda's codegen, in `prepare` and in `check`.
+- The Panda Vite plugin appends the generated CSS to the stylesheet that declares the layer order
+  (`src/app.css`), and `transform: true` turns static `css()` calls into class strings at build
+  time.
 - Hook types come from `@sveltejs/kit/hooks`.
 - Tools run under Bun with `--bun`; a lifecycle script (`prepare`) calls each bin as
   `bun --bun <bin>`, because `bun ci` doesn't apply `--bun` to lifecycle scripts.
+- Bun blocks `@parcel/watcher`'s install script (it builds with Node); Panda works without it.
 
 ## Commands
 
@@ -58,18 +64,17 @@ Setup facts already proven for this stack:
 | `bun ci` | frozen install; `prepare` runs `svelte-kit sync` and Panda codegen |
 | `bun run --bun dev` | Vite dev server |
 | `bun run --bun build` | production build through adapter-bun into `build/` |
-| `bun run --bun preview` | runs the built server (`bun ./build`) |
-| `bun run --bun check` | `svelte-kit sync`, then `svelte-check` with zero errors and warnings |
+| `bun run --bun preview` | runs the built server (`bun ./build`; `PORT`, default 3000, and `HOST`) |
+| `bun run --bun check` | `svelte-kit sync`, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch) |
-| `bun run --bun smoke` | Playwright e2e smoke against the built server |
+| `bun run --bun smoke` | Playwright e2e smoke; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
 | `bun run --bun lint` | `biome check` |
 | `prek run --all-files --hook-stage manual` | everything CI's `checks` job runs |
 
 ## Project structure
 
-The skeleton creates only folders that hold a real file, laid out by
-[Code structure](../AGENTS.md#code-structure). AGENTS.md gains the tree as its Structure section
-when this work stream closes.
+The folder tree is in [AGENTS.md](../AGENTS.md#structure) and its rules in
+[Code structure](../AGENTS.md#code-structure).
 
 ## Code style
 
@@ -88,8 +93,12 @@ export const GET: RequestHandler = () => healthResponse();
 - [`panda.config.ts`](../panda.config.ts) holds every design token: colours, type styles,
   spacing, radii, layout sizes, breakpoints and motion durations, under the names DESIGN.md uses.
   It replaced the seed token files that came with the design package.
-- Colours are semantic tokens behind a colour-mode condition, dark by default; light values can be
-  added later without touching components.
+- Colours are semantic tokens behind a colour-mode condition (`_dark`), dark by default
+  (`class="dark"` on `<html>` in `src/app.html`); light values can be added later without touching
+  components.
+- Only `@pandacss/preset-base` is loaded (utilities and conditions), so no preset palette competes
+  with the app's tokens, and `strictTokens` makes a raw value in `css()` a type error that `check`
+  reports.
 - The placeholder page uses only Panda tokens: no raw colour, size or font values in components. Its
   heading uses the `h1` style (Public Sans).
 
@@ -98,18 +107,22 @@ export const GET: RequestHandler = () => healthResponse();
 - **Unit (Vitest, `node` environment):** one test, for the `/healthz` handler: status 200, body
   `ok`, `cache-control: no-store`. Component tests use happy-dom when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** one smoke test against the built adapter-bun server.
-  It checks that `/` returns 200, shows the placeholder heading, hydrates, applies the Panda
-  background token and logs no console errors, and that `/healthz` returns `ok`.
+  It checks that `/` returns 200, shows the placeholder heading, hydrates (it waits for the
+  `data-hydrated` attribute the root layout sets when mounted), applies the Panda background token
+  and `h1` text style and logs no console errors, and that `/healthz` returns `ok`.
 - prek runs the unit tests (`tests` hook); CI's `smoke` job builds and runs the smoke test.
 
 ## CI and repo tooling
 
-zimuarr is already a Bun web repo with Biome, `biome-migrate`, `check-peers`, the Bun Dependabot
-block and the `checks` and `audit` jobs. This work adds what an application needs:
-- `.pre-commit-config.yaml` gains the template's `tests` hook and a `check` hook
-  (`bun run --bun check`).
-- `.github/workflows/ci.yml` gains the template's `smoke` job (with the Playwright browser install)
-  behind `ci-ok`, with the failing `node`/`npm`/`npx` shims on `PATH`.
+zimuarr is a Bun web repo with edbfi-ci's Bun web templates:
+- `.pre-commit-config.yaml`: Biome, `biome-migrate`, `check-peers`, the `tests` hook, plus a
+  `check` hook (`bun run --bun check`), keeping the vendored-skill exclusions and the `docs-set`
+  hook.
+- `.github/workflows/ci.yml`: `checks` (prek), `smoke` (Chromium install, build, smoke) and `audit`
+  (outside PRs); `checks` and `smoke` sit behind `ci-ok`, every job that installs runs with failing
+  `node`, `npm` and `npx` on `PATH`, and the weekly run is `7 5 * * 0`.
+- `.github/dependabot.yml` covers `github-actions`, `pre-commit` and `bun`, and
+  `.github/workflows/biome-migrate.yml` applies Biome migrations to Dependabot's Biome PRs.
 
 ## Boundaries
 
@@ -130,7 +143,6 @@ block and the `checks` and `audit` jobs. This work adds what an application need
    uses a raw colour, size or font value.
 4. Only folders with real files exist; `#lib` resolves in app code, tests and `svelte-check`.
 5. CI on the PR runs `checks`, `smoke` and `ci-ok` green; `audit` runs outside PRs.
-6. AGENTS.md has its structure section, and `tasks/` is deleted when the work stream closes.
 
 ## Ground-floor choices
 
