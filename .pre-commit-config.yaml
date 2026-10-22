@@ -73,6 +73,18 @@ repos:
         stages: [manual]
         pass_filenames: false
         always_run: true
+      - id: tests
+        name: Unit tests
+        entry: bun run --bun test
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: check
+        name: Type check
+        entry: bun run --bun check
+        language: system
+        pass_filenames: false
+        always_run: true
 
   # Rewrite apps only (comradarr, obzorarr, otpravkarr, zimuarr, zondarr): drop elsewhere.
   - repo: local
