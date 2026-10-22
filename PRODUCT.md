@@ -57,7 +57,7 @@ Polar Control. Deep polar blue, seafoam primary actions, ice-blue informational 
 What exists:
 
 - **Product source:** [docs/product/legacy-spec.md](docs/product/legacy-spec.md), the imported pre-rewrite specification. Two parts were checked against the source code of the external systems rather than guessed, and were accurate when written: the predecessor failure modes and Bazarr's undocumented, unversioned external-translator wire contract. Everything else in it is intended behaviour.
-- **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions. The only runtime evidence so far is one focused Drizzle and Turso rollback-isolation check (D14).
+- **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions, including what has been validated so far.
 - **Design mockups:** ten generated raster boards in `docs/design/screens/` (`01-entry-and-onboarding.webp` to `10-states-and-components.webp`), plus the selected direction reference `docs/design/references/polar-control.webp`. They guide composition only; their text, numbers, icons and incidental actions are illustrative (see each brief's raster corrections).
 - **Seed tokens:** `docs/design/tokens.json` and `docs/design/tokens.css`, a proposed seed that matches DESIGN.md.
 - **Surface briefs:** nine proposed route briefs in `.impeccable/surfaces/` (login, Bazarr setup, dashboard, inventory item, policy, quarantine case, system, provider settings, budgets).
@@ -66,7 +66,7 @@ What exists:
 
 What does not exist, and must not be invented:
 
-- No application code, running system, deployment, container image or validated behaviour yet; no `docs/SPEC.md` and no `docs/research/`.
+- No application code, running system, deployment, container image or validated behaviour yet.
 - No Bazarr contract spike or contract tests yet. Fingerprint correlation, the deadline model and concurrent-episode disambiguation are unproven.
 - No users, customers, testimonials, case studies, press, adoption or usage figures, benchmarks or performance measurements.
 - No real provider names, models or prices: every provider, price and figure in the fixtures and mockups is fictional.
@@ -77,8 +77,8 @@ What does not exist, and must not be invented:
 
 ## Product Principles
 
-1. **Provably complete or it did not happen.** Partial output is never success, and an empty response never stands in for a finished translation. In-progress telemetry never replaces durable verification: Verified means Bazarr confirmed the complete result.
-2. **Nothing spends or overwrites without a deliberate decision.** New connections and policies start observation-only; the preview uses the same planner as dispatch; safety decisions and budget reservations happen before any provider cost; global pause is always available; retries never create duplicate work or duplicate cost. Unmanaged and manually edited subtitles stay protected unless a policy or approval explicitly allows replacing them.
+1. **Provably complete or it did not happen.** When completeness can't be proven, the result is rejected, never accepted as good enough. The completeness and Verified rules are in Product requirements.
+2. **Nothing spends or overwrites without a deliberate decision.** The preview uses the same planner as dispatch; safety decisions and budget reservations happen before any provider cost; retries never create duplicate work or duplicate cost. Unmanaged and manually edited subtitles are replaced only when a policy or approval explicitly allows it. The observation-only start and global pause are in Product requirements.
 3. **Every decision is explained, every artifact is traceable.** Plans give a reason for each action; refusals name the rule, window, cap, budget, breaker or protection behind them; managed subtitles carry full provenance, and staleness follows changed inputs, never age. When in doubt, refuse and explain.
 4. **Work with Bazarr, never around it.** Bazarr is not modified and keeps owning media and subtitle files. Its undocumented contract is pinned by tests, gated by version at registration and watched for drift.
 5. **The server decides; the interface presents.** Classifications, admission verdicts, status transitions and budget arithmetic come from the backend. The UI shows them and never re-derives them.
