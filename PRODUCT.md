@@ -81,7 +81,7 @@ What does not exist, and must not be invented:
 1. **Provably complete or it did not happen.** When completeness can't be proven, the result is rejected, never accepted as good enough. The completeness and Verified rules are in Product requirements.
 2. **Nothing spends or overwrites without a deliberate decision.** The preview uses the same planner as dispatch; safety decisions and budget reservations happen before any provider cost; retries never create duplicate work or duplicate cost. Unmanaged and manually edited subtitles are replaced only when a policy or approval explicitly allows it. The observation-only start and global pause are in Product requirements.
 3. **Every decision is explained, every artifact is traceable.** Plans give a reason for each action; refusals name the rule, window, cap, budget, breaker or protection behind them; managed subtitles carry full provenance, and staleness follows changed inputs, never age. When in doubt, refuse and explain.
-4. **Work with Bazarr, never around it.** Bazarr is not modified and keeps owning media and subtitle files. Its undocumented contract is pinned by tests, gated by version at registration and watched for drift.
+4. **Work with Bazarr, never around it.** Bazarr is not modified and keeps owning media and subtitle files. zimuarr orchestrates translations as Bazarr's companion and never handles files itself (D23). Bazarr's undocumented contract is tested against its latest stable release, checked by version at registration (D22) and watched for drift.
 5. **The server decides; the interface presents.** Classifications, admission verdicts, status transitions and budget arithmetic come from the backend. The UI shows them and never re-derives them.
 
 ## Accessibility and inclusion
