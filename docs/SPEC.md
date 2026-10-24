@@ -125,7 +125,10 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
 ### Open decisions each module closes
 
 - `contract-spike`: the pinned Bazarr version and the supported range, whether correlation by source
-  path holds (D20), and the exact normalisation of Bazarr's plaintext lines.
+  path holds (D20), the exact normalisation of Bazarr's plaintext lines, and how the app server
+  holds a callback for Bazarr's whole timeout. Bun closes a connection idle for 10 seconds by
+  default, and adapter-bun caps that setting at 255 seconds and lifts it (`server.timeout(request,
+  0)`) only for event streams.
 - `i18n`: the validation that D19 lists (pinned versions, the adapter-bun build, a Weblate round
   trip).
 - `setup`: D14 (Turso and Drizzle versions), the logging library half of D13, and D15's backup
