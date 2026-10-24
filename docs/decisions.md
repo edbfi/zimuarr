@@ -340,15 +340,15 @@ older. Its contract tests run against that release; when a new stable release sh
 the app move to it in the app's next release, and support for the one before goes. The app adds no
 code for older versions and no workarounds for upstream bugs that a later release may fix: a bug
 that harms users is reported upstream and named in the app's docs. A service on any other version
-(older, newer than the one tested, a prerelease, or a version the app can't read) keeps working,
-and the app says plainly in setup and on its health page which version it is tested with.
-Responses are still validated, so a real difference in the API shows up as an error, not as wrong
-data.
+(older, newer than the one tested, a prerelease, or a version the app can't read) keeps working, and
+the app tells the owner plainly which version it is tested with, in setup and on the owner's own
+status screens; the public health endpoint never shows a version. Responses are still validated, so
+a real difference in the API shows up as an error, not as wrong data.
 
 In zimuarr the service is Bazarr: 1.6.2 today. `bazarr-instances` compares the version Bazarr
-reports (`GET /api/system/status`) with it, and `system` keeps the warning visible. This replaces
-the supported Bazarr version range of the legacy spec ("Bazarr — the highest-risk dependency",
-"Failure handling") and its refusal of a version outside it.
+reports (`GET /api/system/status`) with it, and `system` keeps the warning visible on `/system`.
+This replaces the supported Bazarr version range of the legacy spec ("Bazarr — the highest-risk
+dependency", "Failure handling") and its refusal of a version outside it.
 
 Why: the owner doesn't want a backlog of backwards compatibility in any app (owner decision). Code
 for old versions and for upstream bugs is seldom removed once it's in, and each workaround outlives
