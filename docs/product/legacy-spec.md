@@ -20,8 +20,10 @@
 > predecessor names to the callback boundary. D22 replaces the supported Bazarr version range with
 > the latest stable release. D23 leaves files to Bazarr and settles how approved and rolled-back
 > output reaches it (open questions 5 and 6) and the hints for observation (open question 10). D21
-> settles open question 12. Sections are deleted as approved `docs/SPEC-<id>.md` files cover
-> them, and the file goes once nothing is left (AGENTS.md, cleanup procedures).
+> settles open question 12. D24 sets the provider kinds, fallback chains, context and
+> proofreading, settles most of open question 7 and narrows "no duplicate cost" for provider calls
+> whose answer was lost. Sections are deleted as approved `docs/SPEC-<id>.md` files cover them, and
+> the file goes once nothing is left (AGENTS.md, cleanup procedures).
 
 ## Status: planned only, nothing built
 
