@@ -374,8 +374,11 @@ for how files are handled, zimuarr follows it instead of adding its own:
 - **Bazarr's upgrades.** With its defaults, Bazarr's upgrade task deletes a translated subtitle in
   its first 7 days when a provider offers a better-scoring download. Connecting an instance
   therefore requires one of two setups in Bazarr: translated subtitles scored at 100 with "upgrade
-  manually downloaded" left on, or upgrades turned off. Bazarr's settings API returns these, and
-  its translator type, address and Lingarr key, so connecting checks them all without a test
+  manually downloaded" left on, or upgrades turned off. Without one, the instance connects but
+  stays observation-only, and zimuarr dispatches nothing to it; if the setting changes later,
+  dispatch to that instance stops until it is back. Unlike a version (D22), this blocks, because
+  the risk is Bazarr deleting paid translations. Bazarr's settings API returns these, and its
+  translator type, address and Lingarr key, so connecting checks them all without a test
   translation. `verification` still notices when Bazarr replaces a managed subtitle.
 - **Verified.** Bazarr rewrites what zimuarr answers: it adds a "translated with Lingarr" cue (a
   Bazarr setting), re-sorts the cues, drops empty and zero-length ones and merges repeated line
