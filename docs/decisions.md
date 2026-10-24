@@ -300,10 +300,24 @@ question 14).
   the first line of a multi-line translation. ASS, SSA and VTT can follow, each with its own
   contract tests (owner decision).
 
-Callbacks zimuarr didn't plan, such as a Translate click in Bazarr's own interface, are rejected
-and recorded by default. Per instance, the owner can opt in to accept them under one chosen policy,
-with the same admission, budgets, validation and provenance as planned work (owner decision;
-legacy spec, open question 4).
+Callbacks zimuarr didn't plan, such as a Translate click in Bazarr's own interface, are accepted by
+default: Bazarr isn't a good translation engine, and zimuarr is, so a translation started in Bazarr
+should still be made by zimuarr (owner decision; legacy spec, open question 4, whose safe default
+was to reject). Per instance, the owner chooses which policy these callbacks run under, and can turn
+them off. With no session planned, admission, the budget reservation and the checks of the policy
+all happen when the callback arrives, and the provenance records that Bazarr started it. When the
+callback can't run (turned off, no policy chosen, the instance observation-only, including while
+D23's upgrade settings are missing, or admission refuses), zimuarr records it with the reason and
+answers with an error Bazarr doesn't retry. Observation-only means zimuarr pays for nothing on that
+instance, whoever starts the work; without the upgrade settings, Bazarr could delete the paid
+translation (D23).
+
+**The name stays Bazarr's.** Bazarr calls the translator Lingarr in its settings and history, and
+its translator-info setting adds a cue naming Lingarr to every translated subtitle (D23). zimuarr
+can't change either without a change to Bazarr, which can come later as an upstream proposal.
+Onboarding recommends turning the cue off. zimuarr adds no credit cue of its own: Bazarr only
+replaces the text at positions it sent, so a credit would have to overwrite a line of dialogue
+(owner decision).
 
 Why: the Lingarr endpoint is the translator contract Bazarr already ships, so answering it is how
 zimuarr works with an unmodified Bazarr, and the owner wants zimuarr compatible on the wire but
@@ -395,6 +409,111 @@ Why: the owner sees zimuarr as Bazarr's companion, whose purpose is orchestratin
 Bazarr already owns the files, their naming, the media server refreshes and the settings for all
 of them, so a second file handler would disagree with it. The upgrade and rewrite behaviour above
 was read from Bazarr 1.6.2's source (`subtitles/upgrade.py`, `translator_utils.py`).
+
+### D24. Translation providers, fallback chains, context and proofreading
+
+zimuarr translates through four kinds of provider, each a thin adapter plus a capability
+declaration (legacy spec "Provider capability model"): endpoints compatible with OpenAI Chat
+Completions, Anthropic Messages or [Open Responses](https://www.openresponses.org/), so hosted and
+local servers that speak one of them work by their address, and machine translation through DeepL,
+Google Cloud Translation and LibreTranslate. There is no plugin system, and raw request templates
+stay a permanent non-goal (owner decision).
+
+Besides the legacy spec's list, a capability declaration says:
+- which language pairs the provider translates;
+- how it uses context: whether it takes any, and whether the entries of one request share it
+  (DeepL translates each text of a batch on its own, with an optional context passage);
+- whether it can proofread, that is, correct a translation given the source beside it;
+- whether a lost answer can be recovered, or a call repeated without paying twice, through an
+  idempotency key or a stored response (as Open Responses offers).
+
+**Fallback chains.**
+- A policy names an ordered chain of provider profiles: provider, model, typed parameters and
+  prompt revision. The first is the primary.
+- One attempt uses one profile for every chunk, so a file never mixes models. A profile that can't
+  translate the language pair, or whose reservation the budget can't cover, is skipped with the
+  reason recorded, and the next one is tried.
+- Within an attempt, a timeout, 429 or server error is retried with backoff. Output that breaks
+  the schema or fails a chunk's checks gets repair requests for the failing lines only, on the same
+  profile. When those run out, the attempt ends and the next profile starts a new one. Output whose
+  assembled file fails the checks is quarantined, and the next profile gets an attempt. A provider
+  whose breaker is open, or that rejects the key, is skipped.
+- Per policy and for each profile in its chain, the owner sets the number of retries, the number of
+  repair requests, how often a call whose answer was lost may be repeated (once by default), and
+  whether failed checks move on to the next profile or fail the session (owner decision). Previews
+  show the chain, which profiles would be skipped and why.
+- Chunks paid for in a failed attempt are reused only by an attempt with the same profile.
+- When the chain runs out, Bazarr must fail the job and write nothing. zimuarr answers with an error
+  Bazarr doesn't retry; if the reply has already started (how the callback is held is
+  `contract-spike`'s question), it ends the reply with invalid JSON and answers Bazarr's retry at
+  once with that error. It never answers with an empty list, which Bazarr would take as a success
+  that keeps the source text (legacy spec "Failure mode 2").
+- An artifact's provenance points to the attempt that produced it; failed attempts stay listed with
+  their reasons.
+
+**Money.**
+- Admission reserves the first attempt and its proofreading, and every further call that can cost
+  money, a retry or repair included, needs its own reservation first. A ceiling for the whole
+  session, across all its attempts, comes on top of the per-attempt ceiling.
+- zimuarr records each provider call before sending it, so a restart can't forget it. A call whose
+  answer is lost (a timeout, or a restart before the answer was stored) counts as spent at its
+  reservation. Where the provider can recover the answer or recognise the repeat, zimuarr uses
+  that; otherwise it repeats the call within the owner's limit, so the translation still finishes,
+  and spend reports show the repeat (owner decision). This narrows "retries never create duplicate
+  cost" (PRODUCT.md, principle 2; legacy spec "Idempotency and caching") to every case where
+  zimuarr can know.
+
+**Context.**
+- Lines are grouped into chunks, one request each. A chunk's size is computed from everything the
+  request and its answer hold (prompt, glossary, media details, context lines, answer schema and
+  the room the answer needs), for each profile separately and again for proofreading. A line is
+  never cut; one that can't fit skips the profile.
+- Each chunk carries a set number of lines before and after it as context, marked not to be
+  translated, and its answer may hold only the chunk's own positions.
+- With source context, the default, the context lines are source text and chunks run in parallel.
+  With translated context, a policy option, the lines before a chunk come from the accepted
+  translation of the chunk before it, so chunks run in order; a repaired chunk sends the later
+  chunks that used it back for translation.
+- Media details are the series or movie title and the episode title from zimuarr's mirror (not
+  Bazarr's display title, which ends with the file name), plus the policy's glossary. They are
+  frozen for the session, and their hash is part of the provenance and of whether kept output can
+  be reused.
+- Machine translation gets context as its declaration says: DeepL receives the surrounding source
+  passage as its `context`, the neighbouring lines in the same batch included.
+- The number of context lines, the mode and the chunk sizing are part of the chunking-strategy
+  revision.
+
+**Proofreading.**
+- Optional per policy, and off by default until it proves better on real subtitles. A policy makes
+  it required (its failure fails the session) or best effort (its failure returns the first pass
+  and records why).
+- It is a second stage of the same session, after the first pass is assembled and has passed the
+  checks, and before Bazarr gets an answer. It runs on its own profile, which must declare that it
+  can proofread; saving the policy checks that. It gets source and translation pairs with the same
+  context, answers corrected lines for the same positions, and passes the same checks again, plus
+  checks that numbers, names and glossary terms survive. How much it changed is shown as a
+  warning, not a rule.
+- It has its own record (input and output hashes, profile, checks, calls and cost), linked to the
+  translation stage. Provenance records which stage produced the answer and whether proofreading
+  passed, failed or was skipped. Kept output is reused only when it meets the policy's current
+  proofreading setting. Once an answer is chosen it is frozen, so a retry gets the same text.
+- Proofreading subtitles already delivered is left out for now; it would need a new dispatch
+  answered from kept output (D23).
+
+**Time.** The 6 hours a session waits for its callback (D20) are apart from its working deadline,
+which starts at the first callback and isn't reset by Bazarr's retries. The deadline is shared
+between translation, fallback, proofreading and the answer, and best-effort proofreading stops early
+enough that the first pass can still be delivered. Bazarr runs several translations at once (its
+concurrent-jobs setting), so the per-provider concurrency in `admission` decides how many share a
+provider. `translation` sets the shares (legacy spec, open question 7).
+
+Why: one profile per attempt keeps a file's terminology consistent and its provenance simple,
+where the predecessor fell back line by line and mixed models within a file. Repairs on the same
+profile spare a full new translation for one bad chunk, as LLM-Subtrans does. Source context keeps
+chunks parallel within the deadline; translated context is the slower choice for consistency.
+Proofreading runs before the answer because Bazarr takes a translation only through its callback
+(D23). The owner wants the translation done rather than every repeat charge avoided, with control
+over how hard zimuarr tries (owner decision).
 
 ## Open
 
