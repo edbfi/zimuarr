@@ -257,8 +257,9 @@ except the onboarding instruction that names Bazarr's setting (owner decision). 
 legacy rule that the predecessor names never appear (legacy spec "What it deliberately does NOT
 do") to the callback boundary and that one instruction.
 
-What Bazarr 1.6.2 sends, read from its source (`lingarr_translator.py`); the contract spike pins it
-in tests against a real Bazarr:
+What Bazarr sends, read from the source of 1.6.2, the latest stable release (D22), and unchanged
+since 1.6.1 and on the 1.6.3 betas (`lingarr_translator.py`); the contract spike tests it against a
+real Bazarr:
 - `POST <endpoint>/api/translate/content`, with the key in `X-Api-Key`. Bazarr makes the key
   optional; zimuarr requires it and rejects every other caller.
 - A JSON body with `arrMediaId` (the Sonarr series id for episodes, the Radarr id for movies),
@@ -274,10 +275,30 @@ in tests against a real Bazarr:
 
 The subtitle paths are new since the legacy spec, which found no path in the payload and relied on
 the content fingerprint alone (legacy spec "Direction 2: Bazarr calls Zimuarr back"). zimuarr
-matches a callback to its session by instance key, language pair and source path, and confirms the
-match with the fingerprint; the spike proves both, and the fingerprint stays the fallback when a
-path is missing. The timeout and retry counts are Bazarr's current behaviour, not product
-decisions, so they are settings with these defaults (legacy spec, open question 14).
+matches a callback to its session by instance key, language pair, source path and destination
+path, and confirms the match with the fingerprint of the lines; the spike proves it. Bazarr sends
+the source path exactly as zimuarr dispatched it, and only the destination path tells apart a
+forced, a hearing-impaired and a normal subtitle made from the same source. Fingerprints follow how
+Bazarr builds its lines: HTML tags and `{…}` blocks removed, `\N` read as a line break, blank lines
+left out and positions counted over every cue. The timeout and retry counts are Bazarr's current
+behaviour, not product decisions, so they are settings with these defaults (legacy spec, open
+question 14).
+
+- **Retries join the running work.** A retry can arrive while zimuarr is still working on the
+  attempt before it: after a timeout, a server error, a reverse proxy's 502 or a 200 that isn't
+  valid JSON, Bazarr sends the same request again within seconds. The retry waits for that work, and
+  every waiting request gets the same full result (owner decision; legacy spec, open question 3).
+- **A dispatch is a request, not a promise.** Bazarr answers it with 204 and no job id, runs
+  translations in the same queue as its own searches (four jobs at a time by default) and loses
+  that queue when it restarts. A session waits up to 6 hours for its first callback, and finished
+  output is kept for 7 days, so a later dispatch of the same work (the same source lines and
+  revisions) is answered without a provider call. Money stays reserved until the provider work
+  ends, not until the callback does. The two periods are settings (owner decision; legacy spec,
+  open question 2, whose session states `translation` still decides).
+- **SRT only, for now.** Sources are SRT files, and Bazarr writes the translation as SRT. Bazarr's
+  lines can't be rebuilt from its API for an ASS file with comments, and its ASS writer keeps only
+  the first line of a multi-line translation. ASS, SSA and VTT can follow, each with its own
+  contract tests (owner decision).
 
 Callbacks zimuarr didn't plan, such as a Translate click in Bazarr's own interface, are rejected
 and recorded by default. Per instance, the owner can opt in to accept them under one chosen policy,
@@ -287,8 +308,8 @@ legacy spec, open question 4).
 Why: the Lingarr endpoint is the translator contract Bazarr already ships, so answering it is how
 zimuarr works with an unmodified Bazarr, and the owner wants zimuarr compatible on the wire but
 strictly its own thing. Bazarr changed this translator three times between August and September
-2026, so pinning its shape to a release, gating registration by version and testing the contract
-keep drift visible.
+2026, so contract tests against the latest stable release (D22), the version check at registration
+and the runtime drift detector keep drift visible.
 
 ### D21. Several Bazarr instances, each on its own
 
@@ -311,6 +332,69 @@ guessing, and independent instances keep every decision explainable (PRODUCT.md,
 wallet with optional ceilings per instance matches how the owner pays providers, while a second
 library can be held to less. This settles the question of several instances (PRODUCT.md "Where it
 runs"; legacy spec, open question 12).
+
+### D22. Other software: the latest stable release only
+
+Each edbfi app works with the latest stable release of every service it talks to, and with nothing
+older. Its contract tests run against that release; when a new stable release ships, the tests and
+the app move to it in the app's next release, and support for the one before goes. The app adds no
+code for older versions and no workarounds for upstream bugs that a later release may fix: a bug
+that harms users is reported upstream and named in the app's docs. A service on any other version
+(older, newer than the one tested, a prerelease, or a version the app can't read) keeps working, and
+the app tells the owner plainly which version it is tested with, in setup and on the owner's own
+status screens; the public health endpoint never shows a version. Responses are still validated, so
+a real difference in the API shows up as an error, not as wrong data.
+
+In zimuarr the service is Bazarr: 1.6.2 today. `bazarr-instances` compares the version Bazarr
+reports (`GET /api/system/status`) with it, and `system` keeps the warning visible on `/system`.
+This replaces the supported Bazarr version range of the legacy spec ("Bazarr — the highest-risk
+dependency", "Failure handling") and its refusal of a version outside it.
+
+Why: the owner doesn't want a backlog of backwards compatibility in any app (owner decision). Code
+for old versions and for upstream bugs is seldom removed once it's in, and each workaround outlives
+the upstream fix as code to maintain. Warning instead of refusing keeps users who update a week
+late working.
+
+### D23. A companion to Bazarr: Bazarr handles the files
+
+zimuarr orchestrates translations and leaves files to Bazarr (PRODUCT.md, principle 4; owner
+decision). It never writes, moves or deletes a subtitle file itself, and where Bazarr has a setting
+for how files are handled, zimuarr follows it instead of adding its own:
+
+- **Sources.** Bazarr's index decides which subtitles exist. An embedded track is a source when
+  Bazarr indexes it under its embedded-subtitle settings, and Bazarr extracts it itself; with SRT
+  only (D20), that means text (SubRip) tracks.
+- **Variants.** Whether a normal, forced or hearing-impaired subtitle is wanted comes from the
+  item's Bazarr language profile.
+- **Writing back.** Approved quarantine output and a rollback reach Bazarr the one way zimuarr
+  writes anything: zimuarr dispatches a new translation and answers its callback from the content
+  it kept, and only while the source is unchanged. zimuarr keeps each artifact's content and the
+  source it came from for this, and never uses Bazarr's upload (legacy spec, open questions 5 and 6,
+  whose approval rules `quarantine` and `upgrades` still decide).
+- **Bazarr's upgrades.** With its defaults, Bazarr's upgrade task deletes a translated subtitle in
+  its first 7 days when a provider offers a better-scoring download. Connecting an instance
+  therefore requires one of two setups in Bazarr: translated subtitles scored at 100 with "upgrade
+  manually downloaded" left on, or upgrades turned off. Without one, the instance connects but
+  stays observation-only, and zimuarr dispatches nothing to it; if the setting changes later,
+  dispatch to that instance stops until it is back. Unlike a version (D22), this blocks, because
+  the risk is Bazarr deleting paid translations. Bazarr's settings API returns these, and its
+  translator type, address and Lingarr key, so connecting checks them all without a test
+  translation. `verification` still notices when Bazarr replaces a managed subtitle.
+- **Verified.** Bazarr rewrites what zimuarr answers: it adds a "translated with Lingarr" cue (a
+  Bazarr setting), re-sorts the cues, drops empty and zero-length ones and merges repeated line
+  breaks. A managed subtitle is Verified when the file Bazarr indexed holds exactly the text and
+  timing of zimuarr's answer after those rules, not when the bytes match.
+- **Observation.** Bazarr's index is the truth, read by polling. Bazarr's live events (Socket.IO,
+  which needs no key, names each episode or movie it has just indexed) are hints to poll that item
+  sooner, never a substitute (legacy spec, open question 10, whose cadence `observation` still
+  decides).
+- **Shared files.** Instances that point at the same files, and other tools writing beside Bazarr,
+  are for Bazarr and the operator to handle; zimuarr doesn't detect or prevent them.
+
+Why: the owner sees zimuarr as Bazarr's companion, whose purpose is orchestrating translations.
+Bazarr already owns the files, their naming, the media server refreshes and the settings for all
+of them, so a second file handler would disagree with it. The upgrade and rewrite behaviour above
+was read from Bazarr 1.6.2's source (`subtitles/upgrade.py`, `translator_utils.py`).
 
 ## Open
 
