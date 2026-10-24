@@ -169,10 +169,11 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
 
 First-run setup's claim and account and two-factor steps, the Account tab, the Bazarr instances
 settings, the prompt, glossary and validation editors, the policy list, the Plans, Activity and
-Quarantine lists, the windows and caps settings, the upgrade, adoption and rollback actions, and the
-API keys section are needed (all are in the legacy spec or in PRODUCT.md's sidebar) but have no
-brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20). Each gets its brief, or
-its brief's change, before its module is specced.
+Quarantine lists, the windows and caps settings, the upgrade, adoption and rollback actions, the
+`/inventory` list and the API keys section are needed (all are in the legacy spec or in PRODUCT.md's
+sidebar) but have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), the
+`/settings/budgets` brief the ceilings per instance (D21), and the `/policies/[policy]` brief the
+instance scope (D21). Each gets its brief, or its brief's change, before its module is specced.
 
 ## Tech stack
 
