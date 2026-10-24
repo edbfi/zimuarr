@@ -4,21 +4,21 @@
 > **Legacy product specification**, imported from the pre-rewrite planning documentation. It
 > describes the intended behaviour, which the rewrite keeps unless an approved spec or decision
 > changes it. Its technology and deployment content is superseded by
-> [`docs/decisions.md`](../decisions.md): "Status: planned only, nothing built" (the state of the old
-> repository) and, in "Deployment shape", the separate API and worker roles, the multi-process
+> [`docs/decisions.md`](../decisions.md): "Status: planned only, nothing built" (the state of the
+> old repository) and, in "Deployment shape", the separate API and worker roles, the multi-process
 > deployment and the server-grade relational store (the rewrite runs one process on embedded Turso:
-> D4, D5 and D16). The durable claims, leases and no-duplicate-dispatch requirements still apply. The
-> visual language this text leaves open is now [DESIGN.md](../../DESIGN.md). Light appearance
-> ("Visual direction, density and theming") is deferred, not dropped: the design seed defines one dark palette,
-> and when its tokens move into the Panda config they go behind a colour-mode condition, so a light
-> theme can follow later without a flash of the wrong theme. The single administrator role and its
-> open questions ("Users, roles and permissions", open question 9) and onboarding step 1 are
-> superseded by D17, open question 13 by D18, and "encrypted at rest where practical" by D17's
-> `secrets`. Bazarr's translator contract ("Direction 2") is pinned by D20 to Bazarr 1.6.2, which
-> now sends the subtitle paths and waits 32 minutes, and D20 settles open question 4 and narrows the
-> rule against the predecessor names to the callback boundary. D21 settles open question 12.
-> Sections are deleted as approved `docs/SPEC-<id>.md` files cover them, and the file goes once
-> nothing is left (AGENTS.md, cleanup procedures).
+> D4, D5 and D16). The durable claims, leases and no-duplicate-dispatch requirements still apply.
+> The visual language this text leaves open is now [DESIGN.md](../../DESIGN.md). Light appearance
+> ("Visual direction, density and theming") is deferred, not dropped: the design seed defines one
+> dark palette, and when its tokens move into the Panda config they go behind a colour-mode
+> condition, so a light theme can follow later without a flash of the wrong theme. The single
+> administrator role and its open questions ("Users, roles and permissions", open question 9) and
+> onboarding step 1 are superseded by D17, open question 13 by D18, and "encrypted at rest where
+> practical" by D17's `secrets`. Bazarr's translator contract ("Direction 2") is pinned by D20 to
+> Bazarr 1.6.2, which now sends the subtitle paths and waits 32 minutes, and D20 settles open
+> questions 4 and 14 and narrows the rule against the predecessor names to the callback boundary.
+> D21 settles open question 12. Sections are deleted as approved `docs/SPEC-<id>.md` files cover
+> them, and the file goes once nothing is left (AGENTS.md, cleanup procedures).
 
 ## Status: planned only, nothing built
 
