@@ -179,10 +179,11 @@ First-run setup's claim and account and two-factor steps, the Account tab, the B
 settings, the prompt, glossary and validation editors, the policy list, the Plans, Activity and
 Quarantine lists, the windows and caps settings, the upgrade, adoption and rollback actions, the
 `/inventory` list and the API keys section are needed (all are in the legacy spec or in PRODUCT.md's
-sidebar) but have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), a version
-warning in place of its "Version compatible" check (D22) and the upgrade-settings check (D23), the
-`/settings/budgets` brief the ceilings per instance (D21), and the `/policies/[policy]` brief the
-instance scope (D21). Each gets its brief, or its brief's change, before its module is specced.
+sidebar) but have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), a
+version warning in place of its "Version compatible" check (D22) and the upgrade-settings check
+(D23), the `/settings/budgets` brief the ceilings per instance (D21), and the `/policies/[policy]`
+brief the instance scope (D21). Each gets its brief, or its brief's change, before its module is
+specced.
 
 ## Tech stack
 
