@@ -303,12 +303,14 @@ question 14).
 Callbacks zimuarr didn't plan, such as a Translate click in Bazarr's own interface, are accepted by
 default: Bazarr isn't a good translation engine, and zimuarr is, so a translation started in Bazarr
 should still be made by zimuarr (owner decision; legacy spec, open question 4, whose safe default
-was to reject). Per instance, the owner chooses which policy these callbacks run under, and can
-turn them off. With no
-session planned, admission, the budget reservation and the checks of the policy all happen when the
-callback arrives, and the provenance records that Bazarr started it. When the callback can't run
-(turned off, no policy chosen, or admission refuses), zimuarr records it with the reason and answers
-with an error Bazarr doesn't retry.
+was to reject). Per instance, the owner chooses which policy these callbacks run under, and can turn
+them off. With no session planned, admission, the budget reservation and the checks of the policy
+all happen when the callback arrives, and the provenance records that Bazarr started it. When the
+callback can't run (turned off, no policy chosen, the instance observation-only, including while
+D23's upgrade settings are missing, or admission refuses), zimuarr records it with the reason and
+answers with an error Bazarr doesn't retry. Observation-only means zimuarr pays for nothing on that
+instance, whoever starts the work; without the upgrade settings, Bazarr could delete the paid
+translation (D23).
 
 **The name stays Bazarr's.** Bazarr calls the translator Lingarr in its settings and history, and
 its translator-info setting adds a cue naming Lingarr to every translated subtitle (D23). zimuarr
