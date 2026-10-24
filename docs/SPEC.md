@@ -136,8 +136,9 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
   classifications (legacy "Persistence and backups").
 - The first module with a background job closes the job half of D13: `sign-in` if its session
   cleanup is a job, otherwise `observation`.
-- `observation`: the cadence and the scans it asks Bazarr for, with Bazarr's live events as hints
-  (D23; legacy, open question 10).
+- `observation`: the cadence, and whether it asks Bazarr to rescan a series or movie from disk
+  (Bazarr's own full rescan runs once a day), with Bazarr's live events as hints (D23; legacy, open
+  question 10).
 - `providers`: the first provider adapter (a new dependency, if any, so the owner approves it) and
   who owns capability declarations (legacy, open question 8).
 - `policies`: the scope vocabulary and how overlapping policies resolve (legacy, open question 1).
