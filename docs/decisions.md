@@ -265,13 +265,15 @@ real Bazarr:
 - A JSON body with `arrMediaId` (the Sonarr series id for episodes, the Radarr id for movies),
   `title` (with the source file's name), `sourceLanguage` and `targetLanguage` (two-letter codes,
   with `zh-CN`, `zh-TW` and `pt-BR` for Bazarr's three special cases), `mediaType` (`Episode` or
-  `Movie`), `lines` as position and text pairs with blank lines left out, and
+  `Movie`), `lines` as `position` and `line` pairs with blank lines left out, and
   `sourceSubtitlePath` and `translatedSubtitlePath`.
-- A 32-minute client timeout. Bazarr tries three times, with backoff, after a timeout, a
-  connection error, 401, 429 or a server error; any other answer that isn't 200 fails the job at
-  once.
-- A 200 answer must be a JSON list of position and text pairs. Bazarr replaces only the positions
-  present and non-empty, so completeness is checked against every position it sent.
+- A 32-minute read timeout: it fires after 32 minutes without a byte, so it doesn't limit the
+  whole request (D25). Bazarr tries three times in all, 1 second and then 2 to 3 seconds apart,
+  after a timeout, a connection error, 401, 429, a server error or a 200 that isn't valid JSON;
+  any other answer that isn't 200 fails the job at once.
+- A 200 answer must be a JSON list of `position` and `line` pairs; valid JSON of any other shape
+  fails the job at once, without a retry. Bazarr replaces only the positions present and
+  non-empty, so completeness is checked against every position it sent.
 
 The subtitle paths are new since the legacy spec, which found no path in the payload and relied on
 the content fingerprint alone (legacy spec "Direction 2: Bazarr calls Zimuarr back"). zimuarr
@@ -359,7 +361,10 @@ the app tells the owner plainly which version it is tested with, in setup and on
 status screens; the public health endpoint never shows a version. Responses are still validated, so
 a real difference in the API shows up as an error, not as wrong data.
 
-In zimuarr the service is Bazarr: 1.6.2 today. `bazarr-instances` compares the version Bazarr
+In zimuarr the service is Bazarr: 1.6.2 today. The tested release is the Bazarr image pinned in
+`tests/contract/compose.yaml`; Dependabot proposes each new stable release there, and the update
+merges only once every contract test passes against it (`SPEC-contract-spike.md`, "In CI").
+`bazarr-instances` compares the version Bazarr
 reports (`GET /api/system/status`) with it, and `system` keeps the warning visible on `/system`.
 This replaces the supported Bazarr version range of the legacy spec ("Bazarr — the highest-risk
 dependency", "Failure handling") and its refusal of a version outside it.
@@ -443,11 +448,10 @@ Besides the legacy spec's list, a capability declaration says:
   whether failed checks move on to the next profile or fail the session (owner decision). Previews
   show the chain, which profiles would be skipped and why.
 - Chunks paid for in a failed attempt are reused only by an attempt with the same profile.
-- When the chain runs out, Bazarr must fail the job and write nothing. zimuarr answers with an error
-  Bazarr doesn't retry; if the reply has already started (how the callback is held is
-  `contract-spike`'s question), it ends the reply with invalid JSON and answers Bazarr's retry at
-  once with that error. It never answers with an empty list, which Bazarr would take as a success
-  that keeps the source text (legacy spec "Failure mode 2").
+- When the chain runs out, Bazarr must fail the job and write nothing. zimuarr ends the held reply
+  with a JSON object naming the failure, which Bazarr fails at once without a retry (D25). It never
+  answers with an empty list, which Bazarr would take as a success that keeps the source text
+  (legacy spec "Failure mode 2").
 - An artifact's provenance points to the attempt that produced it; failed attempts stay listed with
   their reasons.
 
@@ -514,6 +518,64 @@ chunks parallel within the deadline; translated context is the slower choice for
 Proofreading runs before the answer because Bazarr takes a translation only through its callback
 (D23). The owner wants the translation done rather than every repeat charge avoided, with control
 over how hard zimuarr tries (owner decision).
+
+### D25. The callback is held open with keep-alive whitespace
+
+zimuarr translates while Bazarr's callback request waits. It answers `200` at once, writes a space
+every few seconds while it works, then writes the answer and closes. JSON allows leading whitespace,
+and Bazarr's client reads the whole body before it parses it, so Bazarr sees one ordinary answer.
+
+- **Checks come first.** The key, the request's shape and admission are checked before the `200`,
+  so their failures still get a real status: `401` for the key, which Bazarr retries twice, and a
+  `4xx` that Bazarr doesn't retry for the rest. Two failures that happen in normal use answer at
+  once with the failure object below instead, because Bazarr logs a `4xx`'s body only at debug
+  level: an empty `lines` (Bazarr sends one when every cue is blank once its markup is stripped)
+  and a failure already kept for the job, which names itself as kept and says from when a new
+  attempt runs.
+- **The answer.** Success is the JSON list D20 describes, written only after it is complete,
+  checked and frozen (proofreading included, D24), never in pieces. A failure after the `200` is a
+  JSON object naming it, `{"error": "<code>: <reason>"}`: Bazarr takes valid JSON that isn't a list
+  as a failure, doesn't retry, writes nothing and logs the object, so the reason shows in Bazarr's
+  log.
+- **No ceiling from Bazarr.** Its 32-minute timeout is a read timeout, and each space resets it, so
+  how long a translation may take is zimuarr's own working deadline (D24, "Time"), set by
+  `translation`.
+- **The heartbeat stays under Bun's idle timeout**, 10 seconds by default, which adapter-bun can
+  raise only for the whole server and to at most 255 seconds. A short heartbeat keeps that
+  protection for every other connection and needs no server option.
+- **Proxies.** The response carries `Cache-Control: no-store, no-transform` and
+  `X-Accel-Buffering: no`, so a proxy that honours them passes each space on instead of buffering
+  it, and its read timeout, such as nginx's default 60 seconds, never fires. Compression is what
+  buffers: nginx with `gzip on` held the spaces back until the headers were added, while Caddy with
+  `encode` and Traefik with `compress` passed them either way (tested 2026-10-25). A proxy with a
+  limit on the whole response must exempt the callback; `translation` documents what each common
+  proxy needs.
+- **The work outlives the connection.** A dropped connection doesn't stop the work, and Bazarr's
+  retry joins it or gets the kept result (D20). A result or failure is kept before its answer is
+  written, and finding an identity and registering new work is one step, so a retry never starts
+  the work twice. Shutting zimuarr down cuts held callbacks after adapter-bun's 30-second window;
+  `translation` decides what survives a restart and documents a container stop grace period of at
+  least that window (Docker's default is 10 seconds).
+- **Each held callback occupies one of Bazarr's jobs.** Bazarr runs translations in its shared job
+  queue (`concurrent_jobs`, 8 on the owner's instances) next to searches, syncs and upgrades, and a
+  job is busy until its callback returns. The per-instance concurrency in `admission` therefore
+  stays below `concurrent_jobs`, so Bazarr's own work isn't starved.
+- **Known limit.** A failure answer lost without the connection closing reaches Bazarr's read
+  timeout only after 32 minutes, when the failure is no longer kept, so Bazarr's retry runs the
+  work again. Keeping failures that long would refuse a deliberate new Translate click for half an
+  hour, and zimuarr can't tell the two apart. It needs a connection that dies silently, which a
+  Docker network rarely does, and costs at most one repeat within D24's limits (owner decision).
+
+`contract-spike` proves this end to end against Bazarr 1.6.2, directly and through Caddy and nginx
+with compression on.
+
+Why: holding silently needs a custom server entry around adapter-bun to lift Bun's idle timeout,
+is cut by any proxy's read timeout and makes Bazarr's 32 minutes a hard limit. Answering "retry
+later" fails, because Bazarr's three attempts are over within seconds. Whitespace keeps the stock
+adapter, works through ordinary proxies and leaves the deadline to zimuarr. Ending a failure with a
+JSON object instead of invalid JSON makes Bazarr fail the job in one round trip, whichever attempt
+it was, and shows the reason in its log (owner decision, after a review by a second model that
+confirmed the Bazarr behaviour in `lingarr_translator.py` and `requests` 2.34.2).
 
 ## Open
 
