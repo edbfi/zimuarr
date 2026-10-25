@@ -19,9 +19,10 @@ It proves:
 2. **The hold (D25).** A translation longer than Bazarr's 32-minute read timeout succeeds when the
    callback is held open with keep-alive whitespace, both directly and through a reverse proxy, on
    the adapter-bun build.
-3. **The answers.** A JSON list is written by Bazarr exactly as answered. A failure after the `200`
-   (a JSON object naming it) and a failure before it (a `4xx`) each fail the job at once, write
-   nothing and leave an existing destination unchanged. Nothing ever answers an empty list (D24).
+3. **The answers.** A JSON list is written by Bazarr exactly as answered. A JSON object naming a
+   failure, after the hold or at once, and a `413` or `422` each fail the job at once; a wrong key
+   (`401`) fails it after Bazarr's three attempts. None writes anything or changes an existing
+   destination. Nothing ever answers an empty list (D24).
 4. **Retries (D20).** A retry that arrives while the attempt before it still runs joins that work,
    and a retry after a lost answer gets the kept result, both without a second execution.
 
@@ -66,12 +67,13 @@ key per test Bazarr, gives each instance its own as its Lingarr token and starts
 list; nobody sets it by hand. Without it the route answers `404`, so a normal install never runs the
 stand-in translator.
 
-**Before the `200`**, in this order, each failure answered at once:
+**Before the `200`**, in this order, each failure answered at once. Bun applies the size limit
+before the route runs, so an oversized body gets `413` whatever its key:
 
 | Check | Answer | What Bazarr does |
 |---|---|---|
+| body over the size limit | `413` (Bun, from adapter-bun's `BODY_SIZE_LIMIT`) | fails the job at once |
 | `X-Api-Key` missing or not one of the spike keys (constant-time compare) | `401` | retries twice, then fails the job, logging "Authentication failed" |
-| body over the size limit | `413` (adapter-bun) | fails the job at once |
 | body not JSON, or not the D20 shape (every field present and typed, `mediaType` `Episode` or `Movie`, positions unique non-negative integers, lines non-empty strings) | `422` | fails the job at once |
 | `lines` empty: Bazarr sends that when every cue is blank once its markup is stripped | `200` with the failure object (below), `empty: no translatable lines` | fails the job at once and logs the reason |
 | a failure already kept for this job (below) | `200` with the kept failure object, naming it as kept and the time from which a new attempt runs | fails the job at once and logs the reason |
