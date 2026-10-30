@@ -2,7 +2,8 @@
 
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is specified in
-[SPEC-contract-spike.md](SPEC-contract-spike.md).
+[SPEC-contract-spike.md](SPEC-contract-spike.md), and `secrets` in
+[SPEC-secrets.md](SPEC-secrets.md).
 
 ## Objective
 
@@ -42,7 +43,7 @@ providers and the global ceilings are shared by all instances.
 | # | Module id | Responsibility | Depends on | Surfaces |
 |---|---|---|---|---|
 | 1 | `contract-spike` | The Bazarr contract spike (D20; legacy "Delivery sequence", phase 0): a callback that answers Bazarr's Lingarr translator, run against the latest stable Bazarr (D22), proving correlation by source and destination path with the fingerprint (with Bazarr's markup stripping replicated exactly), two episodes of one series at once, a normal and a forced subtitle from one source, and timeout, retry and cached replies, including a retry that arrives while the attempt before it still runs (D20), and the held callback and its answers through a real reverse proxy (D25). Its results become the first contract tests. No database, sign-in or UI, and its code becomes product code only through later specs | — | — |
-| 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17) | — | — |
+| 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17, D26), and the secret wrapper that shows only a redaction marker and opens at one named call | — | — |
 | 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's locale, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
 | 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, keeping the origin it was claimed from as the first allowed origin. zimuarr adds the legacy health endpoint in place of `/healthz`, to which later modules add their parts (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
 | 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the origin check with the allowed origins (the first entry comes from `setup`), cookies that work over plain HTTP at home and behind an HTTPS proxy (legacy "Security"), password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code (legacy "Licensing fact") | `setup` | `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
@@ -97,7 +98,7 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
 | Module | Main homes |
 |---|---|
 | `contract-spike` | the contract tests, the Bazarr release they run against and the spike's callback, where its spec puts them in the Code structure layout |
-| `secrets` | `security/secrets/`; loading the key in `config/` |
+| `secrets` | `security/secrets/` (the cipher and the secret wrapper); loading the key in `config/` |
 | `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (Paraglide's settings), `lib/shared/i18n/` (formatting and language names); `paraglideMiddleware` in `hooks.server.ts` |
 | `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`; `routes/setup/`, `routes/healthz/`, and the setup gate and the headers in `hooks.server.ts` |
 | `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, origin check); the sign-in at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
