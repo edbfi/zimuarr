@@ -95,8 +95,9 @@ config generates a fresh one for each run, so CI needs no secret and no change. 
 `process.env` and passes the generated key only to its web server, every built server a test
 starts runs as `bun --no-env-file ./build`, and the e2e tests build each server's environment
 without either variable, adding only what the case needs (Playwright's workers are new Bun
-processes, which load `.env` again). The contract harness (`contract-spike`) starts the built server
-the same way: it generates its own key for each run and passes it only to that server.
+processes, which load `.env` again). `secrets` also changes the contract harness under
+`tests/contract/` (`contract-spike`), which starts the built server: it generates its own key for
+each run and starts the server as `bun --no-env-file ./build` with only that key.
 
 ## The cipher
 
@@ -184,8 +185,9 @@ tests/e2e/secret-key.test.ts                    the built server refuses to star
 ```
 
 `config/` reads text and knows nothing about keys; `security/secrets/` imports it, as imports go
-downwards. `playwright.config.ts` gains the generated key, and the README a "Master key" section:
-how to generate it, the two variables, what changing it means, and backups.
+downwards. `playwright.config.ts` and the contract harness under `tests/contract/` gain their
+generated keys, and the README a "Master key" section: how to generate it, the two variables, what
+changing it means, and backups.
 
 ## Code style
 
