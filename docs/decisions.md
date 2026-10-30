@@ -131,7 +131,8 @@ keeps its own copy ([Shared groundwork](../AGENTS.md#shared-groundwork)).
   - Every encryption uses a fresh random 12-byte nonce.
   - Associated data ties each value to its record and field, so a value copied to another row or
     field fails to decrypt.
-  - Every stored value carries its key ID, so the key can be rotated.
+  - Every stored value carries its key ID, so a value written under another key fails with its
+    own error (D26).
 - **`i18n`.** The translation groundwork (D18), in place before the first screen.
 - **`setup`.** If nobody has claimed the instance yet, the app prints a one-time bootstrap token to
   the console at startup, outside the structured logs (D11). Whoever types that token claims the
@@ -576,6 +577,42 @@ adapter, works through ordinary proxies and leaves the deadline to zimuarr. Endi
 JSON object instead of invalid JSON makes Bazarr fail the job in one round trip, whichever attempt
 it was, and shows the reason in its log (owner decision, after a review by a second model that
 confirmed the Bazarr behaviour in `lingarr_translator.py` and `requests` 2.34.2).
+
+### D26. The master key: its format, its checks, and when it's required
+
+`secrets` (D17) takes one master key, exactly 32 bytes in canonical standard base64, from
+`ZIMUARR_SECRET_KEY` or `ZIMUARR_SECRET_KEY_FILE`; setting both is an error, and an empty variable
+counts as unset. Startup refuses a key whose bytes have at most 4.0 bits of Shannon entropy per
+byte, step by one constant amount, or are all printable ASCII; there is no denylist. The key is
+imported only as HKDF input, and each use derives its own key under its own label: the AES-256-GCM
+key and a 16-byte key ID. A stored value is one text value,
+`v1.<key id>.<nonce>.<ciphertext and tag>`, with `NULL` for none, and decrypts only under the table,
+field, row and app it was written for. The `Secret` wrapper keeps plaintext out of logs, errors and
+JSON, and `reveal()` is the only way to read it. There is no rotation: the key ID D17 asks for makes
+a value written under another key fail with its own clear error, and a new key means entering the
+stored secrets again, with a new callback key issued to each Bazarr instance. `secrets` checks the
+key in SvelteKit's `init` hook from its first version, so every way of running the app, dev and CI
+included, needs one. The key is restored with the database file (D15). The legacy spec names no
+master key, only secrets "encrypted at rest where practical" (legacy "Security"); this one key
+replaces that, and every stored secret is encrypted. Rotating each instance's callback key (legacy
+"Security") is `bazarr-instances`' and isn't master-key rotation. The details are in
+[SPEC-secrets.md](SPEC-secrets.md). The design is the same in all five edbfi apps; only the variable
+prefix, the app name and the stored secrets differ.
+
+Why: the shared opening keeps `secrets` the same in every app (D17), and comradarr settled its
+design first, with safety first (owner decision, after a council of three models and a review). Each
+check catches a real mistake (a padded or doubled short secret, a counter, a passphrase), and
+together they refuse a random key about once in 62 billion. A denylist adds upkeep without safety
+once no key is ever written in the repo. One encoding and an error when both variables are set leave
+nothing ambiguous at startup. An empty variable can't hold a key or a path, and Compose writes one
+for every `${VAR}` that isn't defined, so counting it as set would only break the usual secret-file
+setup (owner decision). HKDF keeps the master key out of every primitive but one, so later
+uses can derive their own keys safely. One self-describing column can't come apart. The wrapper
+joins every app, not only comradarr (owner decision). Rotation is left out because the apps are
+rewritten from scratch with no stored data to carry over, and a key change is rare enough to handle
+by entering a few secrets again (owner decision). Checking the key from the first version makes it
+part of installing zimuarr from the start, rather than a surprise when a later module first stores a
+secret. zimuarr was the last app to get its copy (owner decision, 2026-10-30).
 
 ## Open
 
