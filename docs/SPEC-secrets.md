@@ -138,10 +138,10 @@ v1.<key id>.<nonce>.<ciphertext and tag>
 **The binding.** The associated data is the UTF-8 bytes of the JSON array
 `["v1", <key id>, "zimuarr", <table>, <field>, <row id>]`, written compactly, as `JSON.stringify`
 writes it (no spaces; lone surrogates are escaped, so every binding has exactly one encoding). The
-array can't be read two ways
-(unlike joined strings), and it also binds the version and the key ID. The caller always passes the
-binding of the place it reads from or writes to, never one stored beside the value, so a value
-copied to another row, field or app fails to decrypt. Table, field and row ID must be non-empty.
+array can't be read two ways (unlike joined strings), and it also binds the version and the key ID.
+The caller always passes the binding of the place it reads from or writes to, never one stored
+beside the value, so a value copied to another row, field or app fails to decrypt. Table, field and
+row ID must be non-empty.
 
 A rule for the modules that store secrets: **every row holding an encrypted field has a stable ID
 the app generates before the insert** (an autoincrement ID doesn't exist yet when the value is
@@ -185,8 +185,8 @@ with re-encryption is left out until the owner asks for it. Rotating one instanc
 
 The master key is stored apart from the database file and restored with it (D15): a database
 restored without the key it was written with fails with `SecretKeyMismatchError` on every stored
-secret. The README covers this in its "Master key" section. The Turso backup and restore procedure itself stays open
-in D15.
+secret. The README covers this in its "Master key" section. The Turso backup and restore
+procedure itself stays open in D15.
 
 ## Project structure
 
