@@ -172,7 +172,18 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
   subtitles already delivered (D20, D24; owner decisions).
 - The separate API and worker roles and the multi-process deployment (D4, D16).
 - The container image: packaging lives in its own repository, as for the other edbfi apps, and
-  D15's production-container check closes there.
+  D15's production-container check closes there. **Its first start** (deferred: a note, not a
+  design) is specified and built only when Zimuarr is first tested through its image
+  (`edbfi/zimuarr-docker`, a repository that doesn't exist yet); building images through GitHub,
+  including the nightly build of `main`, is a later goal. The intent, with the app's code unchanged:
+  when `ZIMUARR_SECRET_KEY` and `ZIMUARR_SECRET_KEY_FILE` are both unset or empty, the image's setup
+  script points `ZIMUARR_SECRET_KEY_FILE` at `/config/secret.key` whenever that file exists. It
+  creates the file first (a random 32-byte key in standard base64, written atomically, mode 0600,
+  owned by the app's user) only when `/config/data` is empty and nothing shows an older install (the
+  image's own defaults don't count, and the exact checks are decided with the image); otherwise it
+  creates nothing, and the app stops with its own key error. An operator's own key or secret file
+  always wins, and the README tells the operator to keep a copy of the key file. The previous
+  zimuarr never shipped an image, so no earlier image's files need handling.
 - Talking to Sonarr or Radarr, managing media and writing subtitle files (PRODUCT.md, principle 4).
 - The light theme (legacy spec header): deferred, not dropped.
 - Connecting Weblate (D18): later work. The message files are ready for it.
