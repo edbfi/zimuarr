@@ -595,9 +595,12 @@ key in SvelteKit's `init` hook from its first version, so every way of running t
 included, needs one. The key is restored with the database file (D15). The legacy spec names no
 master key, only secrets "encrypted at rest where practical" (legacy "Security"); this one key
 replaces that, and every stored secret is encrypted. Rotating each instance's callback key (legacy
-"Security") is `bazarr-instances`' and isn't master-key rotation. The details are in
-[SPEC-secrets.md](SPEC-secrets.md). The design is the same in all five edbfi apps; only the variable
-prefix, the app name and the stored secrets differ.
+"Security") is `bazarr-instances`' and isn't master-key rotation. A missing, malformed or weak
+key's error puts the key the app ran with before a new one, because a lost variable or a typo in a
+key in use fails the same checks, and the key loads before any database could say whether anything
+is stored (owner decision, 2026-10-31). The details are in [SPEC-secrets.md](SPEC-secrets.md). The
+design is the same in all five edbfi apps; only the variable prefix, the app name and the stored
+secrets differ.
 
 Why: the shared opening keeps `secrets` the same in every app (D17), and comradarr settled its
 design first, with safety first (owner decision, after a council of three models and a review). Each
