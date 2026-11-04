@@ -91,10 +91,10 @@ first run (PRODUCT.md, "The working rhythm").
 
 Paths are under `src/lib/server/`, except those starting with `routes/` (under `src/`) or `lib/`
 (under `src/`), `hooks.server.ts` (`src/hooks.server.ts`) and `vite.config.ts` (at the repo
-root). Signed-in pages sit in `routes/(app)/`, with the operator shell as its layout. The endpoint zimuarr gives Bazarr is its
-address plus `/bazarr`, so the callback is `routes/bazarr/api/translate/content/` and stays apart
-from zimuarr's own versioned API under `routes/api/`. They follow the
-[Code structure](../AGENTS.md#code-structure) layout:
+root). Signed-in pages sit in `routes/(app)/`, with the operator shell as its layout. The endpoint
+zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
+`routes/bazarr/api/translate/content/` and stays apart from zimuarr's own versioned API under
+`routes/api/`. They follow the [Code structure](../AGENTS.md#code-structure) layout:
 
 | Module | Main homes |
 |---|---|
@@ -224,7 +224,7 @@ cites its own.
   address. It needs a valid bootstrap token and the browser's address (`sign-in`). Using up the
   token and creating the owner are one atomic step, and the owner session it starts follows
   `sign-in`'s cookies.
-- **Security headers,** on every response, early returns included (zimuarr: ground-floor choice 3),
+- **Security headers** (zimuarr: ground-floor choice 3), on every response, early returns included,
   include a referrer policy of `same-origin` or `strict-origin-when-cross-origin`, never
   `no-referrer` (which makes browsers send `Origin: null` on the app's own form posts).
 
@@ -250,14 +250,15 @@ cites its own.
     this comparison.
   - A request with neither `Origin` nor `Sec-Fetch-Site` doesn't come from a browser. It passes only
     on an explicit list of machine routes (zimuarr: Bazarr's translator callback,
-    `POST /bazarr/api/translate/content` with its `X-Api-Key`, D20, and the versioned JSON API with
-    one of the owner's API keys, `api-keys`): the API-key endpoints and other machine routes the
-    app's approved docs already name, each with the credentials those docs require. The session
-    cookie is never honoured on it: such a request that carries only a session cookie gets a 403.
-    (zimuarr) The cross-origin check doesn't check those keys: a request with neither header goes on
-    to the route's own key check, so the callback still answers a missing or wrong `X-Api-Key` with
-    `401` (D25; `contract-spike` checks its stand-in keys the same way), and the cross-origin check,
-    like every other check, runs before the callback's held `200`.
+    `POST /bazarr/api/translate/content` with its `X-Api-Key` under D20, and the versioned JSON API
+    with one of the owner's API keys under `api-keys`): the API-key endpoints and other machine
+    routes the app's approved docs already name, each with the credentials those docs require. The
+    session cookie is never honoured on it: such a request that carries only a session cookie gets a
+    403. (zimuarr) The cross-origin check doesn't check those keys: on those routes, a request with
+    neither header that doesn't carry only a session cookie goes on to the route's own key check, so
+    the callback still answers a missing or wrong `X-Api-Key` with `401` (D25; `contract-spike`'s
+    stand-in keys also get `401`), and the cross-origin check, like every other check, runs before
+    the callback's held `200`.
   - A refusal is a 403 with the app's own "Access denied" page, or a JSON error for JSON callers,
     with the security headers and in the viewer's language.
 - **The browser's address** is `ORIGIN` when it is set, and otherwise the validated `Origin` of the
