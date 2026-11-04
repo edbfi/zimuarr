@@ -57,8 +57,8 @@ Polar Control. Deep polar blue, seafoam primary actions, ice-blue informational 
 
 What exists:
 
-- **Product source:** [docs/product/legacy-spec.md](docs/product/legacy-spec.md), the imported pre-rewrite specification. Two parts were checked against the source code of the external systems rather than guessed, and were accurate when written: the predecessor failure modes and Bazarr's undocumented, unversioned external-translator wire contract. Everything else in it is intended behaviour.
-- **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions, including what has been validated so far.
+- **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions, including what has been validated so far. Bazarr's translator contract (D20), its file handling (D23) and the held callback (D25) were read from Bazarr 1.6.2's source.
+- **Research:** [docs/research/bazarr.md](docs/research/bazarr.md), how the previous plan found Bazarr to behave, not re-verified: dispatch, the translator setting, the mirror, language codes and failures.
 - **Design mockups:** ten generated raster boards in `docs/design/screens/` (`01-entry-and-onboarding.webp` to `10-states-and-components.webp`), plus the selected direction reference `docs/design/references/polar-control.webp`. They guide composition only; their text, numbers, icons and incidental actions are illustrative (see each brief's raster corrections).
 - **Seed tokens:** `panda.config.ts`, a proposed design seed that matches DESIGN.md.
 - **Surface briefs:** nine proposed route briefs in `.impeccable/surfaces/` (login, Bazarr setup, dashboard, inventory item, policy, quarantine case, system, provider settings, budgets).
@@ -68,7 +68,7 @@ What exists:
 What does not exist, and must not be invented:
 
 - No product module, deployment, container image or validated product behaviour yet: only the ground floor, an empty SvelteKit app (`docs/SPEC.md`).
-- No Bazarr contract spike or contract tests yet. Fingerprint correlation, the deadline model and concurrent-episode disambiguation are unproven.
+- No Bazarr contract spike or contract tests yet. Correlation by path and fingerprint, two episodes of one series at once and the held callback are unproven (D20, D25).
 - No users, customers, testimonials, case studies, press, adoption or usage figures, benchmarks or performance measurements.
 - No real provider names, models or prices: every provider, price and figure in the fixtures and mockups is fictional.
 - No real integration logos or marks for Bazarr, Sonarr, Radarr or any provider in the repo. Do not reproduce generated connector logos.
@@ -87,9 +87,3 @@ What does not exist, and must not be invented:
 ## Accessibility and inclusion
 
 Keyboard access throughout, visible focus, labelled inputs, text plus icon for status, 44px touch targets, readable text at 200% zoom, and reduced-motion alternatives. Target WCAG AA text contrast. Never use color alone to communicate a decision. Bundle fonts locally in the implementation.
-
-## Product source and rewrite proposals
-
-Read [the legacy product specification](docs/product/legacy-spec.md) for domain behavior and current gaps. Routes in this handoff describe proposed information architecture, not implemented endpoints.
-
-This application is a planned control plane. Operator and admin labels describe tasks of the one owner account; no member portal or further roles are introduced.
