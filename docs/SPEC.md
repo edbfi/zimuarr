@@ -256,9 +256,9 @@ cites its own.
     session cookie is never honoured on it: such a request that carries only a session cookie gets a
     403. (zimuarr) The cross-origin check doesn't check those keys: on those routes, a request with
     neither header that doesn't carry only a session cookie goes on to the route's own key check, so
-    the callback still answers a missing or wrong `X-Api-Key` with `401` (D25; `contract-spike`'s
-    stand-in keys also get `401`), and the cross-origin check, like every other check, runs before
-    the callback's held `200`.
+    the callback still answers a missing or wrong `X-Api-Key` with `401` (D25; `contract-spike`
+    does the same for its stand-in keys), and the cross-origin check, like every other check, runs
+    before the callback's held `200`.
   - A refusal is a 403 with the app's own "Access denied" page, or a JSON error for JSON callers,
     with the security headers and in the viewer's language.
 - **The browser's address** is `ORIGIN` when it is set, and otherwise the validated `Origin` of the
