@@ -79,8 +79,8 @@ Jobs (observation, dispatch, session deadlines, housekeeping) belong to applicat
 shutdown, never to page requests. Job state is persisted so work recovers after a restart, runs
 never overlap, and retries are safe.
 
-Why: SvelteKit and Drizzle provide none of this lifecycle, and zimuarr must never dispatch the same
-work twice or lose intent across a restart.
+Why: SvelteKit and Drizzle provide none of this lifecycle, and zimuarr must never send one dispatch
+twice or lose intent across a restart.
 
 ### D8. SSRF-safe outbound HTTP
 
@@ -192,10 +192,10 @@ claim and has to know who its owner is. Encrypting in the app (D4: secrets are c
 the database) keeps stolen database files unreadable without the key. Two-factor and OIDC sign-in
 were the owner's call for every app, and so was letting a provider's own second factor stand in for
 the app's, optionally; one standard OIDC flow covers the self-hosted identity providers without a
-client for each, and `amr` is the standard way to see the provider's factor. zimuarr needs sign-in
-on its interface and API, a first-run setup that closes after use, and its stored secrets kept
-unreadable; the shared opening gives all three and encrypts every stored secret. Recovery was the owner's call for every app, after comradarr's
-legacy recovery mode showed that the opening had no way back in.
+client for each, and `amr` is the standard way to see the provider's factor. zimuarr needs
+authentication on its interface and API, a first-run setup that closes after use, and encrypted
+stored secrets; the shared opening gives all three. Recovery was the owner's call for every app,
+after comradarr's legacy recovery mode showed that the opening had no way back in.
 
 ### D18. Every interface is translatable, in English and Danish
 
@@ -245,15 +245,14 @@ resolves messages at runtime, without typed messages. The owner left the choice 
 
 ### D20. A Lingarr-compatible callback, and nothing else of Lingarr
 
-zimuarr connects to Bazarr through Bazarr's own Lingarr translator. In Bazarr's translation
-settings the operator picks Lingarr, enters zimuarr's address as the Lingarr endpoint and the key
-zimuarr issued for that instance as its API key. zimuarr answers exactly the request that
-translator sends, so Bazarr needs no change (PRODUCT.md, principle 4). Beyond that wire format
-zimuarr is its own app: no Lingarr concept, name or behaviour enters its domain, data or screens,
-except the onboarding instruction that names Bazarr's setting (owner decision). This narrows an
-earlier rule, that the predecessors' names never appear in domain terms, data, screens,
-configuration, provider abstractions, events, service names or everyday docs, to the callback
-boundary and that one instruction.
+zimuarr connects to Bazarr through Bazarr's own Lingarr translator. In Bazarr's translation settings
+the operator picks Lingarr, enters zimuarr's address as the Lingarr endpoint and the key zimuarr
+issued for that instance as its API key. zimuarr answers exactly the request that translator sends,
+so Bazarr needs no change (PRODUCT.md, principle 4). Beyond that wire format zimuarr is its own app:
+no concept, name or behaviour of its predecessors, Lingarr and Perevoditarr, enters its domain
+terms, data, screens, configuration, provider abstractions, events, service names or everyday docs,
+except Lingarr's name at the callback boundary and in the onboarding instruction that names Bazarr's
+setting (owner decision).
 
 What Bazarr sends, read from the source of 1.6.2, the latest stable release (D22), and unchanged
 since 1.6.1 and on the 1.6.3 betas (`lingarr_translator.py`); the contract spike tests it against a
@@ -329,9 +328,9 @@ and the runtime drift detector keep drift visible.
 zimuarr connects one or more Bazarr instances, and each runs on its own: its own API key, issued
 callback key, version check, observation and rate limits, concurrency limit, circuit breaker and
 observation-only switch. Desired subtitles, sessions, attempts, managed artifacts, verification and
-provenance each belong to one instance. The same media
-on two instances, such as a 1080p and a 4K library, is two unrelated items: each is translated and
-paid for separately, and zimuarr never matches media across instances (owner decision).
+provenance each belong to one instance. The same media on two instances, such as a 1080p and a 4K
+library, is two unrelated items: each is translated and paid for separately, and zimuarr never
+matches media across instances (owner decision).
 
 - **Money.** The per-attempt, daily and monthly ceilings cover all instances together. Each
   instance can also have its own daily and monthly ceilings, and a translation is admitted only
@@ -413,15 +412,16 @@ was read from Bazarr 1.6.2's source (`subtitles/upgrade.py`, `translator_utils.p
 ### D24. Translation providers, fallback chains, context and proofreading
 
 zimuarr translates through four kinds of provider, each a thin adapter plus a capability
-declaration: endpoints compatible with OpenAI Chat
-Completions, Anthropic Messages or [Open Responses](https://www.openresponses.org/), so hosted and
-local servers that speak one of them work by their address, and machine translation through DeepL,
-Google Cloud Translation and LibreTranslate. There is no plugin system, and raw request templates
-stay a permanent non-goal (owner decision).
+declaration: endpoints compatible with OpenAI Chat Completions, Anthropic Messages or
+[Open Responses](https://www.openresponses.org/), so hosted and local servers that speak one of
+them work by their address, and machine translation through DeepL, Google Cloud Translation and
+LibreTranslate. There is no plugin system, and raw request templates stay a permanent non-goal
+(owner decision).
 
-The validation, chunking and parsing paths are chosen by the declaration's flags, never written per
-provider, so adding a provider is an adapter and a declaration, and structured output is used
-wherever a provider supports it. A capability declaration says:
+Validation, output parsing and chunk sizing follow the declaration's flags and limits, never code
+written per provider. Structured output is used wherever the declaration says the provider supports
+it, and what zimuarr asks a provider for can hold more than the line list Bazarr needs. A
+capability declaration says:
 - its structured output: a strict schema, a structured mode, or free text only;
 - the largest request or context it takes;
 - whether it reports usage exactly, or zimuarr only estimates it;
@@ -593,13 +593,12 @@ a value written under another key fail with its own clear error, and a new key m
 stored secrets again, with a new callback key issued to each Bazarr instance. `secrets` checks the
 key in SvelteKit's `init` hook from its first version, so every way of running the app, dev and CI
 included, needs one. The key is restored with the database file (D15). Every stored secret is
-encrypted under this one key, not only where practical. Rotating each instance's callback key is
-`bazarr-instances`' and isn't master-key rotation. A missing, malformed or weak
-key's error puts the key the app ran with before a new one, because a lost variable or a typo in a
-key in use fails the same checks, and the key loads before any database could say whether anything
-is stored (owner decision, 2026-10-31). The details are in [SPEC-secrets.md](SPEC-secrets.md). The
-design is the same in all five edbfi apps; only the variable prefix, the app name and the stored
-secrets differ.
+encrypted under this one key. Rotating each instance's callback key is `bazarr-instances`' and isn't
+master-key rotation. A missing, malformed or weak key's error puts the key the app ran with before a
+new one, because a lost variable or a typo in a key in use fails the same checks, and the key loads
+before any database could say whether anything is stored (owner decision, 2026-10-31). The details
+are in [SPEC-secrets.md](SPEC-secrets.md). The design is the same in all five edbfi apps; only the
+variable prefix, the app name and the stored secrets differ.
 
 Why: the shared opening keeps `secrets` the same in every app (D17), and comradarr settled its
 design first, with safety first (owner decision, after a council of three models and a review). Each

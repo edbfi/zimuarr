@@ -57,7 +57,7 @@ Polar Control. Deep polar blue, seafoam primary actions, ice-blue informational 
 
 What exists:
 
-- **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions, including what has been validated so far. Bazarr's translator contract (D20), its file handling (D23) and the held callback (D25) were read from Bazarr 1.6.2's source.
+- **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions, including what has been validated so far. Bazarr's translator contract (D20), its file handling (D23) and the Bazarr behaviour the held callback relies on (D25) were read from Bazarr 1.6.2's source.
 - **Research:** [docs/research/bazarr.md](docs/research/bazarr.md), how the previous plan found Bazarr to behave, not re-verified: dispatch, the translator setting, the mirror, language codes and failures.
 - **Design mockups:** ten generated raster boards in `docs/design/screens/` (`01-entry-and-onboarding.webp` to `10-states-and-components.webp`), plus the selected direction reference `docs/design/references/polar-control.webp`. They guide composition only; their text, numbers, icons and incidental actions are illustrative (see each brief's raster corrections).
 - **Seed tokens:** `panda.config.ts`, a proposed design seed that matches DESIGN.md.

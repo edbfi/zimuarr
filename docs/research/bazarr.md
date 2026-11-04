@@ -8,9 +8,8 @@ is deleted once none is left.
 ## Dispatch (`bazarr-provider`, `translation`)
 
 - zimuarr asks Bazarr to translate through Bazarr's subtitle action API. The request gives the
-  subtitle's path as Bazarr sees it (after Bazarr's own path mappings), the target language as a
-  two-letter code, the media type, the media's id and, when needed, the forced and
-  hearing-impaired flags.
+  subtitle's path as Bazarr sees it, the target language as a two-letter code, the media type, the
+  media's id and, when needed, the forced and hearing-impaired flags.
 - The id is the Sonarr **episode** id for an episode and the Radarr id for a movie. The callback
   carries the Sonarr **series** id instead (D20), so the two directions use different ids for an
   episode.
@@ -26,22 +25,17 @@ is deleted once none is left.
 
 ## The mirror (`bazarr-provider`, `observation`)
 
-- Bazarr has no delta or change-cursor API, and its webhooks only come in (Bazarr receives them,
-  sends none), so the mirror polls. The previous plan found no outbound event stream either; D23
-  found Bazarr's Socket.IO live events, which are hints to poll sooner, never the truth.
-- The mirror reads series, episodes and movies with their subtitles, and fetches a subtitle's
-  content when it needs a fingerprint.
+- Bazarr has no delta or change-cursor API, and its webhook endpoints are inbound, so the mirror
+  polls; its Socket.IO live events are only hints to poll sooner (D23).
+- Bazarr's API lists series, episodes and movies with their subtitles, and serves a subtitle's
+  content on demand.
 
 ## Language codes (`bazarr-provider`)
 
-- Bazarr sends two-letter codes, with a small conversion map for the regional Chinese variants and
-  Brazilian Portuguese (D20: `zh-CN`, `zh-TW`, `pt-BR`), but inside Bazarr two-letter and
+- Bazarr's API uses two-letter codes, with a small conversion map for the regional Chinese variants
+  and Brazilian Portuguese (D20: `zh-CN`, `zh-TW`, `pt-BR`), but inside Bazarr two-letter and
   three-letter codes are mixed.
 
-## Failures (`bazarr-provider`, `observation`, `translation`)
+## Failures (`bazarr-provider`, `observation`)
 
-- An instance can become unreachable, and a sync can fail partway through its pages, so an item
-  missing from a failed page is not an item Bazarr deleted.
-- Which callback answers Bazarr retries and which fail the job at once is D20's, re-read from
-  1.6.2. The previous plan read that a `401` fails the job as an authentication error; Bazarr
-  retries it first (D20).
+- An instance can become unreachable, and reading its paged API can fail partway through.
