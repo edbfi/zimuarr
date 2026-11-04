@@ -10,7 +10,7 @@
 zimuarr is a self-hosted subtitle translation control plane that works alongside Bazarr: it
 observes subtitle state, plans translations from declarative policies, sends them to configured AI
 providers, and calls a subtitle Verified only once Bazarr durably confirms the complete result
-([PRODUCT.md](../PRODUCT.md), [legacy spec](product/legacy-spec.md)).
+([PRODUCT.md](../PRODUCT.md)).
 
 **This spec covers only the ground floor:** an empty, production-shaped SvelteKit app that builds,
 type-checks, tests, lints and serves on Bun, styled from the design tokens, with the edbfi Bun web
@@ -23,8 +23,7 @@ is to make the first module spec cheap to build: every later PR adds behaviour, 
 aligned 2026-10-30). Module ids never change. Each module gets its own `docs/SPEC-<id>.md`, which the
 owner approves just before it is built.
 Sources: [PRODUCT.md](../PRODUCT.md), [decisions.md](decisions.md), the
-[legacy spec](product/legacy-spec.md), the [surface briefs](../.impeccable/surfaces/) and the
-[Module notes](#module-notes) below.
+[surface briefs](../.impeccable/surfaces/) and the [Module notes](#module-notes) below.
 
 **Every module keeps to [Code structure](../AGENTS.md#code-structure).** Its spec names the files it
 adds in that layout, and review checks them. In short:
@@ -65,8 +64,8 @@ providers and the global ceilings are shared by all instances.
 | 20 | `quarantine` | Quarantine review of the attempts `translation` rejected: their failing checks, the source and candidate side by side, discarding and re-attempting. Incomplete output is never approved, and approved output reaches Bazarr as `upgrades` delivers it (D23) | `translation` | `/quarantine/[case]`; the Quarantine list (no brief yet) |
 | 21 | `verification` | Verifying a managed artifact only when a later observation finds the subtitle Bazarr wrote, compared after Bazarr's writing rules (D23), noticing when Bazarr replaced it, the classifications that need an artifact (current, stale and manually modified), the protection for manually edited subtitles in `admission`, and the Managed tab with the provenance chain in `inventory` | `translation` | the Verified states and the Managed tab on `/inventory` |
 | 22 | `activity` | Live and past sessions and attempts with their lifecycle, including abandoned-then-completed and cached-on-retry, with chunk and validation results and cost | `translation` | the Activity page (no brief yet) |
-| 23 | `upgrades` | Acting on drift (legacy "Upgrades and lifecycle"): managed upgrades of stale artifacts under admission, adopting unmanaged subtitles, and rollback and replacement with an approval and a reason, delivered as a new translation answered from the kept content (D23) | `verification` | their actions on `/inventory/[item]` (no brief yet) |
-| 24 | `system` | System health: instances, providers, jobs, last observations and breakers in plain words, contract-drift warnings with the runtime drift detector that trips a breaker (legacy "Improvement ideas"), running diagnostics and the redacted diagnostic bundle | `translation` | `/system` |
+| 23 | `upgrades` | Acting on drift: managed upgrades of stale artifacts under admission, adopting unmanaged subtitles, and rollback and replacement with an approval and a reason, delivered as a new translation answered from the kept content (D23) | `verification` | their actions on `/inventory/[item]` (no brief yet) |
+| 24 | `system` | System health: instances, providers, jobs, last observations and breakers in plain words, contract-drift warnings with the runtime drift detector that trips a breaker rather than guessing at an unexpected payload, running diagnostics and the redacted diagnostic bundle | `translation` | `/system` |
 | 25 | `dashboard` | Counts by classification with the in-progress telemetry kept apart, recent observations, the budget rail with settled and reserved spend apart, connections and policy modes | `verification`, `budgets` | `/dashboard` |
 | 26 | `api-keys` | The owner's API keys, as in comradarr: a recognisable prefix, shown once, stored as a hash, an optional enforced expiry, an optional narrower scope from a fixed list of actions, last used, and revoking. They reach only the versioned JSON API. Also publishes the OpenAPI document behind sign-in | `sign-in` | the API keys section of the settings (no brief yet) |
 | 27 | `oidc-sign-in` | Connecting one OpenID Connect provider (Authentik, Authelia, Pocket ID, Tinyauth and others) by its issuer, client id and secret, and linking the owner's account to it, after which it signs them in as the owner, and offering to skip `two-factor` when the provider's `amr` claim reports its own second factor (D17) | `two-factor` | its section of the Account tab; its button on `/login` |
@@ -136,7 +135,7 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 - `setup`: D14 (Turso and Drizzle versions), the logging library half of D13, and D15's backup
   and restore procedure, with the database file and the `secrets` key restored together.
   `verification` checks that a restore followed by a full mirror rebuild gives the same
-  classifications (legacy "Persistence and backups").
+  classifications.
 - `sign-in`: how long an owner session lasts.
 - `sign-in`: the password rules: the minimum length, whether a list of common passwords is
   refused, and how repeated failed sign-ins are slowed beyond the rate limits (backoff, or a lockout
@@ -157,9 +156,9 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
   kept), the shares of the working deadline and the default number of context lines (D24 sets the
   rest), and refusing and surfacing a callback that still matches more than one open session after
   D20's full key, rather than guessing.
-- `quarantine`: whether complete but suspicious output can ever be approved (open question 5).
-- `upgrades`: the rules for adoption, rollback and replacement (open question 6); D23 sets how
-  their output reaches Bazarr.
+- `quarantine`: whether complete but suspicious output can ever be approved.
+- `upgrades`: the rules for adoption, rollback and replacement; D23 sets how their output reaches
+  Bazarr.
 - D12: the first JSON endpoint that needs a generated client decides it, at the latest `api-keys`,
   which publishes the OpenAPI document. D16 stays open as an accepted limit.
 
@@ -194,7 +193,8 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
   always wins, and the README tells the operator to keep a copy of the key file. The previous
   zimuarr never shipped an image, so no earlier image's files need handling.
 - Talking to Sonarr or Radarr, managing media and writing subtitle files (PRODUCT.md, principle 4).
-- The light theme (legacy spec header): deferred, not dropped.
+- The light theme: deferred, not dropped. When it comes, the page loads in the chosen mode, with no
+  flash of the other.
 - Connecting Weblate (D18): later work. The message files are ready for it.
 
 ### Surfaces with no brief yet
@@ -202,13 +202,15 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 First-run setup's claim and account and two-factor steps, the Account tab, the Bazarr instances
 settings, the prompt, glossary and validation editors, the policy list, the Plans, Activity and
 Quarantine lists, the windows and caps settings, the upgrade, adoption and rollback actions, the
-`/inventory` list and the API keys section are needed (all are in the legacy spec or in PRODUCT.md's
-sidebar) but have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), a
-version warning in place of its "Version compatible" check (D22) and the upgrade-settings check
-(D23), the `/settings/budgets` brief the ceilings per instance (D21), the `/policies/[policy]` brief
-the instance scope (D21) and the fallback chain, context and proofreading (D24), and the
-`/settings/providers` brief the provider kinds and their capabilities (D24). Each gets its brief, or
-its brief's change, before its module is specced.
+`/inventory` list and the API keys section are needed (each is in PRODUCT.md's sidebar or the Module
+notes) but have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), a
+version warning in place of its "Version compatible" check (D22), the upgrade-settings check (D23),
+and the callback address and the plain-HTTP opt-in (Module notes, `bazarr-instances` and
+`bazarr-provider`), the `/settings/budgets` brief the ceilings per instance (D21), the
+`/policies/[policy]` brief the instance scope (D21) and the fallback chain, context and proofreading
+(D24), and the `/settings/providers` brief the provider kinds and their capabilities (D24), the
+plain-HTTP opt-in and typing the key again for a changed URL (Module notes, `providers`). Each gets
+its brief, or its brief's change, before its module is specced.
 
 ### Module notes
 
@@ -370,6 +372,11 @@ cites its own.
 - **An unreachable instance** opens its Bazarr breaker: observation of that instance pauses, plans
   show it as unhealthy, and nothing is dispatched to it until the breaker closes (`admission`).
 
+#### inventory
+
+- **The list** is paged and filters by instance, language and classification, and its filters, sort
+  and page live in the URL, so a view can be shared and survives a reload.
+
 #### revisions
 
 - **A revision is immutable** and named by the hash of its content, so identical content is the
@@ -441,6 +448,7 @@ cites its own.
 
   Only reconciliation changes a classification: the owner's actions (activating, approving,
   adopting, pausing) change inputs, and the next cycle classifies again.
+- **With no policy yet,** the policy list points to writing one, with an example.
 
 #### admission
 
@@ -456,7 +464,10 @@ cites its own.
   (`verification`) is never replaced without a policy setting that allows it or an approval for
   that item. Both are admission rules, shown in plans as refusals with their reasons.
 - **Breakers** open after repeated failures and close again when the owner resets them or after
-  their cool-down.
+  their cool-down. A manual reset asks for confirmation and records a reason.
+- **Pausing and resuming** are recorded with their reason. While translations are paused, every
+  signed-in page says so, as it does for an unreachable instance or a provider whose breaker is
+  open.
 
 #### budgets
 
@@ -504,6 +515,11 @@ cites its own.
   is kept before it is written, and its cost is settled. A successful answer is always the complete
   list.
 
+#### quarantine
+
+- **Approving** complete but suspicious output, if this module's spec allows it at all, asks for
+  confirmation and records a reason; output that isn't complete is never approved (row 20).
+
 #### verification
 
 - **A managed artifact** links its desired subtitle, the source revision it was translated from and
@@ -516,6 +532,30 @@ cites its own.
     changed since.
   - **Manually modified:** the observed subtitle no longer matches what zimuarr delivered, after
     Bazarr's writing rules (D23); someone edited it, and it is protected (`admission`).
+
+#### activity
+
+- **With nothing to list yet,** the page says why, such as every instance still observing only.
+
+#### upgrades
+
+- **Adopting** takes an existing unmanaged subtitle under management, so it gains provenance and the
+  protection of a managed subtitle.
+- **An upgrade** translates a stale artifact again under admission, and the old artifact keeps its
+  provenance.
+- **Replacing a protected subtitle** and **rolling back** ask for confirmation and record a reason
+  (row 23).
+
+#### system
+
+- **Breakers:** each one's state and history, with the reason it tripped.
+- **Diagnostics** check each instance's connection and version, that its translator points at
+  zimuarr (D23), and run the self-test round trip (`translation`); the diagnostic bundle has every
+  secret redacted.
+
+#### dashboard
+
+- **With no instance connected,** it points to connecting one.
 
 ## Tech stack
 
