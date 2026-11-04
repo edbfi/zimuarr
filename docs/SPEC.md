@@ -45,8 +45,8 @@ providers and the global ceilings are shared by all instances.
 | 1 | `contract-spike` | The Bazarr contract spike (D20; legacy "Delivery sequence", phase 0): a callback that answers Bazarr's Lingarr translator, run against the latest stable Bazarr (D22), proving correlation by source and destination path with the fingerprint (with Bazarr's markup stripping replicated exactly), two episodes of one series at once, a normal and a forced subtitle from one source, and timeout, retry and cached replies, including a retry that arrives while the attempt before it still runs (D20), and the held callback and its answers through a real reverse proxy (D25). Its results become the first contract tests. No database, sign-in or UI, and its code becomes product code only through later specs | — | — |
 | 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17, D26), and the secret wrapper that shows only a redaction marker and opens at one named call | — | — |
 | 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's locale, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
-| 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, keeping the origin it was claimed from as the first allowed origin. zimuarr adds the legacy health endpoint in place of `/healthz`, to which later modules add their parts (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
-| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the origin check with the allowed origins (the first entry comes from `setup`), cookies that work over plain HTTP at home and behind an HTTPS proxy (legacy "Security"), password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code (legacy "Licensing fact") | `setup` | `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
+| 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the address hint on the claim page (`sign-in`). zimuarr adds the legacy health endpoint in place of `/healthz`, to which later modules add their parts (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
+| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy (legacy "Security"), password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code (legacy "Licensing fact") | `setup` | `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
 | 6 | `two-factor` | Optional but strongly recommended (D17): authenticator codes, backup codes and the challenge after every way the owner signs in (except the optional OIDC skip, D17), with replay protection and a limit on failed attempts. Recovery turns it off. Adds the offer to first-run setup, right after the owner account is created and before any connection step, and the reminder in the operator shell while it is off | `sign-in` | the two-factor offer in first-run setup; its section of the Account tab; the reminder in the operator shell |
 | 7 | `events` | Domain events and the append-only audit record (legacy "Domain model"), and the live stream to the browser with versioned envelopes and durable ids, so a page that reconnects catches up on what it missed (legacy "Key interaction patterns") | `sign-in` | — |
 | 8 | `bazarr-provider` | The Bazarr API client: system status and version, series, episodes, movies and their subtitles page by page, subtitle content for fingerprints, the translate action, and the translator and upgrade settings for the checks in `bazarr-instances` (D23), with language codes normalised at the boundary (legacy "Data-shape facts") | `setup` | — |
@@ -101,7 +101,7 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
 | `secrets` | `security/secrets/` (the cipher and the secret wrapper); loading the key in `config/` |
 | `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (Paraglide's settings), `lib/shared/i18n/` (formatting and language names); `paraglideMiddleware` in `hooks.server.ts` |
 | `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`; `routes/setup/`, `routes/healthz/`, and the setup gate and the headers in `hooks.server.ts` |
-| `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, origin check); the sign-in at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
+| `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, the cross-origin check), `vite.config.ts` (SvelteKit's own form check off); the sign-in at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
 | `two-factor` | `services/two-factor/`, the owner schema's two-factor fields in `db/`; the offer in `routes/setup/`, the challenge page beside `routes/login/`, its section of the Account tab, and the reminder in `lib/components/layout/` |
 | `events` | `services/events/` (the bus and the audit record), `db/` event schema; the stream under `routes/api/`; the listener in `lib/components/layout/` |
 | `bazarr-provider` | `providers/bazarr/`, `http/` (the SSRF-safe fetch, D8) |
@@ -136,6 +136,10 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
   and restore procedure, with the database file and the `secrets` key restored together.
   `verification` checks that a restore followed by a full mirror rebuild gives the same
   classifications (legacy "Persistence and backups").
+- `sign-in`: how long an owner session lasts.
+- `sign-in`: the password rules: the minimum length, whether a list of common passwords is
+  refused, and how repeated failed sign-ins are slowed beyond the rate limits (backoff, or a lockout
+  where the app's approved docs allow one).
 - The first module with a background job closes the job half of D13: `sign-in` if its session
   cleanup is a job, otherwise `observation`.
 - `observation`: the cadence, and whether it asks Bazarr to rescan a series or movie from disk
@@ -200,6 +204,107 @@ version warning in place of its "Version compatible" check (D22) and the upgrade
 the instance scope (D21) and the fallback chain, context and proofreading (D24), and the
 `/settings/providers` brief the provider kinds and their capabilities (D24). Each gets its brief, or
 its brief's change, before its module is specced.
+
+### Module notes
+
+What a capability-map row commits to in more detail than a clause fits. It is behaviour to keep
+unless the module's approved spec or a decision changes it, and each block moves into its module's
+`SPEC-<id>.md` when that module is specced. `setup` and `sign-in` are shared with the other edbfi
+apps (D17): a bullet or clause marked "(zimuarr)" is this app's own, and the rest is the shared
+wording; a "(zimuarr)" mark inside a bullet covers the rest of that bullet, and "(zimuarr: …)" only
+its own parentheses.
+
+#### setup
+
+- **The claim** is a POST, cross-origin-checked like any other (`sign-in`), and it stores no
+  address. It needs a valid bootstrap token and the browser's address (`sign-in`). Using up the
+  token and creating the owner are one atomic step, and the owner session it starts follows
+  `sign-in`'s cookies.
+- **Security headers** (ground-floor choice 3) include a referrer policy of `same-origin` or
+  `strict-origin-when-cross-origin`, never `no-referrer` (which makes browsers send `Origin: null`
+  on the app's own form posts).
+
+#### sign-in
+
+- **SvelteKit's own form check is off:** `sveltekit({ csrf: { trustedOrigins: ['*'] } })` in
+  `vite.config.ts` (SvelteKit 3 takes its options in the `sveltekit()` call, with no `kit:`
+  wrapper). Remote functions stay off. A config test asserts both, so SvelteKit's only remaining
+  check before `handle` is the remote-function one, which nothing uses. The cross-origin check
+  replaces SvelteKit's form check.
+- **The cross-origin check** asks the browser, so the app doesn't need to know its own address and
+  stores none. It runs first in `handle` for every method except GET, HEAD and OPTIONS, and for
+  every content type (form, JSON, multipart, `text/plain`, empty). Internal `event.fetch`
+  subrequests (`event.isSubRequest`) skip it.
+  - An `Origin` header, whenever it is present, must parse as one bare `http` or `https` origin;
+    `null`, a malformed value or several values are refused. This applies on every branch below.
+  - With `ORIGIN` set, a present `Origin` must equal `ORIGIN`, compared as parsed origins. Without
+    `Origin`, `Sec-Fetch-Site` must be `same-origin` or `none`.
+  - With `ORIGIN` unset, a present `Sec-Fetch-Site` passes only as `same-origin` or `none`
+    (`same-site` and `cross-site` are refused). Otherwise `Origin`'s host and port must equal the
+    `Host` header, with default ports normalised. Browsers send `Sec-Fetch-Site` only to HTTPS,
+    `localhost` and loopback addresses, so over plain HTTP outside loopback every browser gets
+    this comparison.
+  - A request with neither `Origin` nor `Sec-Fetch-Site` doesn't come from a browser. It passes only
+    on an explicit list of machine routes (zimuarr: Bazarr's translator callback,
+    `routes/bazarr/api/translate/content/`, with the key zimuarr issued for that instance in
+    `X-Api-Key` (D20), and the versioned JSON API with one of the owner's API keys (`api-keys`)):
+    the API-key endpoints and other machine routes the app's approved docs already name, each with
+    the credentials those docs require. The session cookie is never honoured on it: such a request
+    that carries only a session cookie gets a 403. (zimuarr) The callback's own key check still
+    answers a missing or wrong key with `401`, and the cross-origin check, like every other check,
+    runs before the callback's held `200` (D25).
+  - A refusal is a 403 with the app's own error page, or a JSON error for JSON callers, with the
+    security headers and in the viewer's language.
+- **The browser's address** is `ORIGIN` when it is set, and otherwise the validated `Origin` of the
+  POST that passed the cross-origin check. It decides the cookies' `Secure` flag and the OIDC
+  `redirect_uri`. Every POST that sets or deletes a cookie needs it, such as the claim, sign-in,
+  the two-factor challenge, recovery, sign-out and the start of OIDC sign-in: when a browser
+  stripped `Origin`, they get a 403 that says so (the error page, or a JSON error for JSON
+  callers). OIDC sign-in keeps the address in the flow's state. The OIDC callback address is saved
+  when the owner configures OIDC, and must match. Links shown on GET pages for copying, such as the
+  OIDC callback to register, are built in the browser from the address the user is on, or from
+  `ORIGIN` when it is set (zimuarr: the endpoint address Bazarr is given is left to
+  `bazarr-instances`). App code never uses `event.url.origin` or `event.url.protocol` for security,
+  cookies or rendered URLs, which a test that searches the code enforces, and redirects stay
+  relative.
+- **The address hint:** when `ORIGIN` is set and doesn't match the address the browser is on, or
+  when `ORIGIN` is unset and that address's host and port don't match the `Host` header, the claim
+  and owner sign-in pages suggest setting `ORIGIN=<that address>` (or removing a wrong `ORIGIN`) or
+  adding the proxy line `proxy_set_header Host $http_host`, so someone without a session can
+  recover. (zimuarr) No module checks the address further, so this hint is the whole diagnosis.
+- **`ORIGIN`** is optional and never required. It is plain `ORIGIN`, not an app-prefixed name (an
+  app prefix would mean setting adapter-bun's `envPrefix`, which would then reject the master key's
+  variable). When set, it must be a bare `http` or `https` origin (a trailing `/` is fine; no path,
+  query, fragment or credentials), compared as a parsed origin, or startup stops with an error that
+  doesn't echo the value. adapter-bun 1.0.0 ignores `ORIGIN`; from 1.0.1 a set `ORIGIN` also
+  corrects SvelteKit's `event.url`, and an empty `ORIGIN=""` throws with the value in the message,
+  so the container image's entrypoint unsets an empty `ORIGIN` and its templates leave it out (the
+  image's work, not this repo's).
+- **When `ORIGIN` or a proxy fix is still needed:** behind a proxy that rewrites `Host`, over plain
+  HTTP for every browser, and over HTTPS only for browsers without `Sec-Fetch-Site` (Safari before
+  16.4, Firefox before 90, Chrome before 76). The proxy fix is `proxy_set_header Host $http_host`
+  (not `$host`, which drops a non-default port). Remote functions would need it too; they stay
+  off.
+- **Accepted residual risks.** Over plain HTTP, the `Origin` and `Host` comparison can't tell `http`
+  from `https`, which is harmless on a port that speaks only HTTP; over HTTPS it affects only
+  browsers without `Sec-Fetch-Site`, and only against a network attacker, and HSTS or `ORIGIN`
+  closes it. DNS rebinding reaches only actions that need no sign-in, because cookies don't follow
+  a rebind, and those are gated by a console token or rate-limited (zimuarr: the machine routes also
+  need their keys).
+- **Tests:** the cross-origin check is one pure module, unit-tested against a matrix of headers and
+  copied to each app as D17 shares the opening modules. One Playwright test against the built server
+  (`bun ./build`) checks that a cross-site form POST is refused and that a same-origin POST carrying
+  no `Sec-Fetch-*` headers passes, both on `localhost` and on a plain-HTTP host name that isn't
+  loopback (such as Chromium's `--host-resolver-rules="MAP app.test 127.0.0.1"`).
+- **Cookies:** session cookies are named after the app (zimuarr: `zimuarr_session` for the owner
+  session), because cookies ignore ports and apps on one address would otherwise sign each other
+  out. They are host-only, `HttpOnly` and `SameSite=Lax`. Every cookie is `Secure` exactly when the
+  browser's address is `https`, so a plain-HTTP install at home still works. Every cookie write and
+  deletion sets `secure` explicitly (SvelteKit's default is `Secure` on every host but `localhost`),
+  and a deletion whose scheme isn't known uses `secure: false`, which works over HTTP and HTTPS.
+- **A wrong address never locks the owner out.** No stored address can stop password sign-in: a
+  wrong `ORIGIN` is fixed or removed, then the app restarts. The OIDC callback address is stored,
+  so OIDC may need registering again after a move, but password sign-in always remains (D17).
 
 ## Tech stack
 
