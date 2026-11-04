@@ -47,7 +47,7 @@ providers and the global ceilings are shared by all instances.
 | 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17, D26), and the secret wrapper that shows only a redaction marker and opens at one named call | — | — |
 | 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's locale, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
 | 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the address hint on the claim page (`sign-in`). zimuarr adds its health endpoint in place of `/healthz`'s fixed answer (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
-| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy, password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code, which the AGPL-3.0 requires from the first release | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
+| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy, password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code, from the first release (PRODUCT.md, License) | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
 | 6 | `two-factor` | Optional but strongly recommended (D17): authenticator codes, backup codes and the challenge after every way the owner signs in (except the optional OIDC skip, D17), with replay protection and a limit on failed attempts. Recovery turns it off. Adds the offer to first-run setup, right after the owner account is created and before any connection step, and the reminder in the operator shell while it is off | `sign-in` | the two-factor offer in first-run setup; its section of the Account tab; the reminder in the operator shell |
 | 7 | `events` | Domain events and the append-only audit record of what happened and why, and the live stream to the browser with versioned envelopes and durable ids, so a page that reconnects catches up on what it missed | `sign-in` | — |
 | 8 | `bazarr-provider` | The Bazarr API client: system status and version, series, episodes, movies and their subtitles page by page, subtitle content for fingerprints, the translate action, and the translator and upgrade settings for the checks in `bazarr-instances` (D23), with language codes normalised at the boundary | `setup` | — |
@@ -77,9 +77,9 @@ Build order: `contract-spike` → `secrets` → `i18n` → `setup` → `sign-in`
 `verification`, `activity` → `upgrades`, `system`, `dashboard`, `api-keys`, `oidc-sign-in`. A comma
 means either order works. The spike comes first because the whole product rests on Bazarr's
 undocumented contract (D20; owner decision). Then come the five modules every edbfi app shares
-(D17). Observation comes before planning, as first planned, but admission and budgets come
-before `translation`, so no provider is ever paid without a prior reservation (PRODUCT.md, principle
-2). `translation` is the first time zimuarr does its job.
+(D17). Observation comes before planning, and admission and budgets come before `translation`, so no
+provider is ever paid without a prior reservation (PRODUCT.md, principle 2). `translation` is the
+first time zimuarr does its job.
 
 First-run setup grows step by step: `setup` claims the instance and creates the owner account,
 `two-factor` offers itself, `bazarr-instances` connects the first Bazarr instance, observation-only,
@@ -151,9 +151,12 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 - `policies`: the scope vocabulary (such as libraries, series, tags or paths) and how overlapping
   policies resolve.
 - `admission`: the time zone of dispatch windows and daily caps.
+- `budgets`: how a reservation bounds what a call can cost (its largest answer, say), so a
+  settlement above the estimate can't break a ceiling.
 - `translation`: the session states (D20 sets how long a session waits and how long output is
   kept), the shares of the working deadline and the default number of context lines (D24 sets the
-  rest), and refusing fingerprint collisions among open sessions rather than guessing.
+  rest), and refusing and surfacing a callback that still matches more than one open session after
+  D20's full key, rather than guessing.
 - `quarantine`: whether complete but suspicious output can ever be approved (open question 5).
 - `upgrades`: the rules for adoption, rollback and replacement (open question 6); D23 sets how
   their output reaches Bazarr.
@@ -230,10 +233,11 @@ cites its own.
   `no-referrer` (which makes browsers send `Origin: null` on the app's own form posts).
 - **The health endpoint** (zimuarr) takes the place of `/healthz`'s fixed `ok`, at the same path. It
   is public, so it says only whether zimuarr itself can serve: `200` with `ok`, or `503` while its
-  database or its jobs aren't working. An unreachable Bazarr instance or provider doesn't fail it,
-  so a container check never restarts zimuarr for someone else's outage. It shows no version (D22)
-  and no names; instances, providers, jobs, the last observation of each instance and the breakers
-  are shown behind sign-in on `/system` (`system`).
+  database can't be read and written or its job runner has stopped (D7). The setup gate lets it
+  through, so it answers before the claim too. An unreachable Bazarr instance or provider doesn't
+  fail it, so a container health check never marks zimuarr unhealthy for someone else's outage. It
+  shows no version (D22) and no names; instances, providers, jobs, the last observation of each
+  instance and the breakers are shown behind sign-in on `/system` (`system`).
 
 #### sign-in
 
@@ -270,16 +274,16 @@ cites its own.
     with the security headers and in the viewer's language.
 - **The browser's address** is `ORIGIN` when it is set, and otherwise the validated `Origin` of the
   POST that passed the cross-origin check. It decides the cookies' `Secure` flag and the OIDC
-  `redirect_uri`. Every POST that sets or deletes a cookie needs it, such as the claim, sign-in,
-  the two-factor challenge, recovery, sign-out and the start of OIDC sign-in: when a browser
-  stripped `Origin`, they get a 403 that says so (the "Access denied" page, or a JSON error for JSON
+  `redirect_uri`. Every POST that sets or deletes a cookie needs it, such as the claim, sign-in, the
+  two-factor challenge, recovery, sign-out and the start of OIDC sign-in: when a browser stripped
+  `Origin`, they get a 403 that says so (the "Access denied" page, or a JSON error for JSON
   callers). OIDC sign-in keeps the address in the flow's state. The OIDC callback address is saved
   when the owner configures OIDC, and must match. Links shown on GET pages for copying, such as the
   OIDC callback to register, are built in the browser from the address the user is on, or from
-  `ORIGIN` when it is set (zimuarr: the endpoint address Bazarr is given is not decided here;
-  `bazarr-instances` settles it). App code never uses `event.url.origin` or `event.url.protocol` for
-  security, cookies or rendered URLs, which a test that searches the code enforces, and redirects
-  stay relative.
+  `ORIGIN` when it is set (zimuarr: the address Bazarr is given is `bazarr-instances`' editable
+  suggestion, never built from the browser's address). App code never uses `event.url.origin` or
+  `event.url.protocol` for security, cookies or rendered URLs, which a test that searches the code
+  enforces, and redirects stay relative.
 - **The address hint:** when `ORIGIN` is set and doesn't match the address the browser is on, or
   when `ORIGIN` is unset and that address's host and port don't match the `Host` header, the claim
   and owner sign-in pages suggest setting `ORIGIN=<that address>` (or removing a wrong `ORIGIN`) or
@@ -341,11 +345,11 @@ cites its own.
 
 #### bazarr-instances
 
-- **An instance** holds its address, the key for Bazarr's API, the callback key zimuarr issued for
-  it, observation-only or active, its limits, its breaker and the result of its version check (D21,
-  D22). zimuarr tells instances apart only by that callback key, never by what a callback's payload
-  says.
-- **The callback address.** Before the first round trip, the Connect Bazarr step
+- **An instance** holds its address, the key for Bazarr's API, the address Bazarr calls zimuarr at,
+  the distinct callback key zimuarr issued for it, observation-only or active, its limits, its
+  breaker and the result of its version check (D21, D22). zimuarr tells instances apart only by that
+  callback key, never by what a callback's payload says.
+- **The callback address.** Before the first round trip, connecting an instance
   suggests the address Bazarr should call zimuarr at, as Bazarr sees it, in an editable field:
   `http://zimuarr:3000/bazarr` by default, the usual address on a shared Docker network, since
   Bazarr often can't reach the address the owner's browser uses. The owner enters it, with the
@@ -360,20 +364,21 @@ cites its own.
 
 - **The mirror** holds what Bazarr reports for each instance: series, episodes and movies with their
   Sonarr and Radarr ids, and each subtitle Bazarr reports for them, with its language, forced and
-  hearing-impaired flags, its path or Bazarr's id for it, its content fingerprint, when it was
-  observed and the file details Bazarr gives. It is a replaceable copy, never the truth of record:
-  it can be rebuilt from Bazarr at any time, and losing it never loses intent or provenance.
+  hearing-impaired flags, its path or Bazarr's id for it and when it was observed, and, where read
+  or given, its content fingerprint and file details. It is a replaceable copy, never the truth of
+  record: it can be rebuilt from Bazarr at any time, and losing it never loses intent or provenance.
 - **An unreachable instance** opens its Bazarr breaker: observation of that instance pauses, plans
   show it as unhealthy, and nothing is dispatched to it until the breaker closes (`admission`).
 
 #### revisions
 
 - **A revision is immutable** and named by the hash of its content, so identical content is the
-  same revision, and whether two artifacts share an input comes down to comparing hashes.
+  same revision, and whether an artifact's provenance still matches the current policy comes down
+  to comparing hashes.
 
 #### validation
 
-- **Before any answer,** all of these hold, or the output is rejected:
+- **Before any translated output is returned,** all of these hold, or the output is rejected:
   - every source cue is represented exactly once: no position missing, duplicated or unknown;
   - the order is valid;
   - a non-empty source line never comes back empty;
@@ -388,7 +393,7 @@ cites its own.
   revision, so tightening them makes earlier artifacts visibly stale rather than silently
   inconsistent.
 - **Providers are untrusted:** their output is always checked in full.
-- **The predecessors' failures are adversarial tests** (row 13), each run end to end:
+- **The predecessors' failures are adversarial tests** (row 13):
   1. A provider's batch misses a position; the translator fills it with the source line and reports
      success, and Bazarr, which replaces only the positions present and non-empty, records a
      part-translated file as complete.
@@ -397,14 +402,15 @@ cites its own.
   3. The work finishes after Bazarr gave up, and Bazarr's retry must get the result.
 
   zimuarr rejects the first at the checks; in the other two the retry joins the running work or
-  gets the kept output (D20), never an empty list (D24), and the work runs once.
+  gets the kept output (D20), never an empty list (D24), and the work runs once (`translation`).
 
 #### providers
 
 - **Addresses.** A provider's base URL follows `bazarr-provider`'s address rule: plain HTTP only for
   a local address, such as a translation server on the LAN, once the owner opts in for that URL.
-- **Editing.** A test or a save reuses a stored provider key only while the base URL is unchanged: a
-  changed URL needs the key typed again.
+- **Editing.** A test or a save reuses a stored provider key only while the base URL is unchanged:
+  when a key is stored, a changed URL needs it typed again, so a stored secret is never sent to a
+  newly typed address.
 - **At the boundary.** Provider answers are validated and turned into zimuarr's own types where they
   arrive, and none of a provider's shapes reaches zimuarr's API or screens.
 - **Failures are classified:** output that breaks the schema counts toward the structured-output
@@ -413,9 +419,9 @@ cites its own.
 
 #### policies
 
-- **Changing a policy's inputs** (a revision, the provider chain, the targets) makes the artifacts
-  it produced stale, never leaves them silently behind, and before the owner saves a change, the
-  policy shows which artifacts it would make stale.
+- **Changing a policy's translation inputs** (a revision, the provider chain or proofreading, D24)
+  makes the artifacts they produced stale, never leaves them silently behind, and before the owner
+  saves a change, the policy shows which artifacts it would make stale.
 - **Desired subtitles** are durable and unique per instance, media item, target language, and forced
   and hearing-impaired flags; which variants are wanted comes from the item's Bazarr language
   profile (D23).
@@ -426,7 +432,7 @@ cites its own.
 - **Classifications** that need no artifact:
   - **Missing:** nothing in the target language and variant is observed or managed.
   - **Unmanaged:** a subtitle in the target language that zimuarr didn't produce or adopt;
-    protected (`admission`).
+    protected by default (`admission`).
   - **Blocked by a safety policy:** admissible in principle, but refused for now by a window, cap,
     budget, breaker or pause.
   - **Quarantined:** the latest attempt's output was kept for inspection, not delivered.
@@ -454,7 +460,7 @@ cites its own.
 
 #### budgets
 
-- **Reservation** at admission estimates the cost from the model's pricing and the request's size.
+- **Each reservation** (D24) estimates the cost from the model's pricing and the request's size.
   **Settlement** uses the usage the provider reports, or an estimate, marked as estimated, where its
   declaration says usage can only be estimated.
 - **Ceilings hold under concurrency:** a reservation is taken against every ceiling that applies in
@@ -483,28 +489,31 @@ cites its own.
 - **A session** holds what correlates its callback (D20), the expected source content, its
   reservation, its deadlines (D20, D24) and its kept output, and records its whole lifecycle,
   including a caller that gave up before the work finished and kept output served to a retry.
-- **An attempt** records its inputs: the source revision, the language pair, the profile (D24), and
+- **An attempt** records its inputs: the source revision, the language pair, the profile and the
+  frozen media details (D24), and
   the glossary, validation-policy and chunking-strategy revisions.
 - **A callback without one of zimuarr's keys** gets `401` (D25) and is recorded as a security event
   (`events`). Bazarr is trusted only as far as its key: a callback's paths identify its work only
   together with that key, and the fingerprint confirms the match (D20).
-- **Answering:** output kept for the session is answered in full; a callback for running work joins
-  it (D20); otherwise the reply is held (D25) while chunks are translated within the working
-  deadline (D24). The complete list is answered only once every `validation` check passes, then
-  kept, and its cost settled. Output that fails the checks is kept with its failing checks
-  (`quarantine`) and answered with the failure D25 describes; nothing short of the complete list is
-  ever answered.
+- **Answering:** a result or a failure already kept for the work is answered at once (D20, D25); a
+  callback for running work joins it (D20); otherwise the reply is held (D25) while the work runs
+  within the working deadline, with the fallback chain, repairs and proofreading (D24). Output whose
+  assembled file fails the `validation` checks is kept with its failing checks (`quarantine`), and
+  the next profile gets an attempt, unless the policy makes failed checks fail the session (D24).
+  Once the answer is chosen, the complete checked list, or D25's failure when the chain runs out,
+  is kept before it is written, and its cost is settled. A successful answer is always the complete
+  list.
 
 #### verification
 
-- **A managed artifact** links its desired subtitle, the source revision it was translated from,
-  the attempt that produced it, its own content fingerprint, when it was created and verified, and
-  its drift.
+- **A managed artifact** links its desired subtitle, the source revision it was translated from and
+  the attempt that produced it (unless it was adopted, `upgrades`), its own content fingerprint,
+  when it was created and verified, and its drift.
 - **Classifications** that need an artifact:
   - **Current:** the artifact is observed in place, and its provenance matches the policy's current
     inputs.
-  - **Stale:** its source revision, a revision, its provider or model, or the policy has changed
-    since.
+  - **Stale:** its source revision, one of its revisions, its provider or model, or the policy has
+    changed since.
   - **Manually modified:** the observed subtitle no longer matches what zimuarr delivered, after
     Bazarr's writing rules (D23); someone edited it, and it is protected (`admission`).
 
@@ -642,12 +651,12 @@ design doesn't call for anything different; choices 4 and 5 are zimuarr's own.
 2. **Ark UI before its first use.** The skeleton installs `@ark-ui/svelte`, so the Panda and Ark
    pairing and `check-peers` are settled early; the first `ui/` wrapper comes with the first surface
    that needs one.
-3. **Security headers and CSP.** zimuarr requires sign-in on the web UI and API, with first-run
-   setup as the only write path without it (D17). Security headers and a CSP belong to the first
+3. **Security headers and CSP.** zimuarr needs authentication on its interface and API, and a
+   first-run setup that closes after use (D17). Security headers and a CSP belong to the first
    module that serves real pages (`setup`, whose claim page comes before `sign-in`), not the
    skeleton.
 4. **No logo yet.** zimuarr has no logo or icon file, so the skeleton has no `static/` folder and no
    favicon; the visible name is the text "Zimuarr". A logo joins when the owner provides one.
 5. **Health.** `/healthz` always answers `ok`. `setup`, which adds the database, replaces that with
-   the health endpoint in its Module notes, and later modules show their parts on `/system`:
-   instances, providers, jobs, last observation times and breaker states.
+   the health endpoint in its Module notes, and the parts it leaves out are shown on `/system`
+   (row 24).
