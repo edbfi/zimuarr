@@ -23,7 +23,8 @@ is to make the first module spec cheap to build: every later PR adds behaviour, 
 aligned 2026-10-30). Module ids never change. Each module gets its own `docs/SPEC-<id>.md`, which the
 owner approves just before it is built.
 Sources: [PRODUCT.md](../PRODUCT.md), [decisions.md](decisions.md), the
-[legacy spec](product/legacy-spec.md) and the [surface briefs](../.impeccable/surfaces/).
+[legacy spec](product/legacy-spec.md), the [surface briefs](../.impeccable/surfaces/) and the
+[Module notes](#module-notes) below.
 
 **Every module keeps to [Code structure](../AGENTS.md#code-structure).** Its spec names the files it
 adds in that layout, and review checks them. In short:
@@ -46,7 +47,7 @@ providers and the global ceilings are shared by all instances.
 | 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17, D26), and the secret wrapper that shows only a redaction marker and opens at one named call | — | — |
 | 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's locale, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
 | 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the address hint on the claim page (`sign-in`). zimuarr adds the legacy health endpoint in place of `/healthz`, to which later modules add their parts (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
-| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy (legacy "Security"), password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code (legacy "Licensing fact") | `setup` | `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
+| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy (legacy "Security"), password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code (legacy "Licensing fact") | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
 | 6 | `two-factor` | Optional but strongly recommended (D17): authenticator codes, backup codes and the challenge after every way the owner signs in (except the optional OIDC skip, D17), with replay protection and a limit on failed attempts. Recovery turns it off. Adds the offer to first-run setup, right after the owner account is created and before any connection step, and the reminder in the operator shell while it is off | `sign-in` | the two-factor offer in first-run setup; its section of the Account tab; the reminder in the operator shell |
 | 7 | `events` | Domain events and the append-only audit record (legacy "Domain model"), and the live stream to the browser with versioned envelopes and durable ids, so a page that reconnects catches up on what it missed (legacy "Key interaction patterns") | `sign-in` | — |
 | 8 | `bazarr-provider` | The Bazarr API client: system status and version, series, episodes, movies and their subtitles page by page, subtitle content for fingerprints, the translate action, and the translator and upgrade settings for the checks in `bazarr-instances` (D23), with language codes normalised at the boundary (legacy "Data-shape facts") | `setup` | — |
@@ -89,8 +90,8 @@ first run (PRODUCT.md, "The working rhythm").
 ### Where modules live
 
 Paths are under `src/lib/server/`, except those starting with `routes/` (under `src/`) or `lib/`
-(under `src/`), and `hooks.server.ts` (`src/hooks.server.ts`). Signed-in pages sit in
-`routes/(app)/`, with the operator shell as its layout. The endpoint zimuarr gives Bazarr is its
+(under `src/`), `hooks.server.ts` (`src/hooks.server.ts`) and `vite.config.ts` (at the repo
+root). Signed-in pages sit in `routes/(app)/`, with the operator shell as its layout. The endpoint zimuarr gives Bazarr is its
 address plus `/bazarr`, so the callback is `routes/bazarr/api/translate/content/` and stays apart
 from zimuarr's own versioned API under `routes/api/`. They follow the
 [Code structure](../AGENTS.md#code-structure) layout:
@@ -101,7 +102,7 @@ from zimuarr's own versioned API under `routes/api/`. They follow the
 | `secrets` | `security/secrets/` (the cipher and the secret wrapper); loading the key in `config/` |
 | `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (Paraglide's settings), `lib/shared/i18n/` (formatting and language names); `paraglideMiddleware` in `hooks.server.ts` |
 | `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`; `routes/setup/`, `routes/healthz/`, and the setup gate and the headers in `hooks.server.ts` |
-| `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, the cross-origin check), `vite.config.ts` (SvelteKit's own form check off); the sign-in at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
+| `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, the cross-origin check), `vite.config.ts` (SvelteKit's own form check off); the sign-in and the address hint at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
 | `two-factor` | `services/two-factor/`, the owner schema's two-factor fields in `db/`; the offer in `routes/setup/`, the challenge page beside `routes/login/`, its section of the Account tab, and the reminder in `lib/components/layout/` |
 | `events` | `services/events/` (the bus and the audit record), `db/` event schema; the stream under `routes/api/`; the listener in `lib/components/layout/` |
 | `bazarr-provider` | `providers/bazarr/`, `http/` (the SSRF-safe fetch, D8) |
@@ -208,11 +209,14 @@ its brief's change, before its module is specced.
 ### Module notes
 
 What a capability-map row commits to in more detail than a clause fits. It is behaviour to keep
-unless the module's approved spec or a decision changes it, and each block moves into its module's
-`SPEC-<id>.md` when that module is specced. `setup` and `sign-in` are shared with the other edbfi
-apps (D17): a bullet or clause marked "(zimuarr)" is this app's own, and the rest is the shared
-wording; a "(zimuarr)" mark inside a bullet covers the rest of that bullet, and "(zimuarr: …)" only
-its own parentheses.
+unless the module's approved spec or a decision changes it. Layout, placement, visuals and exact
+wording are not behaviour: where a note describes them, DESIGN.md and the surface's brief win, and
+for a surface with no brief yet the note is only a starting point for that brief. Each block moves
+into its module's `SPEC-<id>.md` when that module is specced. `setup` and `sign-in` are shared with
+the other edbfi apps (D17): a bullet or clause marked "(zimuarr)" is this app's own, and the rest is
+the shared wording; a "(zimuarr)" mark inside a bullet covers the rest of that bullet, and
+"(zimuarr: …)" only its own parentheses. Decision numbers in these blocks are zimuarr's; each app
+cites its own.
 
 #### setup
 
@@ -220,9 +224,9 @@ its own parentheses.
   address. It needs a valid bootstrap token and the browser's address (`sign-in`). Using up the
   token and creating the owner are one atomic step, and the owner session it starts follows
   `sign-in`'s cookies.
-- **Security headers** (ground-floor choice 3) include a referrer policy of `same-origin` or
-  `strict-origin-when-cross-origin`, never `no-referrer` (which makes browsers send `Origin: null`
-  on the app's own form posts).
+- **Security headers,** on every response, early returns included (zimuarr: ground-floor choice 3),
+  include a referrer policy of `same-origin` or `strict-origin-when-cross-origin`, never
+  `no-referrer` (which makes browsers send `Origin: null` on the app's own form posts).
 
 #### sign-in
 
@@ -246,32 +250,34 @@ its own parentheses.
     this comparison.
   - A request with neither `Origin` nor `Sec-Fetch-Site` doesn't come from a browser. It passes only
     on an explicit list of machine routes (zimuarr: Bazarr's translator callback,
-    `routes/bazarr/api/translate/content/`, with the key zimuarr issued for that instance in
-    `X-Api-Key` (D20), and the versioned JSON API with one of the owner's API keys (`api-keys`)):
-    the API-key endpoints and other machine routes the app's approved docs already name, each with
-    the credentials those docs require. The session cookie is never honoured on it: such a request
-    that carries only a session cookie gets a 403. (zimuarr) The callback's own key check still
-    answers a missing or wrong key with `401`, and the cross-origin check, like every other check,
-    runs before the callback's held `200` (D25).
-  - A refusal is a 403 with the app's own error page, or a JSON error for JSON callers, with the
-    security headers and in the viewer's language.
+    `POST /bazarr/api/translate/content` with its `X-Api-Key`, D20, and the versioned JSON API with
+    one of the owner's API keys, `api-keys`): the API-key endpoints and other machine routes the
+    app's approved docs already name, each with the credentials those docs require. The session
+    cookie is never honoured on it: such a request that carries only a session cookie gets a 403.
+    (zimuarr) The cross-origin check doesn't check those keys: a request with neither header goes on
+    to the route's own key check, so the callback still answers a missing or wrong `X-Api-Key` with
+    `401` (D25; `contract-spike` checks its stand-in keys the same way), and the cross-origin check,
+    like every other check, runs before the callback's held `200`.
+  - A refusal is a 403 with the app's own "Access denied" page, or a JSON error for JSON callers,
+    with the security headers and in the viewer's language.
 - **The browser's address** is `ORIGIN` when it is set, and otherwise the validated `Origin` of the
   POST that passed the cross-origin check. It decides the cookies' `Secure` flag and the OIDC
   `redirect_uri`. Every POST that sets or deletes a cookie needs it, such as the claim, sign-in,
   the two-factor challenge, recovery, sign-out and the start of OIDC sign-in: when a browser
-  stripped `Origin`, they get a 403 that says so (the error page, or a JSON error for JSON
+  stripped `Origin`, they get a 403 that says so (the "Access denied" page, or a JSON error for JSON
   callers). OIDC sign-in keeps the address in the flow's state. The OIDC callback address is saved
   when the owner configures OIDC, and must match. Links shown on GET pages for copying, such as the
   OIDC callback to register, are built in the browser from the address the user is on, or from
-  `ORIGIN` when it is set (zimuarr: the endpoint address Bazarr is given is left to
-  `bazarr-instances`). App code never uses `event.url.origin` or `event.url.protocol` for security,
-  cookies or rendered URLs, which a test that searches the code enforces, and redirects stay
-  relative.
+  `ORIGIN` when it is set (zimuarr: the endpoint address Bazarr is given is not decided here;
+  `bazarr-instances` settles it). App code never uses `event.url.origin` or `event.url.protocol` for
+  security, cookies or rendered URLs, which a test that searches the code enforces, and redirects
+  stay relative.
 - **The address hint:** when `ORIGIN` is set and doesn't match the address the browser is on, or
   when `ORIGIN` is unset and that address's host and port don't match the `Host` header, the claim
   and owner sign-in pages suggest setting `ORIGIN=<that address>` (or removing a wrong `ORIGIN`) or
   adding the proxy line `proxy_set_header Host $http_host`, so someone without a session can
-  recover. (zimuarr) No module checks the address further, so this hint is the whole diagnosis.
+  recover. (zimuarr) zimuarr has no module that diagnoses the browser's address, so this hint is
+  the whole of that diagnosis.
 - **`ORIGIN`** is optional and never required. It is plain `ORIGIN`, not an app-prefixed name (an
   app prefix would mean setting adapter-bun's `envPrefix`, which would then reject the master key's
   variable). When set, it must be a bare `http` or `https` origin (a trailing `/` is fine; no path,
