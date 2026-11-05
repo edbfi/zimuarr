@@ -88,7 +88,9 @@ jobs:
             && git diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"; then
             changed="$RUNNER_TEMP/changed.txt"
           fi
-          bun tests/contract/select.ts "$EVENT" ${changed:+"$changed"} | tee -a "$GITHUB_OUTPUT"
+          # Captured first, so a failing selector fails the job instead of selecting nothing.
+          tier="$(bun tests/contract/select.ts "$EVENT" ${changed:+"$changed"})"
+          echo "$tier" | tee -a "$GITHUB_OUTPUT"
       - if: steps.select.outputs.tier != 'none'
         run: bun ci
       - if: steps.select.outputs.tier != 'none'
