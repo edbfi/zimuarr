@@ -57,9 +57,67 @@ jobs:
       - run: bunx --bun playwright install --with-deps chromium
       - run: bun run --bun build
       - run: bun run --bun smoke
+  # The Bazarr contract tests (docs/SPEC-contract-spike.md, "In CI"): a departure from the template
+  # approved with that spec. The job always runs and picks its cases itself, so a docs-only PR
+  # passes as not applicable instead of leaving a required check pending.
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions: { contents: read }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false, fetch-depth: 2 }
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with: { bun-version-file: package.json }
+      - name: Fail on node, npm and npx (Bun only)
+        run: |
+          mkdir -p "$RUNNER_TEMP/bun-only"
+          for tool in node npm npx; do
+            printf '#!/bin/sh\necho "::error::%s called; run it under Bun (--bun)" >&2\nexit 97\n' "$tool" > "$RUNNER_TEMP/bun-only/$tool"
+            chmod +x "$RUNNER_TEMP/bun-only/$tool"
+          done
+          echo "$RUNNER_TEMP/bun-only" >> "$GITHUB_PATH"
+      - name: Choose the cases this run needs
+        id: select
+        env: { EVENT: "${{ github.event_name }}" }
+        run: |
+          # On a pull request HEAD is GitHub's merge commit; HEAD^1 is the base. Anything that
+          # can't be listed runs every case.
+          changed=""
+          if [ "$EVENT" = pull_request ] && git rev-parse -q --verify HEAD^2 >/dev/null \
+            && git diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/changed.txt"; then
+            changed="$RUNNER_TEMP/changed.txt"
+          fi
+          bun tests/contract/select.ts "$EVENT" ${changed:+"$changed"} | tee -a "$GITHUB_OUTPUT"
+      - if: steps.select.outputs.tier != 'none'
+        run: bun ci
+      - if: steps.select.outputs.tier != 'none'
+        run: bun run --bun contract:up
+      - if: steps.select.outputs.tier == 'default'
+        run: bun run --bun contract
+      - if: steps.select.outputs.tier == 'full'
+        run: bun run --bun contract:full
+      - name: Collect the services' logs, keys redacted
+        if: always() && steps.select.outputs.tier != 'none'
+        run: bun tests/contract/setup.ts logs test-results/contract/services.log
+      - name: Note a run with nothing to test
+        if: steps.select.outputs.tier == 'none'
+        run: |
+          mkdir -p test-results/contract
+          echo "not applicable: only docs and images changed" > test-results/contract/summary.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: contract-evidence
+          path: test-results/contract/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Remove the throwaway services
+        if: always() && steps.select.outputs.tier != 'none'
+        run: bun run --bun contract:down
   ci-ok:
     if: always()
-    needs: [checks, smoke]
+    needs: [checks, smoke, contract]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}

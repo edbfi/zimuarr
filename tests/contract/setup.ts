@@ -1,7 +1,8 @@
 // The contract harness's setup (docs/SPEC-contract-spike.md, "The throwaway Bazarr"): `bun
 // tests/contract/setup.ts up` starts the throwaway services and provisions them, `… down` removes
-// them with their volumes and `.state/`. The run's state lives in `.state/run.json`; the tests read
-// it with `loadRun()`. Nothing here touches the owner's live services or any global Docker state.
+// them with their volumes and `.state/`, and `… logs` writes their logs with the keys redacted.
+// The run's state lives in `.state/run.json`; the tests read it with `loadRun()`. Nothing here
+// touches the owner's live services or any global Docker state.
 import { randomBytes } from "node:crypto";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
@@ -932,6 +933,21 @@ async function down(): Promise<void> {
 	console.log("contract: removed");
 }
 
+/** The services' logs for the evidence, with every key of the run redacted. */
+async function logs(file: string): Promise<void> {
+	const run = await loadRun();
+	let text = await compose(run, "logs", "--no-color", "--timestamps");
+	const keys = [
+		...Object.values(run.lingarrKeys),
+		...Object.values(run.bazarrApiKeys),
+		run.sonarrApiKey,
+		run.radarrApiKey,
+	];
+	for (const secret of keys) text = text.replaceAll(secret, "[redacted]");
+	await mkdir(path.dirname(file), { recursive: true });
+	await writeFile(file, text);
+}
+
 if (import.meta.main) {
 	const command = process.argv[2];
 	if (command === "up") {
@@ -942,8 +958,12 @@ if (import.meta.main) {
 		});
 	} else if (command === "down") {
 		await down();
+	} else if (command === "logs") {
+		await logs(
+			process.argv[3] ?? path.join(CONTRACT_DIR, "../../test-results/contract/services.log"),
+		);
 	} else {
-		console.error("usage: bun tests/contract/setup.ts up|down");
+		console.error("usage: bun tests/contract/setup.ts up|down|logs [file]");
 		process.exit(2);
 	}
 }

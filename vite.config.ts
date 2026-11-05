@@ -23,7 +23,10 @@ export default defineConfig({
 		expect: { requireAssertions: true },
 		// `test` runs only `unit`; the contract tests need Docker and run apart (`contract`).
 		projects: [
-			{ extends: true, test: { name: "unit", include: ["src/**/*.test.ts"] } },
+			{
+				extends: true,
+				test: { name: "unit", include: ["src/**/*.test.ts", "tests/contract/select.test.ts"] },
+			},
 			{
 				extends: true,
 				test: {
