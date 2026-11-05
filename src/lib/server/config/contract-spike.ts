@@ -15,10 +15,13 @@ export interface ContractSpikeValues {
 	deadlineSeconds?: string | undefined;
 }
 
+/** The longest delay a timer holds (2^31 - 1 ms); Bun turns a longer one into 1 ms. */
+const MAX_SECONDS = Math.floor(2_147_483_647 / 1000);
+
 function seconds(value: string | undefined, name: string, fallback: number, min: number): number {
 	if (value === undefined || value === "") return fallback * 1000;
-	if (!/^\d+$/.test(value) || Number(value) < min) {
-		throw new Error(`${name} must be a whole number of seconds, at least ${min}`);
+	if (!/^\d+$/.test(value) || Number(value) < min || Number(value) > MAX_SECONDS) {
+		throw new Error(`${name} must be a whole number of seconds, from ${min} to ${MAX_SECONDS}`);
 	}
 	return Number(value) * 1000;
 }
