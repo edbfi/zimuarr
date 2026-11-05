@@ -10,7 +10,7 @@
 zimuarr is a self-hosted subtitle translation control plane that works alongside Bazarr: it
 observes subtitle state, plans translations from declarative policies, sends them to configured AI
 providers, and calls a subtitle Verified only once Bazarr durably confirms the complete result
-([PRODUCT.md](../PRODUCT.md), [legacy spec](product/legacy-spec.md)).
+([PRODUCT.md](../PRODUCT.md)).
 
 **This spec covers only the ground floor:** an empty, production-shaped SvelteKit app that builds,
 type-checks, tests, lints and serves on Bun, styled from the design tokens, with the edbfi Bun web
@@ -23,8 +23,7 @@ is to make the first module spec cheap to build: every later PR adds behaviour, 
 aligned 2026-10-30). Module ids never change. Each module gets its own `docs/SPEC-<id>.md`, which the
 owner approves just before it is built.
 Sources: [PRODUCT.md](../PRODUCT.md), [decisions.md](decisions.md), the
-[legacy spec](product/legacy-spec.md), the [surface briefs](../.impeccable/surfaces/) and the
-[Module notes](#module-notes) below.
+[surface briefs](../.impeccable/surfaces/) and the [Module notes](#module-notes) below.
 
 **Every module keeps to [Code structure](../AGENTS.md#code-structure).** Its spec names the files it
 adds in that layout, and review checks them. In short:
@@ -43,30 +42,30 @@ providers and the global ceilings are shared by all instances.
 
 | # | Module id | Responsibility | Depends on | Surfaces |
 |---|---|---|---|---|
-| 1 | `contract-spike` | The Bazarr contract spike (D20; legacy "Delivery sequence", phase 0): a callback that answers Bazarr's Lingarr translator, run against the latest stable Bazarr (D22), proving correlation by source and destination path with the fingerprint (with Bazarr's markup stripping replicated exactly), two episodes of one series at once, a normal and a forced subtitle from one source, and timeout, retry and cached replies, including a retry that arrives while the attempt before it still runs (D20), and the held callback and its answers through a real reverse proxy (D25). Its results become the first contract tests. No database, sign-in or UI, and its code becomes product code only through later specs | — | — |
+| 1 | `contract-spike` | The Bazarr contract spike (D20): a callback that answers Bazarr's Lingarr translator, run against the latest stable Bazarr (D22), proving correlation by source and destination path with the fingerprint (with Bazarr's markup stripping replicated exactly), two episodes of one series at once, a normal and a forced subtitle from one source, and timeout, retry and cached replies, including a retry that arrives while the attempt before it still runs (D20), and the held callback and its answers through a real reverse proxy (D25). Its results become the first contract tests. No database, sign-in or UI, and its code becomes product code only through later specs | — | — |
 | 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17, D26), and the secret wrapper that shows only a redaction marker and opens at one named call | — | — |
 | 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's locale, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
-| 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the address hint on the claim page (`sign-in`). zimuarr adds the legacy health endpoint in place of `/healthz`, to which later modules add their parts (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
-| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy (legacy "Security"), password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code (legacy "Licensing fact") | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
+| 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the address hint on the claim page (`sign-in`). zimuarr adds its health endpoint in place of `/healthz`'s fixed answer (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
+| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy, password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code, with zimuarr's version beside it, from the first release (PRODUCT.md, License) | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
 | 6 | `two-factor` | Optional but strongly recommended (D17): authenticator codes, backup codes and the challenge after every way the owner signs in (except the optional OIDC skip, D17), with replay protection and a limit on failed attempts. Recovery turns it off. Adds the offer to first-run setup, right after the owner account is created and before any connection step, and the reminder in the operator shell while it is off | `sign-in` | the two-factor offer in first-run setup; its section of the Account tab; the reminder in the operator shell |
-| 7 | `events` | Domain events and the append-only audit record (legacy "Domain model"), and the live stream to the browser with versioned envelopes and durable ids, so a page that reconnects catches up on what it missed (legacy "Key interaction patterns") | `sign-in` | — |
-| 8 | `bazarr-provider` | The Bazarr API client: system status and version, series, episodes, movies and their subtitles page by page, subtitle content for fingerprints, the translate action, and the translator and upgrade settings for the checks in `bazarr-instances` (D23), with language codes normalised at the boundary (legacy "Data-shape facts") | `setup` | — |
+| 7 | `events` | Domain events and the append-only audit record of what happened and why, and the live stream to the browser with versioned envelopes and durable ids, so a page that reconnects catches up on what it missed | `sign-in` | — |
+| 8 | `bazarr-provider` | The Bazarr API client: system status and version, series, episodes, movies and their subtitles page by page, subtitle content for fingerprints, the translate action, and the translator and upgrade settings for the checks in `bazarr-instances` (D23), with language codes normalised at the boundary | `setup` | — |
 | 9 | `bazarr-instances` | Connecting Bazarr instances (D21): reachability and the version check against the latest stable release (D22), the issued callback key and its rotation, the Bazarr settings to change (pick Lingarr, endpoint and key, D20) with the warnings that Bazarr strips source markup and loses its built-in translators and the recommendation to turn off its translator-info cue (D20), the check that Bazarr points at zimuarr, the required upgrade settings (D23), observation-only by default, per-instance limits and the breaker, editing and removing. Adds the Connect Bazarr step to first-run setup | `sign-in`, `bazarr-provider` | `/setup/bazarr`; the Bazarr instances settings (no brief yet) |
-| 10 | `observation` | The polling mirror (legacy "Direction 3"): incremental per series, paged and rate-limited per instance, its cadence with Bazarr's live events as hints (D23), the guard that a failed page never retires desired subtitles (legacy "Failure handling"), and the Bazarr breaker | `bazarr-instances`, `events` | "observed 2 min ago" on the dashboard and `/system` |
+| 10 | `observation` | The polling mirror: incremental per series, paged and rate-limited per instance, its cadence with Bazarr's live events as hints (D23), the guard that a failed page never retires desired subtitles, and the Bazarr breaker | `bazarr-instances`, `events` | "observed 2 min ago" on the dashboard and `/system` |
 | 11 | `inventory` | Media and subtitles as mirrored, with filters in the URL, and the item detail with its Observed tab. `policies` adds the classifications and the Desired tab, and `verification` the Managed tab and the provenance chain | `observation` | `/inventory`, `/inventory/[item]` |
-| 12 | `revisions` | Prompts, glossaries, validation policies and chunking strategies (D24) as typed configuration, each save a new content-addressed revision (legacy "Provenance as a first-class, nearly free feature") | `sign-in` | their editors (no brief yet) |
-| 13 | `validation` | The completeness invariants and the other checks of legacy "Validation invariants", with thresholds from the validation-policy revision: a pure component with property-based and adversarial tests, including the predecessors' exact failure sequences (legacy "Improvement ideas") | `revisions` | — |
-| 14 | `providers` | Translation providers (D24): a thin adapter plus a capability declaration each for OpenAI Chat Completions-, Anthropic Messages- and Open Responses-compatible endpoints and for DeepL, Google Cloud Translation and LibreTranslate, with language pairs, context use, proofreading and recovery of lost answers among the capabilities, credentials, models with typed parameters, versioned pricing revisions, the connection test, per-provider concurrency, pause and breakers (the structured-output breaker included), and the notice that subtitle text goes to the provider (legacy "Privacy posture"), over the SSRF-safe HTTP that `bazarr-provider` adds (D8). No raw request templates and no plugins | `sign-in`, `bazarr-provider` | `/settings/providers` |
-| 15 | `policies` | Translation policies: scope (every instance by default or the ones named, D21), targets, source-language preferences, the fallback chain of provider profiles with its retry, repair and repeat limits, the context mode and lines, and proofreading (off, required or best effort, with its profile) (D24), revisions, activation mode, replacement permissions and pause; desired subtitles, source selection and the classifications that need no artifact (legacy "Desired subtitle"), with the Desired tab and the classification of each row in `inventory` | `inventory`, `revisions`, `providers` | `/policies/[policy]` (the form); the policy list (no brief yet); the source-language preferences on `/settings/budgets` |
-| 16 | `admission` | Safety decisions before dispatch, recorded with their reasons (legacy "Safety and admission control"): dispatch windows, global, per-instance and per-provider concurrency, volume, character and line caps, breakers, the protection for unmanaged subtitles, and the global, per-provider and per-policy pause, with the always-visible Pause translations control | `policies` | the Pause translations control and dialog; the windows and caps settings (no brief yet) |
+| 12 | `revisions` | Prompts, glossaries, validation policies and chunking strategies (D24) as typed configuration, each save a new content-addressed revision | `sign-in` | their editors (no brief yet) |
+| 13 | `validation` | The completeness invariants and the other checks in its Module notes, with thresholds from the validation-policy revision: a pure component with property-based and adversarial tests, including the predecessors' exact failure sequences | `revisions` | — |
+| 14 | `providers` | Translation providers (D24): a thin adapter plus a capability declaration each for OpenAI Chat Completions-, Anthropic Messages- and Open Responses-compatible endpoints and for DeepL, Google Cloud Translation and LibreTranslate, with language pairs, context use, proofreading and recovery of lost answers among the capabilities, credentials, models with typed parameters, versioned pricing revisions, the connection test, per-provider concurrency, pause and breakers (the structured-output breaker included), and the notice that subtitle text goes to the provider, over the SSRF-safe HTTP that `bazarr-provider` adds (D8). No raw request templates and no plugins | `sign-in`, `bazarr-provider` | `/settings/providers` |
+| 15 | `policies` | Translation policies: scope (every instance by default or the ones named, D21), targets, source-language preferences, the fallback chain of provider profiles with its retry, repair and repeat limits, the context mode and lines, and proofreading (off, required or best effort, with its profile) (D24), revisions, activation mode, replacement permissions and pause; desired subtitles, source selection and the classifications that need no artifact, with the Desired tab and the classification of each row in `inventory` | `inventory`, `revisions`, `providers` | `/policies/[policy]` (the form); the policy list (no brief yet); the source-language preferences on `/settings/budgets` |
+| 16 | `admission` | Safety decisions before dispatch, recorded with their reasons: dispatch windows, global, per-instance and per-provider concurrency, volume, character and line caps, breakers, the protection for unmanaged subtitles, and the global, per-provider and per-policy pause, with the always-visible Pause translations control | `policies` | the Pause translations control and dialog; the windows and caps settings (no brief yet) |
 | 17 | `budgets` | Money: per-attempt, daily and monthly ceilings for all instances plus optional daily and monthly ceilings per instance (D21), reservation before dispatch and before every further billable call, a ceiling per session, lost answers counted as spent (D24), settlement after, releasing reservations of failed or expired sessions, pricing provenance, and reports by instance, provider and policy at the prices that applied | `admission`, `providers` | `/settings/budgets` |
 | 18 | `plans` | The reconciliation planner and its explained plans: a reason and a safety verdict for each action, estimated cost, previews per policy, per instance or for everything, the same planner for preview and dispatch, and activation as a confirmed step | `admission`, `budgets` | the plan on `/policies/[policy]`; the Plans page (no brief yet) |
-| 19 | `translation` | Closed-loop translation (legacy "Dispatch", "The callback and the translation execution"): sessions with deadlines and correlation (D20), dispatch of SRT sources (D20) with the path and ids exactly as Bazarr sees them, the Lingarr-compatible callback held open, chunked provider calls within the deadline, the fallback chain with retries and repairs, context and the proofreading stage (D24), validation before any answer, retries that join the running work and cached replies after an abandoned call (D20), the answers Bazarr retries or not, never an empty list, and the failure Bazarr won't retry once the chain runs out (D24), accepting callbacks zimuarr didn't plan under the policy chosen for the instance, with the per-instance switch to turn them off (D20), and safe failure on restart. Keeps every attempt with its candidate output and failing checks, and creates the managed artifact for output that passed. Holds the callback open with keep-alive whitespace for the working deadline (D25), and documents what a reverse proxy in front must allow (legacy "Deployment shape"). Adds the self-test round trip to the Connect Bazarr step | `plans`, `validation` | the round trip check on `/setup/bazarr`; the Bazarr-started switch and policy in the instances settings |
-| 20 | `quarantine` | Quarantine review of the attempts `translation` rejected: their failing checks, the source and candidate side by side, discarding and re-attempting. Incomplete output is never approved, and approved output reaches Bazarr as `upgrades` delivers it (D23) | `translation` | `/quarantine/[case]`; the Quarantine list (no brief yet) |
+| 19 | `translation` | Closed-loop translation: sessions with deadlines and correlation (D20), dispatch of SRT sources (D20) with the path and ids exactly as Bazarr sees them, the Lingarr-compatible callback held open, chunked provider calls within the deadline, the fallback chain with retries and repairs, context and the proofreading stage (D24), validation before any answer, retries that join the running work and cached replies after an abandoned call (D20), the answers Bazarr retries or not, never an empty list, and the failure Bazarr won't retry once the chain runs out (D24), accepting callbacks zimuarr didn't plan under the policy chosen for the instance, with the per-instance switch to turn them off (D20), and safe failure on restart. Keeps every attempt with its candidate output and failing checks, and creates the managed artifact for output that passed. Holds the callback open with keep-alive whitespace for the working deadline (D25), and documents what a reverse proxy in front must allow. Adds the self-test round trip to the Connect Bazarr step | `plans`, `validation` | the round trip check on `/setup/bazarr`; the Bazarr-started switch and policy in the instances settings |
+| 20 | `quarantine` | Quarantine review of the attempts `translation` rejected: their failing checks, the source and candidate side by side, discarding and re-attempting with different inputs. Incomplete output is never approved, and approved output reaches Bazarr as `upgrades` delivers it (D23) | `translation` | `/quarantine/[case]`; the Quarantine list (no brief yet) |
 | 21 | `verification` | Verifying a managed artifact only when a later observation finds the subtitle Bazarr wrote, compared after Bazarr's writing rules (D23), noticing when Bazarr replaced it, the classifications that need an artifact (current, stale and manually modified), the protection for manually edited subtitles in `admission`, and the Managed tab with the provenance chain in `inventory` | `translation` | the Verified states and the Managed tab on `/inventory` |
 | 22 | `activity` | Live and past sessions and attempts with their lifecycle, including abandoned-then-completed and cached-on-retry, with chunk and validation results and cost | `translation` | the Activity page (no brief yet) |
-| 23 | `upgrades` | Acting on drift (legacy "Upgrades and lifecycle"): managed upgrades of stale artifacts under admission, adopting unmanaged subtitles, and rollback and replacement with an approval and a reason, delivered as a new translation answered from the kept content (D23) | `verification` | their actions on `/inventory/[item]` (no brief yet) |
-| 24 | `system` | System health: instances, providers, jobs, last observations and breakers in plain words, contract-drift warnings with the runtime drift detector that trips a breaker (legacy "Improvement ideas"), running diagnostics and the redacted diagnostic bundle | `translation` | `/system` |
+| 23 | `upgrades` | Acting on drift: managed upgrades of stale artifacts under admission, adopting unmanaged subtitles, and rollback and replacement with an approval and a reason, delivered as a new translation answered from the kept content (D23) | `verification` | their actions on `/inventory/[item]` (no brief yet) |
+| 24 | `system` | System health: instances, providers, jobs, last observations and breakers in plain words, contract-drift warnings with the runtime drift detector that trips a breaker rather than guessing at an unexpected payload, running diagnostics and the redacted diagnostic bundle | `translation` | `/system` |
 | 25 | `dashboard` | Counts by classification with the in-progress telemetry kept apart, recent observations, the budget rail with settled and reserved spend apart, connections and policy modes | `verification`, `budgets` | `/dashboard` |
 | 26 | `api-keys` | The owner's API keys, as in comradarr: a recognisable prefix, shown once, stored as a hash, an optional enforced expiry, an optional narrower scope from a fixed list of actions, last used, and revoking. They reach only the versioned JSON API. Also publishes the OpenAPI document behind sign-in | `sign-in` | the API keys section of the settings (no brief yet) |
 | 27 | `oidc-sign-in` | Connecting one OpenID Connect provider (Authentik, Authelia, Pocket ID, Tinyauth and others) by its issuer, client id and secret, and linking the owner's account to it, after which it signs them in as the owner, and offering to skip `two-factor` when the provider's `amr` claim reports its own second factor (D17) | `two-factor` | its section of the Account tab; its button on `/login` |
@@ -77,15 +76,15 @@ Build order: `contract-spike` → `secrets` → `i18n` → `setup` → `sign-in`
 `verification`, `activity` → `upgrades`, `system`, `dashboard`, `api-keys`, `oidc-sign-in`. A comma
 means either order works. The spike comes first because the whole product rests on Bazarr's
 undocumented contract (D20; owner decision). Then come the five modules every edbfi app shares
-(D17). Observation and planning follow the legacy delivery sequence, but admission and budgets come
-before `translation`, so no provider is ever paid without a prior reservation (PRODUCT.md, principle
-2). `translation` is the first time zimuarr does its job.
+(D17). Observation comes before planning, and admission and budgets come before `translation`, so no
+provider is ever paid without a prior reservation (PRODUCT.md, principle 2). `translation` is the
+first time zimuarr does its job.
 
 First-run setup grows step by step: `setup` claims the instance and creates the owner account,
 `two-factor` offers itself, `bazarr-instances` connects the first Bazarr instance, observation-only,
-and `translation` adds the self-test round trip to that step (D17; legacy "First-run and
-onboarding"). Adding a provider, writing a policy, previewing its plan and activating it come after
-first run (PRODUCT.md, "The working rhythm").
+and `translation` adds the self-test round trip to that step (D17). Adding a provider, writing a
+policy, previewing its plan and activating it come after first run (PRODUCT.md, "The working
+rhythm").
 
 ### Where modules live
 
@@ -136,7 +135,7 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 - `setup`: D14 (Turso and Drizzle versions), the logging library half of D13, and D15's backup
   and restore procedure, with the database file and the `secrets` key restored together.
   `verification` checks that a restore followed by a full mirror rebuild gives the same
-  classifications (legacy "Persistence and backups").
+  classifications.
 - `sign-in`: how long an owner session lasts.
 - `sign-in`: the password rules: the minimum length, whether a list of common passwords is
   refused, and how repeated failed sign-ins are slowed beyond the rate limits (backoff, or a lockout
@@ -144,24 +143,28 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 - The first module with a background job closes the job half of D13: `sign-in` if its session
   cleanup is a job, otherwise `observation`.
 - `observation`: the cadence, and whether it asks Bazarr to rescan a series or movie from disk
-  (Bazarr's own full rescan runs once a day), with Bazarr's live events as hints (D23; legacy, open
-  question 10).
+  (Bazarr's own full rescan runs once a day), with Bazarr's live events as hints (D23).
 - `providers`: the dependencies of the provider adapters, if any (the owner approves each), and who
-  owns capability declarations (legacy, open question 8).
-- `policies`: the scope vocabulary and how overlapping policies resolve (legacy, open question 1).
+  owns capability declarations: shipped with zimuarr, editable by the owner, or both, and what
+  happens when a provider's capabilities change.
+- `policies`: the scope vocabulary (such as libraries, series, tags or paths) and how overlapping
+  policies resolve.
 - `admission`: the time zone of dispatch windows and daily caps.
-- `translation`: the session states (open question 2; D20 sets how long a session waits and how
-  long output is kept), the shares of the working deadline and the default number of context lines
-  (open question 7; D24 sets the rest), and refusing fingerprint collisions.
-- `quarantine`: whether complete but suspicious output can ever be approved (open question 5).
-- `upgrades`: the rules for adoption, rollback and replacement (open question 6); D23 sets how
-  their output reaches Bazarr.
+- `budgets`: how a reservation bounds what a call can cost (its largest answer, say), so a
+  settlement above the estimate can't break a ceiling.
+- `translation`: the session states (D20 sets how long a session waits and how long output is
+  kept), the shares of the working deadline and the default number of context lines (D24 sets the
+  rest), and refusing and surfacing a callback that still matches more than one open session after
+  D20's full key, rather than guessing.
+- `quarantine`: whether complete but suspicious output can ever be approved.
+- `upgrades`: the rules for adoption, rollback and replacement; D23 sets how their output reaches
+  Bazarr.
 - D12: the first JSON endpoint that needs a generated client decides it, at the latest `api-keys`,
   which publishes the OpenAPI document. D16 stays open as an accepted limit.
 
 ### Left out on purpose
 
-- Any role beyond the one owner, such as viewers or approvers (legacy, open question 9; D17).
+- Any role beyond the one owner, such as viewers or approvers (D17).
 - Signing in through a reverse proxy's headers (D17): `oidc-sign-in` covers the same identity
   providers.
 - Matching media across instances, and reusing a translation across instances (D21; owner
@@ -171,8 +174,8 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 - Code for Bazarr versions other than the latest stable release, and workarounds for Bazarr bugs
   (D22).
 - Anything of Lingarr beyond the callback Bazarr calls (D20; owner decision).
-- Raw provider request templates (PRODUCT.md, legacy "Provider capability model"): a permanent
-  non-goal.
+- Raw provider request templates (PRODUCT.md, D24): a permanent non-goal, because a templated
+  request could break the schema the completeness checks rely on.
 - Plugins, mixing providers within one file, a credit cue of zimuarr's own, and proofreading
   subtitles already delivered (D20, D24; owner decisions).
 - The separate API and worker roles and the multi-process deployment (D4, D16).
@@ -190,7 +193,8 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
   always wins, and the README tells the operator to keep a copy of the key file. The previous
   zimuarr never shipped an image, so no earlier image's files need handling.
 - Talking to Sonarr or Radarr, managing media and writing subtitle files (PRODUCT.md, principle 4).
-- The light theme (legacy spec header): deferred, not dropped.
+- The light theme: deferred, not dropped. When it comes, the page loads in the chosen mode, with no
+  flash of the other.
 - Connecting Weblate (D18): later work. The message files are ready for it.
 
 ### Surfaces with no brief yet
@@ -198,13 +202,15 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 First-run setup's claim and account and two-factor steps, the Account tab, the Bazarr instances
 settings, the prompt, glossary and validation editors, the policy list, the Plans, Activity and
 Quarantine lists, the windows and caps settings, the upgrade, adoption and rollback actions, the
-`/inventory` list and the API keys section are needed (all are in the legacy spec or in PRODUCT.md's
-sidebar) but have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), a
-version warning in place of its "Version compatible" check (D22) and the upgrade-settings check
-(D23), the `/settings/budgets` brief the ceilings per instance (D21), the `/policies/[policy]` brief
-the instance scope (D21) and the fallback chain, context and proofreading (D24), and the
-`/settings/providers` brief the provider kinds and their capabilities (D24). Each gets its brief, or
-its brief's change, before its module is specced.
+`/inventory` list and the API keys section are needed (each is named in its capability-map row) but
+have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), a version
+warning in place of its "Version compatible" check (D22), the upgrade-settings check (D23), and the
+callback address and the plain-HTTP opt-in (Module notes, `bazarr-instances` and `bazarr-provider`).
+The `/settings/budgets` brief needs the ceilings per instance (D21), and the `/policies/[policy]`
+brief the instance scope (D21) and the fallback chain, context and proofreading (D24). The
+`/settings/providers` brief needs the provider kinds and their capabilities (D24), the plain-HTTP
+opt-in and typing the key again for a changed URL (Module notes, `providers`). Each gets its brief,
+or its brief's change, before its module is specced.
 
 ### Module notes
 
@@ -227,6 +233,13 @@ cites its own.
 - **Security headers** (zimuarr: ground-floor choice 3), on every response, early returns included,
   include a referrer policy of `same-origin` or `strict-origin-when-cross-origin`, never
   `no-referrer` (which makes browsers send `Origin: null` on the app's own form posts).
+- **The health endpoint** (zimuarr) takes the place of `/healthz`'s fixed `ok`, at the same path. It
+  is public, so it says only whether zimuarr itself can serve: `200` with `ok`, or `503` while its
+  database can't be read and written or its job runner has stopped (D7). The setup gate lets it
+  through, so it answers before the claim too. An unreachable Bazarr instance or provider doesn't
+  fail it, so a container health check never marks zimuarr unhealthy for someone else's outage. It
+  shows no version (D22) and no names; instances, providers, jobs, the last observation of each
+  instance and the breakers are shown behind sign-in on `/system` (`system`).
 
 #### sign-in
 
@@ -263,16 +276,16 @@ cites its own.
     with the security headers and in the viewer's language.
 - **The browser's address** is `ORIGIN` when it is set, and otherwise the validated `Origin` of the
   POST that passed the cross-origin check. It decides the cookies' `Secure` flag and the OIDC
-  `redirect_uri`. Every POST that sets or deletes a cookie needs it, such as the claim, sign-in,
-  the two-factor challenge, recovery, sign-out and the start of OIDC sign-in: when a browser
-  stripped `Origin`, they get a 403 that says so (the "Access denied" page, or a JSON error for JSON
+  `redirect_uri`. Every POST that sets or deletes a cookie needs it, such as the claim, sign-in, the
+  two-factor challenge, recovery, sign-out and the start of OIDC sign-in: when a browser stripped
+  `Origin`, they get a 403 that says so (the "Access denied" page, or a JSON error for JSON
   callers). OIDC sign-in keeps the address in the flow's state. The OIDC callback address is saved
   when the owner configures OIDC, and must match. Links shown on GET pages for copying, such as the
   OIDC callback to register, are built in the browser from the address the user is on, or from
-  `ORIGIN` when it is set (zimuarr: the endpoint address Bazarr is given is not decided here;
-  `bazarr-instances` settles it). App code never uses `event.url.origin` or `event.url.protocol` for
-  security, cookies or rendered URLs, which a test that searches the code enforces, and redirects
-  stay relative.
+  `ORIGIN` when it is set (zimuarr: the address Bazarr is given is `bazarr-instances`' editable
+  suggestion, never built from the browser's address). App code never uses `event.url.origin` or
+  `event.url.protocol` for security, cookies or rendered URLs, which a test that searches the code
+  enforces, and redirects stay relative.
 - **The address hint:** when `ORIGIN` is set and doesn't match the address the browser is on, or
   when `ORIGIN` is unset and that address's host and port don't match the `Host` header, the claim
   and owner sign-in pages suggest setting `ORIGIN=<that address>` (or removing a wrong `ORIGIN`) or
@@ -312,6 +325,233 @@ cites its own.
 - **A wrong address never locks the owner out.** No stored address can stop password sign-in: a
   wrong `ORIGIN` is fixed or removed, then the app restarts. The OIDC callback address is stored,
   so OIDC may need registering again after a move, but password sign-in always remains (D17).
+
+#### events
+
+- **The live stream** refreshes the dashboard, activity and `/system` as things happen, without a
+  reload.
+
+#### bazarr-provider
+
+- **Addresses.** An instance's address may be `https://` or `http://`. Plain HTTP is only for a
+  local address, and only once the owner opts in for that address: loopback, the private LAN
+  ranges, link-local, IPv6 unique-local and the shared range VPNs such as Tailscale use
+  (`100.64.0.0/10`). Whether an address is local is judged by the address its name resolves to when
+  zimuarr connects (D8), never by the name, so `http://bazarr:6767` on a Docker network can qualify
+  and a local-looking name that resolves to a public address can't. The rule holds for every address
+  zimuarr calls; `providers` applies it to provider base URLs.
+- **At the boundary.** Bazarr's answers are validated and turned into zimuarr's own types where they
+  arrive, and none of Bazarr's shapes reaches zimuarr's API or screens. Language identity is
+  normalised there too, so Bazarr's mix of two-letter and three-letter codes never enters zimuarr's
+  domain ([Bazarr research](research/bazarr.md)).
+
+#### bazarr-instances
+
+- **An instance** holds its address, the key for Bazarr's API, the address Bazarr calls zimuarr at,
+  the distinct callback key zimuarr issued for it, observation-only or active, its limits, its
+  breaker and the result of its version check (D21, D22). zimuarr tells instances apart only by that
+  callback key, never by what a callback's payload says.
+- **The callback address.** Before the first round trip, connecting an instance
+  suggests the address Bazarr should call zimuarr at, as Bazarr sees it, in an editable field:
+  `http://zimuarr:3000/bazarr` by default, the usual address on a shared Docker network, since
+  Bazarr often can't reach the address the owner's browser uses. The owner enters it, with the
+  issued key, as the Lingarr endpoint in Bazarr's settings. The check that Bazarr points at zimuarr
+  compares Bazarr's endpoint and key with the stored ones (D23), and `translation`'s self-test
+  round trip proves that Bazarr reaches it.
+- **Editing.** A test or a save reuses the stored Bazarr API key only while the address is
+  unchanged: a changed address needs the key typed again, so a stored secret is never sent to a
+  newly typed address.
+
+#### observation
+
+- **The mirror** holds what Bazarr reports for each instance: series, episodes and movies with their
+  Sonarr and Radarr ids, and each subtitle Bazarr reports for them, with its language, forced and
+  hearing-impaired flags, its path or Bazarr's id for it and when it was observed, and, where read
+  or given, its content fingerprint and file details. It is a replaceable copy, never the truth of
+  record: it can be rebuilt from Bazarr at any time, and losing it never loses intent or provenance.
+- **An unreachable instance** opens its Bazarr breaker: observation of that instance pauses, plans
+  show it as unhealthy, and nothing is dispatched to it until the breaker closes (`admission`).
+
+#### inventory
+
+- **The list** is paged, and its sort and page live in the URL with its filters (row 11), so a view
+  can be shared and survives a reload.
+
+#### revisions
+
+- **A revision is immutable** and named by the hash of its content, so identical content is the
+  same revision, and whether an artifact's provenance still matches the current policy comes down
+  to comparing hashes.
+
+#### validation
+
+- **Before any translated output is returned,** all of these hold, or the output is rejected:
+  - every source cue is represented exactly once: no position missing, duplicated or unknown;
+  - the order is valid;
+  - a non-empty source line never comes back empty;
+  - markup and control sequences meet the validation policy; this governs only what the model
+    adds, because Bazarr strips the source's markup before it calls (D20);
+  - the translation grows only within the policy's limits;
+  - no repetition: the model didn't loop or copy one line across many;
+  - no untranslated text: the output isn't still in the source language;
+  - the provider's output matches the expected schema;
+  - every chunk succeeded before the whole subtitle is accepted.
+- **Thresholds** for growth, repetition and untranslated text live in the validation-policy
+  revision, so tightening them makes earlier artifacts visibly stale rather than silently
+  inconsistent.
+- **Providers are untrusted:** their output is always checked in full.
+- **The predecessors' failures are adversarial tests** (row 13):
+  1. A provider's batch misses a position; the translator fills it with the source line and reports
+     success, and Bazarr, which replaces only the positions present and non-empty, records a
+     part-translated file as complete.
+  2. Bazarr's first callback times out while the work still runs; its retry is deduplicated to an
+     empty list, and Bazarr writes the untranslated file and logs success.
+  3. The work finishes after Bazarr gave up, and Bazarr's retry must get the result.
+
+  zimuarr rejects the first at the checks; in the other two the retry joins the running work or
+  gets the kept output (D20), never an empty list (D24), and the work runs once (`translation`).
+
+#### providers
+
+- **Addresses.** A provider's base URL follows `bazarr-provider`'s address rule: plain HTTP only for
+  a local address, such as a translation server on the LAN, once the owner opts in for that URL.
+- **Editing.** A test or a save reuses a stored provider key only while the base URL is unchanged:
+  when a key is stored, a changed URL needs it typed again, so a stored secret is never sent to a
+  newly typed address.
+- **At the boundary.** Provider answers are validated and turned into zimuarr's own types where they
+  arrive, and none of a provider's shapes reaches zimuarr's API or screens.
+- **Failures are classified:** output that breaks the schema counts toward the structured-output
+  breaker, and rate limits and outages toward the provider's breaker. Retries, repairs and fallback
+  are D24's.
+
+#### policies
+
+- **Changing a policy's translation inputs** (a revision, the provider chain or proofreading, D24)
+  makes the artifacts they produced stale, never leaves them silently behind, and before the owner
+  saves a change, the policy shows which artifacts it would make stale.
+- **Desired subtitles** are durable and unique per instance, media item, target language, and forced
+  and hearing-impaired flags; which variants are wanted comes from the item's Bazarr language
+  profile (D23).
+- **Source selection** picks the preferred available source by the policy's source-language
+  preference, an ordered list of acceptable languages and their variants, and records which source
+  revision, by fingerprint, it chose. When no acceptable source exists, the desired subtitle is
+  missing but can't be acted on, and the plan says so.
+- **Classifications** that need no artifact:
+  - **Missing:** nothing in the target language and variant is observed or managed.
+  - **Unmanaged:** a subtitle in the target language that zimuarr didn't produce or adopt;
+    protected by default (`admission`).
+  - **Blocked by a safety policy:** admissible in principle, but refused for now by a window, cap,
+    budget, breaker or pause.
+  - **Quarantined:** the latest attempt's output was kept for inspection, not delivered.
+  - **No longer required:** the policy no longer selects the item, language or variant, so the
+    desired subtitle may be retired.
+
+  Only reconciliation changes a classification: the owner's actions (activating, approving,
+  adopting, pausing) change inputs, and the next cycle classifies again.
+- **With no policy yet,** the policy list points to writing one, with an example.
+
+#### admission
+
+- **Every decision is recorded** with its verdict against the named rules, and plans show each
+  refusal with its reason.
+- **The controls:** dispatch windows (hours and days); concurrency for all instances, per instance
+  and per provider; hourly and daily caps on the number of translations, and limits on characters
+  and subtitle lines; the Bazarr, provider and structured-output breakers; the global, per-provider
+  and per-policy pause; and the protections below. Money is `budgets`', and retries and time are
+  D24's.
+- **Protections.** An unmanaged subtitle is never overwritten automatically: the owner adopts it
+  (`upgrades`) or a policy explicitly permits replacing it. A managed subtitle someone edited
+  (`verification`) is never replaced without a policy setting that allows it or an approval for
+  that item. Both are admission rules, shown in plans as refusals with their reasons.
+- **Breakers** open after repeated failures and close again when the owner resets them or after
+  their cool-down. Their thresholds are settings, globally and per provider. A manual reset asks for
+  confirmation and records a reason.
+- **Pausing and resuming** are recorded with their reason. While the global pause is on, every
+  signed-in page says so, as it does for an unreachable instance or a provider whose breaker is
+  open.
+
+#### budgets
+
+- **Each reservation** (D24) estimates the cost from the model's pricing and the request's size.
+  **Settlement** uses the usage the provider reports, or an estimate, marked as estimated, where its
+  declaration says usage can only be estimated.
+- **Ceilings hold under concurrency:** a reservation is taken against every ceiling that applies in
+  one step, so sessions running at once can never exceed a ceiling between them.
+- **Pricing revisions:** editing prices creates a new revision, every settled cost names the one it
+  used, and reports never re-price old work.
+
+#### plans
+
+- **A reconciliation cycle** observes Bazarr's state (`observation`), resolves the policies that
+  apply, computes the desired subtitles, compares desired, observed and managed state, classifies
+  each gap and drift, produces the explained plan, evaluates admission for each action, dispatches
+  what was admitted (`translation`), and verifies the result by a later observation
+  (`verification`).
+- **A preview** is available at any time, for active policies too.
+
+#### translation
+
+- **Dispatch,** for each admitted action: zimuarr fetches the source subtitle's content from Bazarr
+  and computes its fingerprint the way Bazarr will build the lines it sends (D20); reserves the
+  budget and the concurrency, opens the session and records the decision; then asks Bazarr to
+  translate, with the path exactly as Bazarr sees it, the right id (the episode's for an episode,
+  the movie's for a movie) and the forced and hearing-impaired flags as needed
+  ([Bazarr research](research/bazarr.md)). Each desired subtitle is claimed durably for its
+  dispatch, so a restart or an overlapping job never dispatches it twice (D7).
+- **A session** holds what correlates its callback (D20), the expected source content, its
+  reservation, its deadlines (D20, D24) and its kept output, and records its whole lifecycle,
+  including a caller that gave up before the work finished and kept output served to a retry.
+- **An attempt** records its inputs: the source revision, the language pair, the profile and the
+  frozen media details (D24), and the glossary, validation-policy and chunking-strategy revisions.
+- **A callback without one of zimuarr's keys** gets `401` (D25) and is recorded as a security event
+  (`events`). Bazarr is trusted only as far as its key: a callback's paths identify its work only
+  together with that key, and the fingerprint confirms the match (D20).
+- **Answering:** a result or a failure already kept for the work is answered at once (D20, D25); a
+  callback for running work joins it (D20); otherwise the reply is held (D25) while the work runs
+  within the working deadline, with the fallback chain, repairs and proofreading (D24). Output whose
+  assembled file fails the `validation` checks is kept with its failing checks (`quarantine`), and
+  the next profile gets an attempt, unless the policy makes failed checks fail the session (D24).
+  Once the answer is chosen, the complete checked list, or D25's failure when the chain runs out,
+  is kept before it is written, and its cost is settled. A successful answer is always the complete
+  list.
+
+#### quarantine
+
+- **Approving** complete but suspicious output, if this module's spec allows it, asks for
+  confirmation and records a reason.
+
+#### verification
+
+- **A managed artifact** links its desired subtitle, the source revision it was translated from and
+  the attempt that produced it (unless it was adopted, `upgrades`), its own content fingerprint,
+  when it was created and verified, and its drift.
+- **Classifications** that need an artifact:
+  - **Current:** the artifact is observed in place, and its provenance matches the policy's current
+    inputs.
+  - **Stale:** its source revision, one of its revisions, its provider or model, or the policy has
+    changed since.
+  - **Manually modified:** the observed subtitle no longer matches what zimuarr delivered, after
+    Bazarr's writing rules (D23); someone edited it, and it is protected (`admission`).
+
+#### activity
+
+- **With nothing to list yet,** the page says why, such as every instance still observing only.
+
+#### upgrades
+
+- **Adopting** takes an existing unmanaged subtitle under management.
+- **After an upgrade,** the old artifact keeps its provenance.
+
+#### system
+
+- **Breakers:** each one's history, with the reason it tripped.
+- **Diagnostics** check each instance's connection and version, that its translator points at
+  zimuarr (D23), and run the self-test round trip (`translation`); the diagnostic bundle has every
+  secret redacted.
+
+#### dashboard
+
+- **With no instance connected,** it points to connecting one.
 
 ## Tech stack
 
@@ -447,12 +687,12 @@ design doesn't call for anything different; choices 4 and 5 are zimuarr's own.
 2. **Ark UI before its first use.** The skeleton installs `@ark-ui/svelte`, so the Panda and Ark
    pairing and `check-peers` are settled early; the first `ui/` wrapper comes with the first surface
    that needs one.
-3. **Security headers and CSP.** The legacy spec's Security section requires authentication on the
-   web UI and API, with first-run setup as the only unauthenticated write path. Security headers and
-   a CSP belong to the first module that serves real pages (`setup`, whose claim page comes before
-   `sign-in`), not the skeleton.
+3. **Security headers and CSP.** zimuarr needs authentication on its interface and API, and a
+   first-run setup that closes after use (D17). Security headers and a CSP belong to the first
+   module that serves real pages (`setup`, whose claim page comes before `sign-in`), not the
+   skeleton.
 4. **No logo yet.** zimuarr has no logo or icon file, so the skeleton has no `static/` folder and no
    favicon; the visible name is the text "Zimuarr". A logo joins when the owner provides one.
-5. **Health.** `/healthz` always answers `ok`. `setup`, which adds the database, replaces it with
-   the legacy spec's health endpoint (Logging, health, diagnostics), and later modules add their
-   parts: instances, providers, workers, last observation times and breaker states.
+5. **Health.** `/healthz` always answers `ok`. `setup`, which adds the database, replaces that with
+   the health endpoint in its Module notes, and the parts it leaves out are shown on `/system`
+   (row 24).

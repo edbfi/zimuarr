@@ -37,9 +37,9 @@ Why: one runtime for every step, and the official Bun adapter needs it.
 ### D4. One container, one process, one port
 
 [`@sveltejs/adapter-bun`](https://svelte.dev/docs/kit/adapter-bun) builds a Bun server. zimuarr runs
-as one application process with one HTTP port in one container: the legacy spec's separate API and
-worker roles become in-process jobs (D7). Secrets are configured separately from the database and
-used only in server-only code.
+as one application process with one HTTP port in one container: background work runs as in-process
+jobs (D7), with no separate API and worker roles. Secrets are configured separately from the
+database and used only in server-only code.
 
 Why: a single self-hosted instance doesn't need more, and one process lets job claims and session
 leases live in one embedded database (see D16).
@@ -59,9 +59,9 @@ using the API from [Turso #7898](https://github.com/tursodatabase/turso/pull/789
 doesn't fix it.
 
 Why: one file on one volume matches the one-process deployment and keeps backup simple; the
-rollback-isolation check passed with the fixed adapter and no application-level write queue. The
-legacy spec's server-grade relational store was chosen for multi-process claims and leases, which
-one process (D16) doesn't need.
+rollback-isolation check passed with the fixed adapter and no application-level write queue. A
+server-grade relational store would serve job claims and session leases across several processes,
+which one process (D16) doesn't need.
 
 ### D6. Transactions and data access
 
@@ -79,8 +79,8 @@ Jobs (observation, dispatch, session deadlines, housekeeping) belong to applicat
 shutdown, never to page requests. Job state is persisted so work recovers after a restart, runs
 never overlap, and retries are safe.
 
-Why: SvelteKit and Drizzle provide none of this lifecycle, and the legacy spec requires no duplicate
-dispatch and no lost intent across restarts.
+Why: SvelteKit and Drizzle provide none of this lifecycle, and zimuarr must never send one dispatch
+twice or lose intent across a restart.
 
 ### D8. SSRF-safe outbound HTTP
 
@@ -176,17 +176,15 @@ Each app's connection modules add their own first-run steps after `setup`. In zi
 continues with the two-factor offer, then connecting the first Bazarr instance
 (`bazarr-instances`): the version check, the issued callback key, the Bazarr settings to change,
 the check that Bazarr points at zimuarr and the self-test round trip, with the instance starting
-observation-only (legacy spec "First-run and onboarding"). The claim replaces the legacy first step,
-creating the first administrator. The Bazarr contract spike (D20) runs before the shared opening: it
-needs no database, sign-in or UI, and proves the contract everything else rests on (owner decision;
-legacy spec "Delivery sequence"). It isn't a feature module, and its code becomes product code only
-through later specs.
+observation-only. The claim, which creates the owner account, takes the place of creating a first
+administrator. The Bazarr contract spike (D20) runs before the shared opening: it needs no database,
+sign-in or UI, and proves the contract everything else rests on (owner decision). It isn't a feature
+module, and its code becomes product code only through later specs.
 
-zimuarr has no Plex and no users besides the owner, which settles the legacy question about roles
-(legacy spec "Users, roles and permissions", open question 9). API keys (`api-keys`) aren't a way
-of signing in: the owner creates them while signed in, and they reach only the versioned JSON API,
-never pages. Connected Bazarr instances aren't users either: each callback key reaches only the
-translation callback (D20).
+zimuarr has no Plex and no users besides the owner, so it has no viewer, approver or other roles.
+API keys (`api-keys`) aren't a way of signing in: the owner creates them while signed in, and they
+reach only the versioned JSON API, never pages. Connected Bazarr instances aren't users either: each
+callback key reaches only the translation callback (D20).
 
 Why: the owner wants the five apps to look and work alike, and everything else depends on these
 modules: every app stores upstream secrets, shows text that must be translatable, needs a safe first
@@ -194,11 +192,10 @@ claim and has to know who its owner is. Encrypting in the app (D4: secrets are c
 the database) keeps stolen database files unreadable without the key. Two-factor and OIDC sign-in
 were the owner's call for every app, and so was letting a provider's own second factor stand in for
 the app's, optionally; one standard OIDC flow covers the self-hosted identity providers without a
-client for each, and `amr` is the standard way to see the provider's factor. zimuarr's legacy spec
-asked for authentication on the interface and API, a first-run setup that closes after use, and
-secrets "encrypted at rest where practical" (legacy spec "Security"); the shared opening meets all
-three and always encrypts. Recovery was the owner's call for every app, after comradarr's
-legacy recovery mode showed that the opening had no way back in.
+client for each, and `amr` is the standard way to see the provider's factor. zimuarr needs
+authentication on its interface and API, a first-run setup that closes after use, and encrypted
+stored secrets; the shared opening gives all three. Recovery was the owner's call for every app,
+after comradarr's legacy recovery mode showed that the opening had no way back in.
 
 ### D18. Every interface is translatable, in English and Danish
 
@@ -215,8 +212,7 @@ locale.
 
 Why: the owner wants full translation support in every app, with Weblate as the translation tool,
 and English and Danish now. Adding translation afterwards touches every screen; building it in from
-the first one costs little. This settles the legacy question about interface translation (legacy
-spec "Theming, responsiveness, accessibility, localisation", open question 13).
+the first one costs little.
 
 ### D19. Paraglide JS with i18next JSON v4 messages
 
@@ -249,14 +245,14 @@ resolves messages at runtime, without typed messages. The owner left the choice 
 
 ### D20. A Lingarr-compatible callback, and nothing else of Lingarr
 
-zimuarr connects to Bazarr through Bazarr's own Lingarr translator. In Bazarr's translation
-settings the operator picks Lingarr, enters zimuarr's address as the Lingarr endpoint and the key
-zimuarr issued for that instance as its API key. zimuarr answers exactly the request that
-translator sends, so Bazarr needs no change (PRODUCT.md, principle 4). Beyond that wire format
-zimuarr is its own app: no Lingarr concept, name or behaviour enters its domain, data or screens,
-except the onboarding instruction that names Bazarr's setting (owner decision). This narrows the
-legacy rule that the predecessor names never appear (legacy spec "What it deliberately does NOT
-do") to the callback boundary and that one instruction.
+zimuarr connects to Bazarr through Bazarr's own Lingarr translator. In Bazarr's translation settings
+the operator picks Lingarr, enters zimuarr's address as the Lingarr endpoint and the key zimuarr
+issued for that instance as its API key. zimuarr answers exactly the request that translator sends,
+so Bazarr needs no change (PRODUCT.md, principle 4). Beyond that wire format zimuarr is its own app:
+no concept, name or behaviour of its predecessors, Lingarr and Perevoditarr, enters its domain
+terms, data, screens, configuration, provider abstractions, events, service names or everyday docs,
+except Lingarr's name at the callback boundary and in the onboarding instruction that names Bazarr's
+setting (owner decision).
 
 What Bazarr sends, read from the source of 1.6.2, the latest stable release (D22), and unchanged
 since 1.6.1 and on the 1.6.3 betas (`lingarr_translator.py`); the contract spike tests it against a
@@ -276,28 +272,27 @@ real Bazarr:
   fails the job at once, without a retry. Bazarr replaces only the positions present and
   non-empty, so completeness is checked against every position it sent.
 
-The subtitle paths are new since the legacy spec, which found no path in the payload and relied on
-the content fingerprint alone (legacy spec "Direction 2: Bazarr calls Zimuarr back"). zimuarr
-matches a callback to its session by instance key, language pair, source path and destination
-path, and confirms the match with the fingerprint of the lines; the spike proves it. Bazarr sends
-the source path exactly as zimuarr dispatched it, and only the destination path tells apart a
-forced, a hearing-impaired and a normal subtitle made from the same source. Fingerprints follow how
-Bazarr builds its lines: HTML tags and `{…}` blocks removed, `\N` read as a line break, blank lines
-left out and positions counted over every cue. The timeout and retry counts are Bazarr's current
-behaviour, not product decisions, so they are settings with these defaults (legacy spec, open
-question 14).
+The subtitle paths are new: an earlier reading of Bazarr found no path in the payload and planned to
+correlate on the content fingerprint alone. zimuarr matches a callback to its session by instance
+key, language pair, source path and destination path, and confirms the match with the fingerprint of
+the lines; the spike proves it. Bazarr sends the source path exactly as zimuarr dispatched it, and
+only the destination path tells apart a forced, a hearing-impaired and a normal subtitle made from
+the same source. Fingerprints follow how Bazarr builds its lines: HTML tags and `{…}` blocks
+removed, `\N` read as a line break, blank lines left out and positions counted over every cue. The
+timeout and retry counts are Bazarr's current behaviour, not product decisions, so they are settings
+with these defaults.
 
 - **Retries join the running work.** A retry can arrive while zimuarr is still working on the
   attempt before it: after a timeout, a server error, a reverse proxy's 502 or a 200 that isn't
   valid JSON, Bazarr sends the same request again within seconds. The retry waits for that work, and
-  every waiting request gets the same full result (owner decision; legacy spec, open question 3).
+  every waiting request gets the same full result (owner decision).
 - **A dispatch is a request, not a promise.** Bazarr answers it with 204 and no job id, runs
   translations in the same queue as its own searches (four jobs at a time by default) and loses
   that queue when it restarts. A session waits up to 6 hours for its first callback, and finished
   output is kept for 7 days, so a later dispatch of the same work (the same source lines and
   revisions) is answered without a provider call. Money stays reserved until the provider work
-  ends, not until the callback does. The two periods are settings (owner decision; legacy spec,
-  open question 2, whose session states `translation` still decides).
+  ends, not until the callback does. The two periods are settings (owner decision); the session
+  states are `translation`'s.
 - **SRT only, for now.** Sources are SRT files, and Bazarr writes the translation as SRT. Bazarr's
   lines can't be rebuilt from its API for an ASS file with comments, and its ASS writer keeps only
   the first line of a multi-line translation. ASS, SSA and VTT can follow, each with its own
@@ -305,8 +300,8 @@ question 14).
 
 Callbacks zimuarr didn't plan, such as a Translate click in Bazarr's own interface, are accepted by
 default: Bazarr isn't a good translation engine, and zimuarr is, so a translation started in Bazarr
-should still be made by zimuarr (owner decision; legacy spec, open question 4, whose safe default
-was to reject). Per instance, the owner chooses which policy these callbacks run under, and can turn
+should still be made by zimuarr (owner decision, in place of an earlier safe default that rejected
+them). Per instance, the owner chooses which policy these callbacks run under, and can turn
 them off. With no session planned, admission, the budget reservation and the checks of the policy
 all happen when the callback arrives, and the provenance records that Bazarr started it. When the
 callback can't run (turned off, no policy chosen, the instance observation-only, including while
@@ -333,9 +328,9 @@ and the runtime drift detector keep drift visible.
 zimuarr connects one or more Bazarr instances, and each runs on its own: its own API key, issued
 callback key, version check, observation and rate limits, concurrency limit, circuit breaker and
 observation-only switch. Desired subtitles, sessions, attempts, managed artifacts, verification and
-provenance each belong to one instance (legacy spec "Identity and uniqueness rules"). The same media
-on two instances, such as a 1080p and a 4K library, is two unrelated items: each is translated and
-paid for separately, and zimuarr never matches media across instances (owner decision).
+provenance each belong to one instance. The same media on two instances, such as a 1080p and a 4K
+library, is two unrelated items: each is translated and paid for separately, and zimuarr never
+matches media across instances (owner decision).
 
 - **Money.** The per-attempt, daily and monthly ceilings cover all instances together. Each
   instance can also have its own daily and monthly ceilings, and a translation is admitted only
@@ -347,8 +342,8 @@ paid for separately, and zimuarr never matches media across instances (owner dec
 Why: Sonarr and Radarr ids are local to one install, so matching media across instances would be
 guessing, and independent instances keep every decision explainable (PRODUCT.md, principle 3). One
 wallet with optional ceilings per instance matches how the owner pays providers, while a second
-library can be held to less. This settles the question of several instances (PRODUCT.md "Where it
-runs"; legacy spec, open question 12).
+library can be held to less. This settles how several instances behave together (PRODUCT.md "Where
+it runs").
 
 ### D22. Other software: the latest stable release only
 
@@ -367,8 +362,7 @@ In zimuarr the service is Bazarr: 1.6.2 today. The tested release is the Bazarr 
 merges only once every contract test passes against it (`SPEC-contract-spike.md`, "In CI").
 `bazarr-instances` compares the version Bazarr
 reports (`GET /api/system/status`) with it, and `system` keeps the warning visible on `/system`.
-This replaces the supported Bazarr version range of the legacy spec ("Bazarr — the highest-risk
-dependency", "Failure handling") and its refusal of a version outside it.
+This replaces a supported range of Bazarr versions and refusing to connect a version outside it.
 
 Why: the owner doesn't want a backlog of backwards compatibility in any app (owner decision). Code
 for old versions and for upstream bugs is seldom removed once it's in, and each workaround outlives
@@ -389,8 +383,8 @@ for how files are handled, zimuarr follows it instead of adding its own:
 - **Writing back.** Approved quarantine output and a rollback reach Bazarr the one way zimuarr
   writes anything: zimuarr dispatches a new translation and answers its callback from the content
   it kept, and only while the source is unchanged. zimuarr keeps each artifact's content and the
-  source it came from for this, and never uses Bazarr's upload (legacy spec, open questions 5 and 6,
-  whose approval rules `quarantine` and `upgrades` still decide).
+  source it came from for this, and never uses Bazarr's upload. The approval rules are
+  `quarantine`'s and `upgrades`'.
 - **Bazarr's upgrades.** With its defaults, Bazarr's upgrade task deletes a translated subtitle in
   its first 7 days when a provider offers a better-scoring download. Connecting an instance
   therefore requires one of two setups in Bazarr: translated subtitles scored at 100 with "upgrade
@@ -406,8 +400,7 @@ for how files are handled, zimuarr follows it instead of adding its own:
   timing of zimuarr's answer after those rules, not when the bytes match.
 - **Observation.** Bazarr's index is the truth, read by polling. Bazarr's live events (Socket.IO,
   which needs no key, names each episode or movie it has just indexed) are hints to poll that item
-  sooner, never a substitute (legacy spec, open question 10, whose cadence `observation` still
-  decides).
+  sooner, never a substitute; the cadence is `observation`'s.
 - **Shared files.** Instances that point at the same files, and other tools writing beside Bazarr,
   are for Bazarr and the operator to handle; zimuarr doesn't detect or prevent them.
 
@@ -419,13 +412,22 @@ was read from Bazarr 1.6.2's source (`subtitles/upgrade.py`, `translator_utils.p
 ### D24. Translation providers, fallback chains, context and proofreading
 
 zimuarr translates through four kinds of provider, each a thin adapter plus a capability
-declaration (legacy spec "Provider capability model"): endpoints compatible with OpenAI Chat
-Completions, Anthropic Messages or [Open Responses](https://www.openresponses.org/), so hosted and
-local servers that speak one of them work by their address, and machine translation through DeepL,
-Google Cloud Translation and LibreTranslate. There is no plugin system, and raw request templates
-stay a permanent non-goal (owner decision).
+declaration: endpoints compatible with OpenAI Chat Completions, Anthropic Messages or
+[Open Responses](https://www.openresponses.org/), so hosted and local servers that speak one of
+them work by their address, and machine translation through DeepL, Google Cloud Translation and
+LibreTranslate. There is no plugin system, and raw request templates stay a permanent non-goal
+(owner decision).
 
-Besides the legacy spec's list, a capability declaration says:
+Validation, output parsing and chunk sizing follow the declaration's flags and limits, never code
+written per provider. Structured output is used wherever the declaration says the provider supports
+it, and what zimuarr asks a provider for can hold more than the line list Bazarr needs. A
+capability declaration says:
+- its structured output: a strict schema, a structured mode, or free text only;
+- the largest request or context it takes;
+- whether it reports usage exactly, or zimuarr only estimates it;
+- whether it streams;
+- its rate limits;
+- the pricing model its prices follow;
 - which language pairs the provider translates;
 - how it uses context: whether it takes any, and whether the entries of one request share it
   (DeepL translates each text of a batch on its own, with an optional context passage);
@@ -451,8 +453,7 @@ Besides the legacy spec's list, a capability declaration says:
 - Chunks paid for in a failed attempt are reused only by an attempt with the same profile.
 - When the chain runs out, Bazarr must fail the job and write nothing. zimuarr ends the held reply
   with a JSON object naming the failure, which Bazarr fails at once without a retry (D25). It never
-  answers with an empty list, which Bazarr would take as a success that keeps the source text
-  (legacy spec "Failure mode 2").
+  answers with an empty list, which Bazarr would take as a success that keeps the source text.
 - An artifact's provenance points to the attempt that produced it; failed attempts stay listed with
   their reasons.
 
@@ -465,8 +466,7 @@ Besides the legacy spec's list, a capability declaration says:
   reservation. Where the provider can recover the answer or recognise the repeat, zimuarr uses
   that; otherwise it repeats the call within the owner's limit, so the translation still finishes,
   and spend reports show the repeat (owner decision). This narrows "retries never create duplicate
-  cost" (PRODUCT.md, principle 2; legacy spec "Idempotency and caching") to every case where
-  zimuarr can know.
+  cost" (PRODUCT.md, principle 2) to every case where zimuarr can know.
 
 **Context.**
 - Lines are grouped into chunks, one request each. A chunk's size is computed from everything the
@@ -510,7 +510,7 @@ which starts at the first callback and isn't reset by Bazarr's retries. The dead
 between translation, fallback, proofreading and the answer, and best-effort proofreading stops early
 enough that the first pass can still be delivered. Bazarr runs several translations at once (its
 concurrent-jobs setting), so the per-provider concurrency in `admission` decides how many share a
-provider. `translation` sets the shares (legacy spec, open question 7).
+provider. `translation` sets the shares.
 
 Why: one profile per attempt keeps a file's terminology consistent and its provenance simple,
 where the predecessor fell back line by line and mixed models within a file. Repairs on the same
@@ -592,15 +592,13 @@ JSON, and `reveal()` is the only way to read it. There is no rotation: the key I
 a value written under another key fail with its own clear error, and a new key means entering the
 stored secrets again, with a new callback key issued to each Bazarr instance. `secrets` checks the
 key in SvelteKit's `init` hook from its first version, so every way of running the app, dev and CI
-included, needs one. The key is restored with the database file (D15). The legacy spec names no
-master key, only secrets "encrypted at rest where practical" (legacy "Security"); this one key
-replaces that, and every stored secret is encrypted. Rotating each instance's callback key (legacy
-"Security") is `bazarr-instances`' and isn't master-key rotation. A missing, malformed or weak
-key's error puts the key the app ran with before a new one, because a lost variable or a typo in a
-key in use fails the same checks, and the key loads before any database could say whether anything
-is stored (owner decision, 2026-10-31). The details are in [SPEC-secrets.md](SPEC-secrets.md). The
-design is the same in all five edbfi apps; only the variable prefix, the app name and the stored
-secrets differ.
+included, needs one. The key is restored with the database file (D15). Every stored secret is
+encrypted under this one key. Rotating each instance's callback key is `bazarr-instances`' and isn't
+master-key rotation. A missing, malformed or weak key's error puts the key the app ran with before a
+new one, because a lost variable or a typo in a key in use fails the same checks, and the key loads
+before any database could say whether anything is stored (owner decision, 2026-10-31). The details
+are in [SPEC-secrets.md](SPEC-secrets.md). The design is the same in all five edbfi apps; only the
+variable prefix, the app name and the stored secrets differ.
 
 Why: the shared opening keeps `secrets` the same in every app (D17), and comradarr settled its
 design first, with safety first (owner decision, after a council of three models and a review). Each
@@ -649,5 +647,5 @@ together. Each closes with the work that first depends on it.
 ### D16. One process
 
 The deployment assumes one application process per database. Horizontal scaling and job
-coordination across processes would need a new design; the legacy spec's multi-process deployment
-is out until then. Stays open as an accepted limit.
+coordination across processes would need a new design; a multi-process deployment is out until
+then. Stays open as an accepted limit.
