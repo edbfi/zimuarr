@@ -3,6 +3,11 @@ import { type Answer, answerBody, heldResponse, immediateAnswer } from "./held-r
 
 const decoder = new TextDecoder();
 
+function bodyReader(response: Response): ReadableStreamDefaultReader<Uint8Array> {
+	if (!response.body) throw new Error("the response has no body");
+	return response.body.getReader();
+}
+
 /** Reads a body continuously; `take()` returns what arrived since the last call. */
 function collect(reader: ReadableStreamDefaultReader<Uint8Array>) {
 	let text = "";
@@ -92,7 +97,7 @@ describe("heldResponse", () => {
 			heartbeatMs: 5000,
 			bareHeaders: false,
 		});
-		const body = collect(response.body!.getReader());
+		const body = collect(bodyReader(response));
 		expect(await body.take()).toBe(" ");
 		await vi.advanceTimersByTimeAsync(4999);
 		expect(await body.take()).toBe("");
@@ -107,7 +112,7 @@ describe("heldResponse", () => {
 			heartbeatMs: 0,
 			bareHeaders: false,
 		});
-		const body = collect(response.body!.getReader());
+		const body = collect(bodyReader(response));
 		expect(await body.take()).toBe(" ");
 		await vi.advanceTimersByTimeAsync(60_000);
 		expect(await body.take()).toBe("");
@@ -147,7 +152,7 @@ describe("heldResponse", () => {
 			bareHeaders: false,
 			onEnd: ended,
 		});
-		const reader = response.body!.getReader();
+		const reader = bodyReader(response);
 		await collect(reader).take();
 		await reader.cancel();
 		const writes = enqueue.mock.calls.length;
