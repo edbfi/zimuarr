@@ -782,7 +782,14 @@ async function waitForBazarrIndex(run: Run, seriesId: number): Promise<void> {
 				async () => {
 					if (Date.now() - lastSync > 30_000) {
 						lastSync = Date.now();
-						for (const task of ["update_series", "update_movies"]) {
+						// A sync indexes subtitles only for new or changed items, and Bazarr's first sync
+						// can run before the sources are placed, so the full subtitle scans run too.
+						for (const task of [
+							"update_series",
+							"update_movies",
+							"series_full_scan_subtitles",
+							"movies_full_scan_subtitles",
+						]) {
 							await fetch(`${base}/system/tasks?taskid=${task}`, {
 								method: "POST",
 								headers: { "x-api-key": apiKey },
