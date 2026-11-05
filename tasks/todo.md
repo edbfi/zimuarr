@@ -2,16 +2,16 @@
 
 Plan: [plan.md](plan.md). Each task: test first, then code; prek and unit tests before each commit.
 
-- [ ] 1. `bazarr-lines.ts`: Bazarr's line normalisation and the fingerprint, one unit test per pysubs2
+- [x] 1. `bazarr-lines.ts`: Bazarr's line normalisation and the fingerprint, one unit test per pysubs2
   rule. Files: `services/translation/bazarr-lines.ts` + test.
-- [ ] 2. `callback-request.ts`: D20 shape validation. + test.
-- [ ] 3. `src/env.ts`, `config/contract-spike.ts` and `stand-in-translator.ts` (directives,
+- [x] 2. `callback-request.ts`: D20 shape validation. + test.
+- [x] 3. `src/env.ts`, `config/contract-spike.ts` and `stand-in-translator.ts` (directives,
   cancellation); `test` script → `--project unit`. + tests.
-- [ ] 4. `held-response.ts`: heartbeat, answers, no write after cancel, headers incl. `bare-headers`.
+- [x] 4. `held-response.ts`: heartbeat, answers, no write after cancel, headers incl. `bare-headers`.
   + test.
-- [ ] 5. `callback-work.ts` and the route: checks in order, identity, join, keep, deadline, shutdown,
+- [x] 5. `callback-work.ts` and the route: checks in order, identity, join, keep, deadline, shutdown,
   event lines. + test.
-- [ ] Checkpoint A: unit tests, `check`, `lint`, `build`, `smoke`, prek green; a manual POST to
+- [x] Checkpoint A: unit tests, `check`, `lint`, `build`, `smoke`, prek green; a manual POST to
   `bun ./build` holds past 10 s and answers (C6 premise on the build; stop rule).
 - [ ] 6. Compose stack and pins: `compose.yaml`, Caddyfile, nginx template; digests resolved;
   services start on aarch64.
