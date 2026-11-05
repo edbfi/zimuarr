@@ -26,6 +26,8 @@ const EVIDENCE_DIR = path.join(REPO, "test-results", "contract");
 /** adapter-bun's default `BODY_SIZE_LIMIT`, which C12 checks the longest request against. */
 const BODY_LIMIT = 512 * 1024;
 const MINUTE = 60_000;
+/** The run's master key, generated as `playwright.config.ts` does; zimuarr won't start without one. */
+const SECRET_KEY = crypto.getRandomValues(new Uint8Array(32)).toBase64();
 
 let run: Run;
 const proxies = {} as Record<Instance, FaultProxy>;
@@ -52,6 +54,7 @@ class Zimuarr {
 				HOME: process.env.HOME ?? "",
 				HOST: run.gateway,
 				PORT: String(run.zimuarrPort),
+				ZIMUARR_SECRET_KEY: SECRET_KEY,
 				ZIMUARR_CONTRACT_SPIKE_KEYS: INSTANCES.map((i) => run.lingarrKeys[i]).join(","),
 				ZIMUARR_CONTRACT_SPIKE_HEARTBEAT_SECONDS: String(heartbeatSeconds),
 			},
