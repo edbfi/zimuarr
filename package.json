@@ -25,7 +25,7 @@
 	},
 	"devDependencies": {
 		"@ark-ui/svelte": "5.25.0",
-		"@biomejs/biome": "2.6.4",
+		"@biomejs/biome": "2.6.5",
 		"@pandacss/dev": "2.4.0",
 		"@pandacss/preset-base": "2.4.0",
 		"@pandacss/vite": "2.4.0",
