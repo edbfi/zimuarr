@@ -1,0 +1,13 @@
+# The contract tests' nginx path: nginx's defaults plus response compression for JSON, as many real
+# setups have. Nothing here raises a timeout (docs/SPEC-contract-spike.md). The image fills in
+# ${UPSTREAM} from the environment.
+server {
+    listen 8080;
+
+    gzip on;
+    gzip_types application/json;
+
+    location / {
+        proxy_pass http://${UPSTREAM};
+    }
+}

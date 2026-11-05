@@ -1,0 +1,11 @@
+# The contract tests' Caddy path: Caddy's defaults plus response compression, as many real setups
+# have. Nothing here raises a timeout (docs/SPEC-contract-spike.md).
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	encode gzip zstd
+	reverse_proxy {$UPSTREAM}
+}

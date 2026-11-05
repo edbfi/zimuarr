@@ -269,15 +269,19 @@ subtitle state, plans translations from declarative policies, sends them to conf
 and calls a subtitle Verified only once Bazarr durably confirms the complete result. It is being
 rewritten from scratch; the previous version is on the `legacy-old/v1` branch, for reference only.
 
-**Status:** the ground floor is built: an empty SvelteKit app on Bun with Panda tokens, `/healthz`,
-one unit test, one e2e smoke and the Bun web CI ([`docs/SPEC.md`](docs/SPEC.md)). Product modules
-come next, in the order of the approved capability map in `docs/SPEC.md`, each through an
-owner-approved `docs/SPEC-<id>.md`.
+**Status:** the ground floor is built: a SvelteKit app on Bun with Panda tokens, `/healthz`, unit
+tests, one e2e smoke and the Bun web CI ([`docs/SPEC.md`](docs/SPEC.md)). Module 1,
+`contract-spike`, is built: Bazarr's callback answered by a stand-in translator and the contract
+tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-spike.md)). The
+other product modules come next, in the order of the approved capability map in `docs/SPEC.md`,
+each through an owner-approved `docs/SPEC-<id>.md`.
 
 **Commands** (what each does: [docs/SPEC.md](docs/SPEC.md#commands)): `bun ci`, then
 `bun run --bun <dev|build|preview|check|test|smoke|lint>`; `prek run --all-files --hook-stage
 manual` is CI's `checks` job. `smoke` runs against the built server, so run `build` first, and it
-needs Chromium once per machine: `bunx --bun playwright install chromium`.
+needs Chromium once per machine: `bunx --bun playwright install chromium`. The contract tests need
+Docker: `bun run --bun contract:up`, then `contract` (or `contract:full`, with the 35-minute case),
+then `contract:down`.
 
 **Boundaries.**
 - Never bring code over from `legacy-old/v1`; rebuild from the spec.
@@ -303,17 +307,28 @@ src/
     +layout.svelte               loads app.css; marks <html data-hydrated> once mounted
     (public)/+page.svelte        `/`: placeholder page
     healthz/+server.ts           `/healthz`: public one-word status
+    bazarr/api/translate/content/+server.ts
+                                 Bazarr's Lingarr callback (the spike's stand-in, off unless its
+                                 keys are set)
                                  later: sign-in and setup, the operator workspace, api/ (the
-                                 versioned API and the Bazarr callback)
+                                 versioned API)
+  env.ts                         the environment variables SvelteKit exposes (`$app/env/private`)
   lib/                           imported as `#lib/<path>.<ext>`, e.g.
                                  `#lib/server/services/health.ts`
-    server/                      server-only: services/health.ts; later db/ (schema per aggregate),
-                                 providers/ (Bazarr, AI providers), services/<domain>/, jobs/,
-                                 http/ (SSRF-safe fetch), config/, security/, logging/
+    server/                      server-only: services/health.ts, services/translation/ (the
+                                 callback: request, Bazarr's lines, the held response, the work,
+                                 the stand-in), config/contract-spike.ts; later db/ (schema per
+                                 aggregate), providers/ (Bazarr, AI providers), more
+                                 services/<domain>/, jobs/, http/ (SSRF-safe fetch), security/,
+                                 logging/
     components/                  later: ui/ (Ark wrappers), layout/, <feature>/
     shared/                      later: browser-safe shared code
 tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
+  contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
+                                 Bazarr's tested release among them), setup.ts, bazarr.ts,
+                                 fault-proxy.ts, select.ts (CI's choice of cases), caddy/,
+                                 nginx/, fixtures/, contract.test.ts; .state/ is a run's, ignored
   fixtures/demo-fixtures.json    design fixtures
 drizzle/                         later: reviewed migrations
 panda.config.ts                  every design token; components use them through
@@ -322,4 +337,5 @@ vite.config.ts                   SvelteKit (all its configuration), Panda and Vi
 playwright.config.ts  tsconfig.json  package.json  bun.lock
 ```
 
-Vitest runs `src/**/*.test.ts`; Playwright runs `tests/e2e/`.
+Vitest's `unit` project runs `src/**/*.test.ts` and `tests/contract/select.test.ts`, its `contract`
+project `tests/contract/contract.test.ts`; Playwright runs `tests/e2e/`.
