@@ -24,11 +24,11 @@
 		"#styled-system/*": "./styled-system/*/index.js"
 	},
 	"devDependencies": {
-		"@ark-ui/svelte": "5.25.0",
+		"@ark-ui/svelte": "5.25.1",
 		"@biomejs/biome": "2.6.5",
-		"@pandacss/dev": "2.4.0",
-		"@pandacss/preset-base": "2.4.0",
-		"@pandacss/vite": "2.4.0",
+		"@pandacss/dev": "2.5.0",
+		"@pandacss/preset-base": "2.5.0",
+		"@pandacss/vite": "2.5.0",
 		"@playwright/test": "1.64.1",
 		"@sveltejs/adapter-bun": "1.0.0",
 		"@sveltejs/kit": "3.1.1",
@@ -36,7 +36,7 @@
 		"svelte": "5.57.3",
 		"svelte-check": "4.7.8",
 		"typescript": "6.0.3",
-		"vite": "8.3.5",
+		"vite": "8.3.6",
 		"vitest": "5.1.0"
 	}
 }
