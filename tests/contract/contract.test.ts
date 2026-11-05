@@ -39,13 +39,14 @@ type Event = CallbackEvent & { seenAt: number };
 /** The production build (`bun ./build`) with the run's keys, its event lines collected. */
 class Zimuarr {
 	readonly events: Event[] = [];
-	private constructor(private readonly proc: Bun.Subprocess<"ignore", "pipe", "pipe">) {}
+	private constructor(private readonly proc: Bun.Subprocess<"ignore", "pipe", "inherit">) {}
 
 	static async start(heartbeatSeconds: number): Promise<Zimuarr> {
 		const proc = Bun.spawn(["bun", "--no-env-file", "./build"], {
 			cwd: REPO,
 			stdout: "pipe",
-			stderr: "pipe",
+			// A crash at start shows in the test output; zimuarr never writes a key there.
+			stderr: "inherit",
 			env: {
 				PATH: process.env.PATH ?? "",
 				HOME: process.env.HOME ?? "",
@@ -73,12 +74,27 @@ class Zimuarr {
 				}
 			}
 		})();
-		await Promise.race([
-			ready,
-			new Promise((_, reject) =>
-				setTimeout(() => reject(new Error("zimuarr didn't start")), 20_000),
-			),
-		]);
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const exitedEarly = proc.exited.then((code) => {
+			throw new Error(`zimuarr exited with ${code} before listening`);
+		});
+		// It also settles after every normal stop, once nothing waits on it any more.
+		exitedEarly.catch(() => {});
+		try {
+			await Promise.race([
+				ready,
+				exitedEarly,
+				new Promise((_, reject) => {
+					timer = setTimeout(() => reject(new Error("zimuarr didn't start in 20 s")), 20_000);
+				}),
+			]);
+		} catch (error) {
+			// No instance is returned, so nothing else could stop this process.
+			proc.kill("SIGKILL");
+			throw error;
+		} finally {
+			clearTimeout(timer);
+		}
 		return server;
 	}
 
