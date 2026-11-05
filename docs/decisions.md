@@ -280,10 +280,10 @@ correlate on the content fingerprint alone. zimuarr matches a callback to its se
 key, language pair, source path and destination path, and confirms the match with the fingerprint of
 the lines; the contract tests prove it (C2, C3). Bazarr sends the source path exactly as zimuarr
 dispatched it, and only the destination path tells apart a forced, a hearing-impaired and a normal
-subtitle made from the same source. Fingerprints follow how Bazarr builds its lines: HTML tags and `{…}` blocks
-removed, `\N` read as a line break, blank lines left out and positions counted over every cue. The
-timeout and retry counts are Bazarr's current behaviour, not product decisions, so they are settings
-with these defaults.
+subtitle made from the same source. Fingerprints follow how Bazarr builds its lines: HTML tags and
+`{…}` blocks removed, `\N` read as a line break, blank lines left out and positions counted over
+every cue. The timeout and retry counts are Bazarr's current behaviour, not product decisions, so
+they are settings with these defaults.
 
 - **Retries join the running work.** A retry can arrive while zimuarr is still working on the
   attempt before it: after a timeout, a server error, a reverse proxy's 502 or a 200 that isn't

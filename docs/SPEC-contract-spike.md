@@ -71,6 +71,10 @@ Read on 2026-10-24 with GET requests only.
   a zimuarr database (the throwaway services' own databases are fine), sign-in or UI; shorten
   Bazarr's timeout or raise a proxy's to make a case pass; patch Bazarr or add code for another
   Bazarr version (D22).
+- **C11's window.** The approved C11 said `SIGTERM` makes the process "exit within" adapter-bun's
+  30-second shutdown window. A held callback keeps adapter-bun draining for the whole window, so no
+  exit can come earlier: the test reads it as "exits once the window closes" and passes from 30 to
+  35 seconds (30.0 s measured).
 - **A new Bazarr release** arrives as Dependabot's pin update to `tests/contract/compose.yaml`, runs
   every case and merges only when they pass: that is D22's move to the latest stable release, with
   the pin as the tested version.
