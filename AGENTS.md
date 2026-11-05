@@ -287,7 +287,8 @@ each through an owner-approved `docs/SPEC-<id>.md`.
 manual` is CI's `checks` job. `dev` and `preview` need a master key (the README's
 [Master key](README.md#master-key)); `smoke` and `contract` bring their own. `smoke` runs against
 the built server, so run `build` first, and it needs Chromium once per machine:
-`bunx --bun playwright install chromium`. The contract tests need Docker: `bun run --bun contract:up`, then `contract` (or `contract:full`, with the 35-minute case),
+`bunx --bun playwright install chromium`. The contract tests need Docker:
+`bun run --bun contract:up`, then `contract` (or `contract:full`, with the 35-minute case),
 then `contract:down`.
 
 **Boundaries.**
