@@ -2,15 +2,15 @@
 
 ## Slice 0: the plan
 
-- [ ] Commit `tasks/plan.md` and `tasks/todo.md` before any code.
+- [x] Commit `tasks/plan.md` and `tasks/todo.md` before any code.
 
 ## Slice 1: the code
 
-- [ ] Copy the 13 files from obzorarr `b9b4737` with the renames; the copy proof shows them
+- [x] Copy the 13 files from obzorarr `b9b4737` with the renames; the copy proof shows them
       identical.
-- [ ] `src/env.ts`: add the two key variables (exception 1).
-- [ ] `tests/contract/contract.test.ts`: a generated key per run (exception 2).
-- [ ] `check`, `test`, `lint`, prek pass.
+- [x] `src/env.ts`: add the two key variables (exception 1).
+- [x] `tests/contract/contract.test.ts`: a generated key per run (exception 2).
+- [x] `check`, `test`, `lint`, prek pass.
 
 ## Slice 2: closing the stream
 
