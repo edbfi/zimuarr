@@ -1,0 +1,20 @@
+1
+00:00:00,100 --> 00:00:00,200
+Good evening.
+
+2
+00:00:00,200 --> 00:00:00,300
+Have you tried turning it off
+and on again?
+
+3
+00:00:00,300 --> 00:00:00,400
+It's working now.
+
+4
+00:00:00,400 --> 00:00:00,500
+Thank you, that's all for today.
+
+5
+00:00:00,500 --> 00:00:00,600
+See you tomorrow.

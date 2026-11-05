@@ -13,7 +13,11 @@
 		"check": "bun --bun svelte-kit sync && bun --bun panda codegen && bun --bun svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
 		"test": "bun --bun vitest run --project unit",
 		"smoke": "bun --bun playwright test",
-		"lint": "bun --bun biome ci"
+		"lint": "bun --bun biome ci",
+		"contract:up": "bun tests/contract/setup.ts up",
+		"contract": "bun --bun vite build && bun --bun vitest run --project contract",
+		"contract:full": "bun --bun vite build && CONTRACT_FULL=1 bun --bun vitest run --project contract",
+		"contract:down": "bun tests/contract/setup.ts down"
 	},
 	"imports": {
 		"#lib/*": "./src/lib/*",

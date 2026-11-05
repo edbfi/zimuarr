@@ -22,6 +22,18 @@ export default defineConfig({
 		environment: "node",
 		expect: { requireAssertions: true },
 		// `test` runs only `unit`; the contract tests need Docker and run apart (`contract`).
-		projects: [{ extends: true, test: { name: "unit", include: ["src/**/*.test.ts"] } }],
+		projects: [
+			{ extends: true, test: { name: "unit", include: ["src/**/*.test.ts"] } },
+			{
+				extends: true,
+				test: {
+					name: "contract",
+					include: ["tests/contract/contract.test.ts"],
+					testTimeout: 15 * 60_000,
+					hookTimeout: 2 * 60_000,
+					maxConcurrency: 20,
+				},
+			},
+		],
 	},
 });

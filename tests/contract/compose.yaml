@@ -1,0 +1,80 @@
+# Throwaway services for the contract tests (docs/SPEC-contract-spike.md). Test equipment only:
+# zimuarr itself never talks to Sonarr or Radarr. `setup.ts` starts this with its own project name
+# and the variables below (from `.state/compose.env`); `contract:down` removes it. Every image is
+# pinned as a multi-platform tag and digest, and setup checks each running version against its pin.
+name: zimuarr-contract
+
+x-hotio: &hotio
+  environment:
+    PUID: ${CONTRACT_UID:?}
+    PGID: ${CONTRACT_GID:?}
+    UMASK: "002"
+    TZ: Etc/UTC
+  extra_hosts: ["host.docker.internal:host-gateway"]
+
+x-bazarr: &bazarr
+  <<: *hotio
+  image: ghcr.io/hotio/bazarr:release-1.6.2@sha256:85216e7af305c1e2c348b1f3d50da9cba589195892ac08d2cbbf559667830a5c
+  ports: ["127.0.0.1::6767"]
+
+services:
+  sonarr:
+    <<: *hotio
+    image: ghcr.io/hotio/sonarr:release-4.0.20.3014@sha256:17821f04d751be0c91b843b8540f60704f44cf1e15d58a3d2b821b827bf5c873
+    volumes:
+      - ${CONTRACT_STATE:?}/sonarr:/config
+      - ${CONTRACT_MEDIA:?}:${CONTRACT_MEDIA:?}
+    ports: ["127.0.0.1::8989"]
+
+  radarr:
+    <<: *hotio
+    image: ghcr.io/hotio/radarr:release-6.4.4.10685@sha256:ba96b2078fb6484805bd035ae94f1d673c1cd7861c456b6f31eaae24cba2d461
+    volumes:
+      - ${CONTRACT_STATE:?}/radarr:/config
+      - ${CONTRACT_MEDIA:?}:${CONTRACT_MEDIA:?}
+    ports: ["127.0.0.1::7878"]
+
+  # One Bazarr per path to zimuarr: each Lingarr address points at its own port of the recording
+  # proxy on the host, which forwards to zimuarr directly, to Caddy or to nginx.
+  bazarr-direct:
+    <<: *bazarr
+    volumes:
+      - ${CONTRACT_STATE:?}/bazarr-direct:/config
+      - ${CONTRACT_MEDIA:?}:${CONTRACT_MEDIA:?}
+
+  bazarr-caddy:
+    <<: *bazarr
+    volumes:
+      - ${CONTRACT_STATE:?}/bazarr-caddy:/config
+      - ${CONTRACT_MEDIA:?}:${CONTRACT_MEDIA:?}
+
+  bazarr-nginx:
+    <<: *bazarr
+    volumes:
+      - ${CONTRACT_STATE:?}/bazarr-nginx:/config
+      - ${CONTRACT_MEDIA:?}:${CONTRACT_MEDIA:?}
+
+  # The reverse proxies run their default configuration with response compression on.
+  caddy:
+    image: caddy:2.11.8-alpine@sha256:f6228111e5fafa1a5238258d0858e103f10599b8d1659a146e7726681a002bb9
+    environment:
+      UPSTREAM: host.docker.internal:${CONTRACT_ZIMUARR_PORT:?}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: ["./caddy/Caddyfile:/etc/caddy/Caddyfile:ro"]
+    ports: ["127.0.0.1::8080"]
+
+  nginx:
+    image: nginx:1.30.6@sha256:f12e4e280502f79dae4488c9f677ab3ebe8a7079818bbfbf3242f236bac64d34
+    environment:
+      UPSTREAM: host.docker.internal:${CONTRACT_ZIMUARR_PORT:?}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: ["./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro"]
+    ports: ["127.0.0.1::8080"]
+
+  # Run once by setup to make the dummy videos.
+  ffmpeg:
+    profiles: [tools]
+    image: lscr.io/linuxserver/ffmpeg:9.0.2-cli-ls88@sha256:f4191c1abe18d75c49a23f7224d1403d55334f80013a47cb096f5056cf19617b
+    user: ${CONTRACT_UID:?}:${CONTRACT_GID:?}
+    volumes:
+      - ${CONTRACT_MEDIA:?}:${CONTRACT_MEDIA:?}
