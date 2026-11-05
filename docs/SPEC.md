@@ -502,8 +502,7 @@ cites its own.
   reservation, its deadlines (D20, D24) and its kept output, and records its whole lifecycle,
   including a caller that gave up before the work finished and kept output served to a retry.
 - **An attempt** records its inputs: the source revision, the language pair, the profile and the
-  frozen media details (D24), and
-  the glossary, validation-policy and chunking-strategy revisions.
+  frozen media details (D24), and the glossary, validation-policy and chunking-strategy revisions.
 - **A callback without one of zimuarr's keys** gets `401` (D25) and is recorded as a security event
   (`events`). Bazarr is trusted only as far as its key: a callback's paths identify its work only
   together with that key, and the fingerprint confirms the match (D20).
