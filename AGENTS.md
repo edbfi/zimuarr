@@ -272,15 +272,22 @@ rewritten from scratch; the previous version is on the `legacy-old/v1` branch, f
 **Status:** the ground floor is built: a SvelteKit app on Bun with Panda tokens, `/healthz`, unit
 tests, one e2e smoke and the Bun web CI ([`docs/SPEC.md`](docs/SPEC.md)). Module 1,
 `contract-spike`, is built: Bazarr's callback answered by a stand-in translator and the contract
-tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-spike.md)). The
+tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-spike.md)).
+Module 2, `secrets` ([`docs/SPEC-secrets.md`](docs/SPEC-secrets.md)), is built and ready for
+consumers: a master key's text is read from the environment or a file, decoded and checked for weak
+keys, and loaded into a keyring of the cipher's keys. The built server loads it in the `init` hook
+and won't start without a valid key; `dev` fails every request instead. The cipher encrypts a
+secret bound to its table, field and row, and the `Secret` wrapper prints a plaintext as
+`[redacted]` everywhere except `reveal()`. Nothing stores a secret yet, and no database exists. The
 other product modules come next, in the order of the approved capability map in `docs/SPEC.md`,
 each through an owner-approved `docs/SPEC-<id>.md`.
 
 **Commands** (what each does: [docs/SPEC.md](docs/SPEC.md#commands)): `bun ci`, then
 `bun run --bun <dev|build|preview|check|test|smoke|lint>`; `prek run --all-files --hook-stage
-manual` is CI's `checks` job. `smoke` runs against the built server, so run `build` first, and it
-needs Chromium once per machine: `bunx --bun playwright install chromium`. The contract tests need
-Docker: `bun run --bun contract:up`, then `contract` (or `contract:full`, with the 35-minute case),
+manual` is CI's `checks` job. `dev` and `preview` need a master key (the README's
+[Master key](README.md#master-key)); `smoke` and `contract` bring their own. `smoke` runs against
+the built server, so run `build` first, and it needs Chromium once per machine:
+`bunx --bun playwright install chromium`. The contract tests need Docker: `bun run --bun contract:up`, then `contract` (or `contract:full`, with the 35-minute case),
 then `contract:down`.
 
 **Boundaries.**
@@ -312,23 +319,36 @@ src/
                                  keys are set)
                                  later: sign-in and setup, the operator workspace, api/ (the
                                  versioned API)
-  env.ts                         the environment variables SvelteKit exposes (`$app/env/private`)
+  env.ts                         the environment variables SvelteKit exposes (`$app/env/private`):
+                                 `ZIMUARR_SECRET_KEY` and `ZIMUARR_SECRET_KEY_FILE` (private, read
+                                 at runtime, optional) and the contract spike's settings
+  hooks.server.ts                the `init` hook: loads the keyring, except while building
   lib/                           imported as `#lib/<path>.<ext>`, e.g.
                                  `#lib/server/services/health.ts`
     server/                      server-only: services/health.ts, services/translation/ (the
                                  callback: request, Bazarr's lines, the held response, the work,
-                                 the stand-in), config/contract-spike.ts; later db/ (schema per
-                                 aggregate), providers/ (Bazarr, AI providers), more
-                                 services/<domain>/, jobs/, http/ (SSRF-safe fetch), security/,
-                                 logging/
+                                 the stand-in); later db/ (schema per aggregate), providers/
+                                 (Bazarr, AI providers), more services/<domain>/, jobs/, http/
+                                 (SSRF-safe fetch), logging/
+      config/                    contract-spike.ts: the spike's settings; secret-key.ts: the
+                                 master key's text from `ZIMUARR_SECRET_KEY` or the file
+                                 `ZIMUARR_SECRET_KEY_FILE` names, with no key logic
+      security/secrets/          key-text.ts: a master key's text to its 32 bytes, refusing
+                                 malformed and weak keys; keyring.ts: loads the key and derives
+                                 the AES key and key ID; secret.ts: the `Secret` wrapper,
+                                 `[redacted]` everywhere but `reveal()`; cipher.ts: encrypts a
+                                 secret bound to its table, field and row, and decrypts it only
+                                 there
     components/                  later: ui/ (Ark wrappers), layout/, <feature>/
     shared/                      later: browser-safe shared code
 tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
+  e2e/secret-key.test.ts         the built server refuses to start without a valid key
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,
                                  fault-proxy.ts, select.ts (CI's choice of cases), caddy/,
-                                 nginx/, fixtures/, contract.test.ts; .state/ is a run's, ignored
+                                 nginx/, fixtures/, contract.test.ts (starts the built server
+                                 with a key it generates); .state/ is a run's, ignored
   fixtures/demo-fixtures.json    design fixtures
 drizzle/                         later: reviewed migrations
 panda.config.ts                  every design token; components use them through

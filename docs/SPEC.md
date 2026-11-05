@@ -2,8 +2,8 @@
 
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
-([SPEC-contract-spike.md](SPEC-contract-spike.md)), and `secrets` is specified in
-[SPEC-secrets.md](SPEC-secrets.md).
+([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so is `secrets`
+([SPEC-secrets.md](SPEC-secrets.md)).
 
 ## Objective
 
@@ -98,7 +98,7 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 | Module | Main homes |
 |---|---|
 | `contract-spike` | `tests/contract/` (the contract tests; `compose.yaml` pins the Bazarr release they run against), `routes/bazarr/api/translate/content/`, `services/translation/` and `config/contract-spike.ts` (the callback and its stand-in translator, until `translation` decides what it keeps), `src/env.ts` (its settings) |
-| `secrets` | `security/secrets/` (the cipher and the secret wrapper); loading the key in `config/` |
+| `secrets` | `security/secrets/` (key checks, keyring, cipher, `Secret`), `config/secret-key.ts`, `src/env.ts` and the `init` hook in `hooks.server.ts` |
 | `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (Paraglide's settings), `lib/shared/i18n/` (formatting and language names); `paraglideMiddleware` in `hooks.server.ts` |
 | `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`; `routes/setup/`, `routes/healthz/`, and the setup gate and the headers in `hooks.server.ts` |
 | `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, the cross-origin check), `vite.config.ts` (SvelteKit's own form check off); the sign-in and the address hint at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
@@ -581,6 +581,7 @@ Setup facts for this stack:
   (`src/app.css`), and `transform: true` turns static `css()` calls into class strings at build
   time.
 - Hook types come from `@sveltejs/kit/hooks`.
+- SvelteKit 3 exposes only the environment variables declared in `src/env.ts`.
 - Tools run under Bun with `--bun`; a lifecycle script (`prepare`) calls each bin as
   `bun --bun <bin>`, because `bun ci` doesn't apply `--bun` to lifecycle scripts.
 - Bun blocks `@parcel/watcher`'s install script (it builds with Node); Panda works without it.
@@ -590,15 +591,15 @@ Setup facts for this stack:
 | Command | Does |
 |---|---|
 | `bun ci` | frozen install; `prepare` runs `svelte-kit sync` and Panda codegen |
-| `bun run --bun dev` | Vite dev server |
-| `bun run --bun build` | production build through adapter-bun into `build/` |
-| `bun run --bun preview` | runs the built server (`bun ./build`; `PORT`, default 3000, and `HOST`) |
+| `bun run --bun dev` | Vite dev server; needs a key in `.env` or the environment, and without one every request fails with the key error |
+| `bun run --bun build` | production build through adapter-bun into `build/`; needs no key and never embeds one |
+| `bun run --bun preview` | runs the built server (`bun ./build`; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch) |
-| `bun run --bun smoke` | Playwright e2e smoke; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
+| `bun run --bun smoke` | Playwright e2e: the browser smoke test and the startup tests, with a key it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
 | `bun run --bun lint` | `biome ci`, read-only; `biome.json` lists the file extensions Biome checks |
 | `bun run --bun contract:up` | starts the throwaway Bazarrs, Sonarr, Radarr, Caddy and nginx under a project of its own and provisions them (needs Docker) |
-| `bun run --bun contract` | builds zimuarr, starts it and runs every contract case but C5 |
+| `bun run --bun contract` | builds zimuarr, starts it with a key it generates and runs every contract case but C5 |
 | `bun run --bun contract:full` | the same with C5 (a 35-minute translation) |
 | `bun run --bun contract:down` | removes the run's services, their volumes and `tests/contract/.state/` |
 | `prek run --all-files --hook-stage manual` | everything CI's `checks` job runs |
@@ -637,16 +638,22 @@ export const GET: RequestHandler = () => healthResponse();
 ## Testing strategy
 
 - **Unit (Vitest's `unit` project, `node` environment):** next to their source: the `/healthz`
-  handler (status 200, body `ok`, `cache-control: no-store`), the callback's modules and the
-  contract job's case selection. Component tests use happy-dom when components exist; never jsdom.
-- **e2e (Playwright, Chromium, under Bun):** one smoke test against the built adapter-bun server.
-  It checks that `/` returns 200, shows the placeholder heading, hydrates (it waits for the
-  `data-hydrated` attribute the root layout sets when mounted), applies the Panda background token
-  and `h1` text style and logs no console errors, and that `/healthz` returns `ok`.
+  handler (status 200, body `ok`, `cache-control: no-store`), the callback's modules, the contract
+  job's case selection and the `secrets` module (`config/secret-key.test.ts`, and
+  `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts` and `secret.test.ts` in
+  `security/secrets/`, under `src/lib/server/`). Component tests use happy-dom when components
+  exist; never jsdom.
+- **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
+  Playwright generates for each run, so CI needs no stored secret.
+  - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
+    for the `data-hydrated` attribute the root layout sets when mounted), applies the Panda
+    background token and `h1` text style and logs no console errors, and that `/healthz` returns
+    `ok`.
+  - `secret-key.test.ts` checks that the built server refuses to start without a valid key.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
-  ([SPEC-contract-spike.md](SPEC-contract-spike.md)). `bun run --bun test` and prek run only the
-  `unit` project.
-- prek runs the unit tests (`tests` hook); CI's `smoke` job builds and runs the smoke test.
+  ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
+  each run. `bun run --bun test` and prek run only the `unit` project.
+- prek runs the unit tests (`tests` hook); CI's `smoke` job builds with no key and runs `smoke`.
 
 ## CI and repo tooling
 
@@ -675,8 +682,9 @@ zimuarr is a Bun web repo with edbfi-ci's Bun web templates:
   configuration in the Vite plugin; prek green before each commit.
 - **Ask first:** any dependency not in the tech stack table; any change to `biome.json` (it is
   shared by the five rewrite apps); any CI shape that differs from the edbfi-ci template.
-- **Never:** a database, authentication, Bazarr, AI providers or any product feature; a second
-  styling tool or primitive library; Node, npm or npx anywhere, including CI.
+- **Never:** a database, authentication, Bazarr, AI providers or any other product feature before
+  its module's approved spec builds it; a second styling tool or primitive library; Node, npm or
+  npx anywhere, including CI.
 
 ## Success criteria
 
