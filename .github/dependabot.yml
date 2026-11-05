@@ -26,7 +26,7 @@ updates:
       playwright: { patterns: [playwright, "@playwright/*"] }
       vitest: { patterns: [vitest, "@vitest/*"] }
       patch-minor: { patterns: ["*"], update-types: [minor, patch] }
-  # The contract tests' pinned images (docs/SPEC-contract-spike.md, "In CI"): each update runs every
+  # The contract tests' pinned images (docs/SPEC.md, "CI and repo tooling"): each update runs every
   # contract case and merges only when they pass. Ungrouped, so a Bazarr release is its own PR (D22).
   - package-ecosystem: docker-compose
     directory: /tests/contract

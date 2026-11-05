@@ -1,8 +1,8 @@
 # Spec: zimuarr
 
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
-(2026-10-22) and built. The capability map below is approved; `contract-spike` is specified in
-[SPEC-contract-spike.md](SPEC-contract-spike.md), and `secrets` in
+(2026-10-22) and built. The capability map below is approved; `contract-spike` is built
+([SPEC-contract-spike.md](SPEC-contract-spike.md)), and `secrets` is specified in
 [SPEC-secrets.md](SPEC-secrets.md).
 
 ## Objective
@@ -97,7 +97,7 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 
 | Module | Main homes |
 |---|---|
-| `contract-spike` | the contract tests, the Bazarr release they run against and the spike's callback, where its spec puts them in the Code structure layout |
+| `contract-spike` | `tests/contract/` (the contract tests; `compose.yaml` pins the Bazarr release they run against), `routes/bazarr/api/translate/content/`, `services/translation/` and `config/contract-spike.ts` (the callback and its stand-in translator, until `translation` decides what it keeps), `src/env.ts` (its settings) |
 | `secrets` | `security/secrets/` (the cipher and the secret wrapper); loading the key in `config/` |
 | `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (Paraglide's settings), `lib/shared/i18n/` (formatting and language names); `paraglideMiddleware` in `hooks.server.ts` |
 | `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`; `routes/setup/`, `routes/healthz/`, and the setup gate and the headers in `hooks.server.ts` |
@@ -127,9 +127,6 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 
 ### Open decisions each module closes
 
-- `contract-spike`: whether correlation by source and destination path holds (D20), the exact
-  normalisation of Bazarr's plaintext lines, and whether the held callback (D25) works end to end
-  through a reverse proxy.
 - `i18n`: the validation that D19 lists (pinned versions, the adapter-bun build, a Weblate round
   trip).
 - `setup`: D14 (Turso and Drizzle versions), the logging library half of D13, and D15's backup
@@ -600,6 +597,10 @@ Setup facts for this stack:
 | `bun run --bun test` | Vitest unit tests, once (no watch) |
 | `bun run --bun smoke` | Playwright e2e smoke; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
 | `bun run --bun lint` | `biome ci`, read-only; `biome.json` lists the file extensions Biome checks |
+| `bun run --bun contract:up` | starts the throwaway Bazarrs, Sonarr, Radarr, Caddy and nginx under a project of its own and provisions them (needs Docker) |
+| `bun run --bun contract` | builds zimuarr, starts it and runs every contract case but C5 |
+| `bun run --bun contract:full` | the same with C5 (a 35-minute translation) |
+| `bun run --bun contract:down` | removes the run's services, their volumes and `tests/contract/.state/` |
 | `prek run --all-files --hook-stage manual` | everything CI's `checks` job runs |
 
 ## Project structure
@@ -635,12 +636,16 @@ export const GET: RequestHandler = () => healthResponse();
 
 ## Testing strategy
 
-- **Unit (Vitest, `node` environment):** one test, for the `/healthz` handler: status 200, body
-  `ok`, `cache-control: no-store`. Component tests use happy-dom when components exist; never jsdom.
+- **Unit (Vitest's `unit` project, `node` environment):** next to their source: the `/healthz`
+  handler (status 200, body `ok`, `cache-control: no-store`), the callback's modules and the
+  contract job's case selection. Component tests use happy-dom when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** one smoke test against the built adapter-bun server.
   It checks that `/` returns 200, shows the placeholder heading, hydrates (it waits for the
   `data-hydrated` attribute the root layout sets when mounted), applies the Panda background token
   and `h1` text style and logs no console errors, and that `/healthz` returns `ok`.
+- **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
+  ([SPEC-contract-spike.md](SPEC-contract-spike.md)). `bun run --bun test` and prek run only the
+  `unit` project.
 - prek runs the unit tests (`tests` hook); CI's `smoke` job builds and runs the smoke test.
 
 ## CI and repo tooling
@@ -649,10 +654,18 @@ zimuarr is a Bun web repo with edbfi-ci's Bun web templates:
 - `.pre-commit-config.yaml`: Biome, `biome-migrate`, `check-peers`, the `tests` hook, plus a
   `check` hook (`bun run --bun check`), keeping the vendored-skill exclusions and the `docs-set`
   hook.
-- `.github/workflows/ci.yml`: `checks` (prek), `smoke` (Chromium install, build, smoke) and `audit`
-  (outside PRs); `checks` and `smoke` sit behind `ci-ok`, every job that installs runs with failing
-  `node`, `npm` and `npx` on `PATH`, and the weekly run is `7 5 * * 0`.
-- `.github/dependabot.yml` covers `github-actions`, `pre-commit` and `bun`, and
+- `.github/workflows/ci.yml`: `checks` (prek), `smoke` (Chromium install, build, smoke), `contract`
+  and `audit` (outside PRs); `checks`, `smoke` and `contract` sit behind `ci-ok`, every job that
+  installs runs with failing `node`, `npm` and `npx` on `PATH`, and the weekly run is `7 5 * * 0`.
+- `contract` (a departure from the template, approved with `contract-spike`) picks its cases inside
+  the job with `tests/contract/select.ts`: nothing for a pull request of only Markdown, `docs/`,
+  `.impeccable/` or images (it passes as not applicable); every case for the weekly and manual
+  runs, a pull request that changes `tests/contract/compose.yaml` and one whose changed files
+  can't be listed; every case but C5 otherwise. It has a 90-minute timeout and uploads the run's
+  evidence, keys redacted, as an artifact kept for 7 days.
+- `.github/dependabot.yml` covers `github-actions`, `pre-commit`, `bun` and, weekly, the contract
+  tests' images (`docker-compose` in `/tests/contract`, each image its own PR, so a Bazarr release
+  merges only once every contract case passes against it: D22), and
   `.github/workflows/biome-migrate.yml` applies Biome migrations and formatter output to
   Dependabot's Biome PRs.
 

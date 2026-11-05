@@ -1,4 +1,4 @@
-// The contract harness's setup (docs/SPEC-contract-spike.md, "The throwaway Bazarr"): `bun
+// The contract harness's setup (docs/SPEC-contract-spike.md): `bun
 // tests/contract/setup.ts up` starts the throwaway services and provisions them, `… down` removes
 // them with their volumes and `.state/`, and `… logs` writes their logs with the keys redacted.
 // The run's state lives in `.state/run.json`; the tests read it with `loadRun()`. Nothing here

@@ -1,4 +1,4 @@
-// The contract tests (docs/SPEC-contract-spike.md, C1–C12): a real, unmodified Bazarr 1.6.2 against
+// The contract tests C1–C12 (docs/SPEC-contract-spike.md): a real, unmodified Bazarr 1.6.2 against
 // zimuarr's production build. Every assertion is on Bazarr's outcome (job status, destination file,
 // history, log), plus zimuarr's event lines and the recording proxy's timings. Phase 1 runs its cases
 // at once; phase 2 runs the disruptive steps alone. `CONTRACT_FULL=1` adds C5. Needs `contract:up`.

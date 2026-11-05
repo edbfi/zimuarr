@@ -57,7 +57,7 @@ jobs:
       - run: bunx --bun playwright install --with-deps chromium
       - run: bun run --bun build
       - run: bun run --bun smoke
-  # The Bazarr contract tests (docs/SPEC-contract-spike.md, "In CI"): a departure from the template
+  # The Bazarr contract tests (docs/SPEC.md, "CI and repo tooling"): a departure from the template
   # approved with that spec. The job always runs and picks its cases itself, so a docs-only PR
   # passes as not applicable instead of leaving a required check pending.
   contract:

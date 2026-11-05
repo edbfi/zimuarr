@@ -255,10 +255,13 @@ except Lingarr's name at the callback boundary and in the onboarding instruction
 setting (owner decision).
 
 What Bazarr sends, read from the source of 1.6.2, the latest stable release (D22), and unchanged
-since 1.6.1 and on the 1.6.3 betas (`lingarr_translator.py`); the contract spike tests it against a
+since 1.6.1 and on the 1.6.3 betas (`lingarr_translator.py`); the contract tests check it against a
 real Bazarr:
 - `POST <endpoint>/api/translate/content`, with the key in `X-Api-Key`. Bazarr makes the key
-  optional; zimuarr requires it and rejects every other caller.
+  optional; zimuarr requires it and rejects every other caller. It is a JSON POST
+  (`Content-Type: application/json`, from `python-requests`) with neither `Origin` nor
+  `Sec-Fetch-Site`, so SvelteKit's form check lets it through and `sign-in`'s cross-origin check
+  treats it as a machine route (contract test C1).
 - A JSON body with `arrMediaId` (the Sonarr series id for episodes, the Radarr id for movies),
   `title` (with the source file's name), `sourceLanguage` and `targetLanguage` (two-letter codes,
   with `zh-CN`, `zh-TW` and `pt-BR` for Bazarr's three special cases), `mediaType` (`Episode` or
@@ -275,9 +278,9 @@ real Bazarr:
 The subtitle paths are new: an earlier reading of Bazarr found no path in the payload and planned to
 correlate on the content fingerprint alone. zimuarr matches a callback to its session by instance
 key, language pair, source path and destination path, and confirms the match with the fingerprint of
-the lines; the spike proves it. Bazarr sends the source path exactly as zimuarr dispatched it, and
-only the destination path tells apart a forced, a hearing-impaired and a normal subtitle made from
-the same source. Fingerprints follow how Bazarr builds its lines: HTML tags and `{…}` blocks
+the lines; the contract tests prove it (C2, C3). Bazarr sends the source path exactly as zimuarr
+dispatched it, and only the destination path tells apart a forced, a hearing-impaired and a normal
+subtitle made from the same source. Fingerprints follow how Bazarr builds its lines: HTML tags and `{…}` blocks
 removed, `\N` read as a line break, blank lines left out and positions counted over every cue. The
 timeout and retry counts are Bazarr's current behaviour, not product decisions, so they are settings
 with these defaults.
@@ -359,7 +362,7 @@ a real difference in the API shows up as an error, not as wrong data.
 
 In zimuarr the service is Bazarr: 1.6.2 today. The tested release is the Bazarr image pinned in
 `tests/contract/compose.yaml`; Dependabot proposes each new stable release there, and the update
-merges only once every contract test passes against it (`SPEC-contract-spike.md`, "In CI").
+merges only once every contract test passes against it (`docs/SPEC.md`, "CI and repo tooling").
 `bazarr-instances` compares the version Bazarr
 reports (`GET /api/system/status`) with it, and `system` keeps the warning visible on `/system`.
 This replaces a supported range of Bazarr versions and refusing to connect a version outside it.
@@ -567,8 +570,8 @@ and Bazarr's client reads the whole body before it parses it, so Bazarr sees one
   hour, and zimuarr can't tell the two apart. It needs a connection that dies silently, which a
   Docker network rarely does, and costs at most one repeat within D24's limits (owner decision).
 
-`contract-spike` proves this end to end against Bazarr 1.6.2, directly and through Caddy and nginx
-with compression on.
+`contract-spike` proved this end to end on 2026-11-05 against Bazarr 1.6.2, directly and through
+Caddy 2.11.8 and nginx 1.30.6 with compression on, and the contract tests keep proving it.
 
 Why: holding silently needs a custom server entry around adapter-bun to lift Bun's idle timeout,
 is cut by any proxy's read timeout and makes Bazarr's 32 minutes a hard limit. Answering "retry

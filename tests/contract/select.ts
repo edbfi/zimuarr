@@ -1,4 +1,4 @@
-// Which contract cases a CI run needs (docs/SPEC-contract-spike.md, "In CI"). Chosen inside the
+// Which contract cases a CI run needs (docs/SPEC.md, "CI and repo tooling"). Chosen inside the
 // job, never with a workflow `paths:` filter, so the required checks are never left pending. Uses
 // nothing installed: it runs before `bun ci`.
 //   bun tests/contract/select.ts <event> [<file listing the changed files>]  →  tier=<none|default|full>
