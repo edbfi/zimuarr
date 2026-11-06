@@ -687,17 +687,6 @@ zimuarr is a Bun web repo with edbfi-ci's Bun web templates:
   its module's approved spec builds it; a second styling tool or primitive library; Node, npm or
   npx anywhere, including CI.
 
-## Success criteria
-
-1. A fresh clone passes `bun ci`, `bun run --bun check` (zero errors and warnings), `bun run --bun
-   test`, `bun run --bun build`, `bun run --bun smoke` and `prek run --all-files --hook-stage
-   manual`, with no Node on `PATH`.
-2. The built server (`bun ./build`) serves `/` with the placeholder page and `/healthz` with `ok`.
-3. `panda.config.ts` holds every design token; the seed token files are gone, and nothing in `src/`
-   uses a raw colour, size or font value.
-4. Only folders with real files exist; `#lib` resolves in app code, tests and `svelte-check`.
-5. CI on the PR runs `checks`, `smoke` and `ci-ok` green; `audit` runs outside PRs.
-
 ## Ground-floor choices
 
 Choices 1–3 were settled for the first rewrite app's skeleton and are reused here, since zimuarr's
