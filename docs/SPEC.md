@@ -12,10 +12,11 @@ observes subtitle state, plans translations from declarative policies, sends the
 providers, and calls a subtitle Verified only once Bazarr durably confirms the complete result
 ([PRODUCT.md](../PRODUCT.md)).
 
-**This spec covers only the ground floor:** an empty, production-shaped SvelteKit app that builds,
-type-checks, tests, lints and serves on Bun, styled from the design tokens, with the edbfi Bun web
-CI around it. It has no database, authentication, Bazarr, AI providers or product features. Its job
-is to make the first module spec cheap to build: every later PR adds behaviour, not plumbing.
+**Beyond the capability map, this spec covers only the ground floor:** an empty, production-shaped
+SvelteKit app that builds, type-checks, tests, lints and serves on Bun, styled from the design
+tokens, with the edbfi Bun web CI around it. It has no database, authentication, Bazarr, AI
+providers or product features. Its job is to make the first module spec cheap to build: every later
+PR adds behaviour, not plumbing.
 
 ## Capability map
 
@@ -492,8 +493,8 @@ cites its own.
   and computes its fingerprint the way Bazarr will build the lines it sends (D20); reserves the
   budget and the concurrency, opens the session and records the decision; then asks Bazarr to
   translate, with the path exactly as Bazarr sees it, the right id (the episode's for an episode,
-  the movie's for a movie) and the forced and hearing-impaired flags as needed
-  ([Bazarr research](research/bazarr.md)). Each desired subtitle is claimed durably for its
+  the movie's for a movie) and the forced and hearing-impaired flags as needed, as the contract
+  tests dispatch (`tests/contract/bazarr.ts`). Each desired subtitle is claimed durably for its
   dispatch, so a restart or an overlapping job never dispatches it twice (D7).
 - **A session** holds what correlates its callback (D20), the expected source content, its
   reservation, its deadlines (D20, D24) and its kept output, and records its whole lifecycle,
@@ -626,7 +627,6 @@ export const GET: RequestHandler = () => healthResponse();
 
 - [`panda.config.ts`](../panda.config.ts) holds every design token: colours, type styles,
   spacing, radii, layout sizes, breakpoints and motion durations, under the names DESIGN.md uses.
-  It replaced the seed token files that came with the design package.
 - Colours are semantic tokens behind a colour-mode condition (`_dark`), dark by default
   (`class="dark"` on `<html>` in `src/app.html`); light values can be added later without touching
   components.

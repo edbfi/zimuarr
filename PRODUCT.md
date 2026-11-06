@@ -58,7 +58,8 @@ Polar Control. Deep polar blue, seafoam primary actions, ice-blue informational 
 What exists:
 
 - **Decisions:** [docs/decisions.md](docs/decisions.md), the decided and open technical decisions, including what has been validated so far. Bazarr's translator contract (D20), its file handling (D23) and the Bazarr behaviour the held callback relies on (D25) were read from Bazarr 1.6.2's source.
-- **Research:** [docs/research/bazarr.md](docs/research/bazarr.md), how the previous plan found Bazarr to behave, not re-verified: dispatch, the translator setting, the mirror, language codes and failures.
+- **Contract tests:** `tests/contract/`, C1–C12 against a real, unmodified Bazarr 1.6.2, directly and through Caddy and nginx ([docs/SPEC-contract-spike.md](docs/SPEC-contract-spike.md)). Correlation by path and fingerprint, two episodes of one series at once and the held callback are proven (D20, D25).
+- **Research:** [docs/research/bazarr.md](docs/research/bazarr.md), how the previous plan found Bazarr to behave, not re-verified: the mirror, language codes and failures.
 - **Design mockups:** ten generated raster boards in `docs/design/screens/` (`01-entry-and-onboarding.webp` to `10-states-and-components.webp`), plus the selected direction reference `docs/design/references/polar-control.webp`. They guide composition only; their text, numbers, icons and incidental actions are illustrative (see each brief's raster corrections).
 - **Seed tokens:** `panda.config.ts`, a proposed design seed that matches DESIGN.md.
 - **Surface briefs:** nine proposed route briefs in `.impeccable/surfaces/` (login, Bazarr setup, dashboard, inventory item, policy, quarantine case, system, provider settings, budgets).
@@ -67,8 +68,7 @@ What exists:
 
 What does not exist, and must not be invented:
 
-- No product module, deployment, container image or validated product behaviour yet: only the ground floor, an empty SvelteKit app (`docs/SPEC.md`).
-- No Bazarr contract spike or contract tests yet. Correlation by path and fingerprint, two episodes of one series at once and the held callback are unproven (D20, D25).
+- No product feature, deployment, container image or validated product behaviour yet: only the ground floor, the Bazarr contract spike and `secrets` (`docs/SPEC.md`).
 - No users, customers, testimonials, case studies, press, adoption or usage figures, benchmarks or performance measurements.
 - No real provider names, models or prices: every provider, price and figure in the fixtures and mockups is fictional.
 - No real integration logos or marks for Bazarr, Sonarr, Radarr or any provider in the repo. Do not reproduce generated connector logos.

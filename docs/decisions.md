@@ -173,13 +173,12 @@ keeps its own copy ([Shared groundwork](../AGENTS.md#shared-groundwork)).
     Plex sign-ins always do. A provider that doesn't send `amr` never gets the offer.
 
 Each app's connection modules add their own first-run steps after `setup`. In zimuarr, first run
-continues with the two-factor offer, then connecting the first Bazarr instance
-(`bazarr-instances`): the version check, the issued callback key, the Bazarr settings to change,
-the check that Bazarr points at zimuarr and the self-test round trip, with the instance starting
-observation-only. The claim, which creates the owner account, takes the place of creating a first
-administrator. The Bazarr contract spike (D20) runs before the shared opening: it needs no database,
-sign-in or UI, and proves the contract everything else rests on (owner decision). It isn't a feature
-module, and its code becomes product code only through later specs.
+continues with the two-factor offer, then connecting the first Bazarr instance (`bazarr-instances`):
+the version check, the issued callback key, the Bazarr settings to change, the check that Bazarr
+points at zimuarr and the self-test round trip, with the instance starting observation-only. The
+Bazarr contract spike (D20) runs before the shared opening: it needs no database, sign-in or UI, and
+proves the contract everything else rests on (owner decision). It isn't a feature module, and its
+code becomes product code only through later specs.
 
 zimuarr has no Plex and no users besides the owner, so it has no viewer, approver or other roles.
 API keys (`api-keys`) aren't a way of signing in: the owner creates them while signed in, and they
@@ -216,7 +215,7 @@ the first one costs little.
 
 ### D19. Paraglide JS with i18next JSON v4 messages
 
-Translation (D18) uses Paraglide JS 2 (`@inlang/paraglide-js`) through its Vite plugin, SvelteKit's
+Translation (D18) uses Paraglide JS 3 (`@inlang/paraglide-js`) through its Vite plugin, SvelteKit's
 official i18n integration. Messages live in `messages/en.json` and `messages/da.json` in i18next
 JSON v4, through `@inlang/plugin-i18next` 6.2.0 or later (which fixed its plural handling), with
 plurals under CLDR suffixes. Weblate reads that format as "i18next JSON v4" (`i18nextv4`),
@@ -275,15 +274,13 @@ real Bazarr:
   fails the job at once, without a retry. Bazarr replaces only the positions present and
   non-empty, so completeness is checked against every position it sent.
 
-The subtitle paths are new: an earlier reading of Bazarr found no path in the payload and planned to
-correlate on the content fingerprint alone. zimuarr matches a callback to its session by instance
-key, language pair, source path and destination path, and confirms the match with the fingerprint of
-the lines; the contract tests prove it (C2, C3). Bazarr sends the source path exactly as zimuarr
-dispatched it, and only the destination path tells apart a forced, a hearing-impaired and a normal
-subtitle made from the same source. Fingerprints follow how Bazarr builds its lines: HTML tags and
-`{…}` blocks removed, `\N` read as a line break, blank lines left out and positions counted over
-every cue. The timeout and retry counts are Bazarr's current behaviour, not product decisions, so
-they are settings with these defaults.
+zimuarr matches a callback to its session by instance key, language pair, source path and
+destination path, and confirms the match with the fingerprint of the lines; the contract tests prove
+it (C2, C3). Bazarr sends the source path exactly as zimuarr dispatched it, and only the destination
+path tells apart a forced, a hearing-impaired and a normal subtitle made from the same source.
+Fingerprints follow how Bazarr builds its lines: HTML tags and `{…}` blocks removed, `\N` read as a
+line break, blank lines left out and positions counted over every cue. The timeout and retry counts
+are Bazarr's current behaviour, not product decisions, so they are settings with these defaults.
 
 - **Retries join the running work.** A retry can arrive while zimuarr is still working on the
   attempt before it: after a timeout, a server error, a reverse proxy's 502 or a 200 that isn't
@@ -303,15 +300,14 @@ they are settings with these defaults.
 
 Callbacks zimuarr didn't plan, such as a Translate click in Bazarr's own interface, are accepted by
 default: Bazarr isn't a good translation engine, and zimuarr is, so a translation started in Bazarr
-should still be made by zimuarr (owner decision, in place of an earlier safe default that rejected
-them). Per instance, the owner chooses which policy these callbacks run under, and can turn
-them off. With no session planned, admission, the budget reservation and the checks of the policy
-all happen when the callback arrives, and the provenance records that Bazarr started it. When the
-callback can't run (turned off, no policy chosen, the instance observation-only, including while
-D23's upgrade settings are missing, or admission refuses), zimuarr records it with the reason and
-answers with an error Bazarr doesn't retry. Observation-only means zimuarr pays for nothing on that
-instance, whoever starts the work; without the upgrade settings, Bazarr could delete the paid
-translation (D23).
+should still be made by zimuarr (owner decision). Per instance, the owner chooses which policy these
+callbacks run under, and can turn them off. With no session planned, admission, the budget
+reservation and the checks of the policy all happen when the callback arrives, and the provenance
+records that Bazarr started it. When the callback can't run (turned off, no policy chosen, the
+instance observation-only, including while D23's upgrade settings are missing, or admission
+refuses), zimuarr records it with the reason and answers with an error Bazarr doesn't retry.
+Observation-only means zimuarr pays for nothing on that instance, whoever starts the work; without
+the upgrade settings, Bazarr could delete the paid translation (D23).
 
 **The name stays Bazarr's.** Bazarr calls the translator Lingarr in its settings and history, and
 its translator-info setting adds a cue naming Lingarr to every translated subtitle (D23). zimuarr
@@ -363,9 +359,8 @@ a real difference in the API shows up as an error, not as wrong data.
 In zimuarr the service is Bazarr: 1.6.2 today. The tested release is the Bazarr image pinned in
 `tests/contract/compose.yaml`; Dependabot proposes each new stable release there, and the update
 merges only once every contract test passes against it (`docs/SPEC.md`, "CI and repo tooling").
-`bazarr-instances` compares the version Bazarr
-reports (`GET /api/system/status`) with it, and `system` keeps the warning visible on `/system`.
-This replaces a supported range of Bazarr versions and refusing to connect a version outside it.
+`bazarr-instances` compares the version Bazarr reports (`GET /api/system/status`) with it, and
+`system` keeps the warning visible on `/system`.
 
 Why: the owner doesn't want a backlog of backwards compatibility in any app (owner decision). Code
 for old versions and for upstream bugs is seldom removed once it's in, and each workaround outlives
