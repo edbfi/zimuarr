@@ -133,7 +133,7 @@ Primary fills use background-colored text. Secondary color marks information, li
 - **number:** Roboto Mono, 32px/1.2, weight 500.
 - **code:** Roboto Mono, 13px/1.5, weight 400.
 
-Keep prose below 70 characters per line. Titles use sentence case. Keep capitals for proper names and short codes. Operational numbers use tabular mono glyphs; a poster-sized recap number may use the display face. Font names indicate intended typefaces; image generation approximates glyphs. Use locally bundled font files and fallbacks, rather than remote font requests.
+Keep prose below 70 characters per line. Titles use sentence case. Keep capitals for proper names and short codes. Operational numbers use tabular mono glyphs. Font names indicate intended typefaces; image generation approximates glyphs. Use locally bundled font files and fallbacks, rather than remote font requests.
 
 ## Layout
 

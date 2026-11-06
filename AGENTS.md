@@ -277,14 +277,8 @@ consumers. Nothing stores a secret yet, and no database exists. The other produc
 next, in the order of the approved capability map in `docs/SPEC.md`, each through an
 owner-approved `docs/SPEC-<id>.md`.
 
-**Commands** (what each does: [docs/SPEC.md](docs/SPEC.md#commands)): `bun ci`, then
-`bun run --bun <dev|build|preview|check|test|smoke|lint>`; `prek run --all-files --hook-stage
-manual` is CI's `checks` job. `dev` and `preview` need a master key (the README's
-[Master key](README.md#master-key)); `smoke` and `contract` bring their own. `smoke` runs against
-the built server, so run `build` first, and it needs Chromium once per machine:
-`bunx --bun playwright install chromium`. The contract tests need Docker:
-`bun run --bun contract:up`, then `contract` (or `contract:full`, with the 35-minute case),
-then `contract:down`.
+**Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
+and `preview` need, see the README's [Master key](README.md#master-key).
 
 **Boundaries.**
 - Never bring code over from `legacy-old/v1`; rebuild from the spec.
