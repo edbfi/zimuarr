@@ -381,8 +381,9 @@ script) ran on Vite 8.3.5 and Biome 2.6.4; zimuarr is on Vite 8.3.6 and Biome 2.
 and Panda newer too. So the build runs them itself rather than citing obzorarr's output. On
 2026-11-08 the other versions the port brief lists matched `7368cff` (`@inlang/paraglide-js` 3.2.1,
 `@inlang/plugin-i18next` 6.5.3, `@sveltejs/kit` 3.1.1, `@sveltejs/adapter-bun` 1.0.0, `typescript`
-6.0.3, Bun 1.4.4), and so did `biome.json`; `project.inlang/*` and the hooks don't exist here yet,
-and the build writes them as the spec gives them.
+6.0.3, Bun 1.4.4), and so did `biome.json`. `project.inlang/*` and `hooks.client.ts` don't exist
+here yet, and `hooks.server.ts` holds only the `init` hook; the build writes them as the spec gives
+them, `init` unchanged.
 
 The temporary message, route and scripts aren't committed; the scripts and their output go in the
 build PR's body.
