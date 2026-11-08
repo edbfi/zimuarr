@@ -65,7 +65,7 @@ text from the messages, and `LanguageSwitcher.svelte` sits at its top, with the 
 The held Bazarr callback is now behind the language handle. (obzorarr's #298 and #299.)
 
 **Acceptance criteria:**
-- [ ] `tests/e2e/i18n.test.ts`, ported from obzorarr's at `7368cff` with all its assertions,
+- [x] `tests/e2e/i18n.test.ts`, ported from obzorarr's at `7368cff` with all its assertions,
   against the built server, written first and failing without the code:
   - a `da-DK` browser gets `/` in Danish with `<html lang="da">` and
     `Vary: Cookie, Accept-Language`, and "Dansk" has `lang="da"` and `aria-current="true"`;
@@ -75,26 +75,26 @@ The held Bazarr callback is now behind the language handle. (obzorarr's #298 and
     `fr-FR`, `da-DK` gets English, the switcher marks English as current after hydration, pressing
     "English" neither reloads the page nor writes a cookie, and no cookie is written at all;
   - none logs a console error, and the smoke test passes unchanged in English.
-- [ ] The placeholder renders its messages as text, never with `{@html}`, with `Zimuarr` filled in
+- [x] The placeholder renders its messages as text, never with `{@html}`, with `Zimuarr` filled in
   as `{{name}}`, and `<title>Zimuarr</title>` stays as it is.
-- [ ] `app.html` has `<html lang="%lang%">` with the Biome suppression just above it, which doesn't
+- [x] `app.html` has `<html lang="%lang%">` with the Biome suppression just above it, which doesn't
   contain the token. `hooks.server.ts` and `hooks.client.ts` are as the spec's Code style gives
   them, and the `init` hook is unchanged.
-- [ ] The switcher is a labelled group of native buttons, the label a message
+- [x] The switcher is a labelled group of native buttons, the label a message
   (`language_switcher_label`), each button naming its language in that language with `lang` set,
   from `Intl.DisplayNames` with the first letter upper-cased in that language ("English", "Dansk"),
   through a helper private to the component (`ownName`), never a message or a literal. The current
   language's button has `aria-current="true"` and does nothing when pressed; another calls
   `setLocale`. It is styled only with tokens, at the top of `/` before the heading.
-- [ ] Keyboard focus is one rule in `panda.config.ts`'s `globalCss`: DESIGN.md's 2px `secondary`
+- [x] Keyboard focus is one rule in `panda.config.ts`'s `globalCss`: DESIGN.md's 2px `secondary`
   ring with a 2px offset on every `:focus-visible` element.
-- [ ] The concurrency check passes: 200 concurrent requests in both languages against the built
+- [x] The concurrency check passes: 200 concurrent requests in both languages against the built
   server, through a temporary route that awaits a random delay in its `load`, each render in their
   own language. The script and its output are in the PR body; neither it nor the route is
   committed. It is run here, not cited from obzorarr's #298.
-- [ ] CI's `contract` job passes on the PR's head, its cases unchanged, as the evidence that the
+- [x] CI's `contract` job passes on the PR's head, its cases unchanged, as the evidence that the
   callback and its held answers didn't change behind the language handle.
-- [ ] D15 no longer lists browser interaction with a real component.
+- [x] D15 no longer lists browser interaction with a real component.
 
 **Verification:** `bun run --bun test`, `check`, `lint`, `build`, `smoke`, prek; CI's `checks`,
 `smoke`, `contract` and `ci-ok`. Manual check: in `dev`, a browser set to Danish sees the
@@ -114,7 +114,7 @@ row and the Design tokens note on focus, with its reason: no spacing token is 2p
 
 ## Checkpoint: after task 2
 
-- [ ] Everything passes locally and in CI (`checks`, `smoke`, `contract`, `ci-ok`), and the built
+- [x] Everything passes locally and in CI (`checks`, `smoke`, `contract`, `ci-ok`), and the built
   server serves and switches both languages.
 
 ## Task 3: formatting, subtitle-language names, and closing the work stream

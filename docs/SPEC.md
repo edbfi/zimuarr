@@ -603,7 +603,7 @@ Setup facts for this stack:
 | `bun run --bun preview` | runs the built server (`bun ./build`; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, the Paraglide compile, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch) |
-| `bun run --bun smoke` | Playwright e2e: the browser smoke test and the startup tests, with a key it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
+| `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests and the startup tests, with a key it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
 | `bun run --bun lint` | `biome ci`, read-only; `biome.json` lists the file extensions Biome checks |
 | `bun run --bun contract:up` | starts the throwaway Bazarrs, Sonarr, Radarr, Caddy and nginx under a project of its own and provisions them (needs Docker) |
 | `bun run --bun contract` | builds zimuarr, starts it with a key it generates and runs every contract case but C5 |
@@ -638,6 +638,9 @@ export const GET: RequestHandler = () => healthResponse();
 - Only `@pandacss/preset-base` is loaded (utilities and conditions), so no preset palette competes
   with the app's tokens, and `strictTokens` makes a raw value in `css()` a type error that `check`
   reports.
+- Keyboard focus is one global rule in `globalCss`: DESIGN.md's 2px `secondary` ring with a 2px
+  offset on every `:focus-visible` element. No spacing token is 2px, and `strictTokens` refuses a
+  raw offset in `css()`, so one rule keeps the ring the same on every control.
 - The placeholder page uses only Panda tokens: no raw colour, size or font values in components. Its
   heading uses the `h1` style (Public Sans).
 
@@ -657,6 +660,11 @@ export const GET: RequestHandler = () => healthResponse();
     for the `data-hydrated` attribute the root layout sets when mounted), applies the Panda
     background token and `h1` text style and logs no console errors, and that `/healthz` returns
     `ok`.
+  - `i18n.test.ts` checks that a Danish browser gets `/` in Danish, with `<html lang="da">` and
+    `Vary: Cookie, Accept-Language`; that the language switcher reloads it in English, writes the
+    `PARAGLIDE_LOCALE` cookie (path `/`, `SameSite=Lax`, not `Secure` over plain HTTP) and keeps it;
+    and that a browser whose header and `navigator.languages` disagree gets the server's choice,
+    with no cookie written, even when it presses the current language; none logs a console error.
   - `secret-key.test.ts` checks that the built server refuses to start without a valid key.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for

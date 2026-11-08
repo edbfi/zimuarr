@@ -1,4 +1,5 @@
 {
 	"placeholder_title": "{{name}} bliver bygget om.",
-	"placeholder_status": "Login, den første forbindelse til Bazarr og driftsoversigten er på vej tilbage. Der kører endnu ingen oversættelser."
+	"placeholder_status": "Login, den første forbindelse til Bazarr og driftsoversigten er på vej tilbage. Der kører endnu ingen oversættelser.",
+	"language_switcher_label": "Sprog"
 }
