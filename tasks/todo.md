@@ -122,6 +122,7 @@ row and the Design tokens note on focus).
 in the current language, with the time zone required, and `languageName` in
 `lib/shared/i18n/language-name.ts`, which names subtitle languages in the current language. This
 task also closes the work stream. (obzorarr's #300, this app's language names, and #301's close.)
+The council reviews `language-name.ts` as new work, not as a port.
 
 **Acceptance criteria:**
 - [ ] `format.test.ts` runs both formatters inside `paraglideMiddleware` with a request for each
