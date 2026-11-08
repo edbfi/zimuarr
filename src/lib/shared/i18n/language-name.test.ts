@@ -18,7 +18,8 @@ async function inRequest(acceptLanguage: string, name: () => string): Promise<st
 	return text;
 }
 
-// D20's codes: two-letter ones, and the three regional tags Bazarr sends.
+// D20's codes: two-letter ones, and the three regional tags Bazarr sends. `ff` is named differently
+// in `en-GB` ("Fulah") and `en` ("Fula"), so it shows that English names come from `en-GB`.
 describe.each([
 	{
 		language: "en",
@@ -29,6 +30,8 @@ describe.each([
 			"zh-CN": "Chinese (China)",
 			"zh-TW": "Chinese (Taiwan)",
 			"pt-BR": "Brazilian Portuguese",
+			ff: "Fulah",
+			SV: "Swedish",
 		},
 	},
 	{
@@ -40,6 +43,8 @@ describe.each([
 			"zh-CN": "kinesisk (Kina)",
 			"zh-TW": "kinesisk (Taiwan)",
 			"pt-BR": "brasiliansk portugisisk",
+			ff: "fulah",
+			SV: "svensk",
 		},
 	},
 ])("a request in $language", ({ acceptLanguage, names }) => {

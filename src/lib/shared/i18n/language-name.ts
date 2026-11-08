@@ -8,11 +8,12 @@ import { intlLocale } from "./format.ts";
  * names").
  */
 export function languageName(code: string): string {
+	const names = new Intl.DisplayNames([intlLocale()], { type: "language", fallback: "none" });
 	try {
-		const names = new Intl.DisplayNames([intlLocale()], { type: "language", fallback: "none" });
 		return names.of(code) ?? code;
-	} catch {
-		// A tag that isn't well-formed: `of()` throws a RangeError.
-		return code;
+	} catch (error) {
+		// A tag that isn't well-formed: `of()` throws a RangeError. Anything else is a real fault.
+		if (error instanceof RangeError) return code;
+		throw error;
 	}
 }

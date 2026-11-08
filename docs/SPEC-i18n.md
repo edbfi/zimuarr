@@ -180,9 +180,8 @@ language handle wraps it like every other request. That is safe because Paraglid
 passes the endpoint a copy of the request made with `request.clone()`, awaits only the `Response`
 object, never its body, and only adds `Vary` to its headers; the work keeps running in the
 request's AsyncLocalStorage context. Whatever language the request gets, nothing the callback
-answers is a message. The contract tests are the evidence that its answers didn't change: CI's
-`contract` job runs every case but C5 on each pull request that touches code, and the weekly run
-adds C5.
+answers is a message. The contract tests are the evidence that its answers didn't change
+([docs/SPEC.md](SPEC.md#testing-strategy), "Testing strategy").
 
 ## The language switcher
 
