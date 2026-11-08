@@ -329,8 +329,13 @@ src/
                                  `[redacted]` everywhere but `reveal()`; cipher.ts: encrypts a
                                  secret bound to its table, field and row, and decrypts it only
                                  there
+    paraglide/                   Paraglide's compiled messages (generated, gitignored):
+                                 `#lib/paraglide/messages.js` and `runtime.js` are browser-safe,
+                                 `server.js` (the middleware) is server-only
     components/                  later: ui/ (Ark wrappers), layout/, <feature>/
-    shared/                      later: browser-safe shared code
+    shared/                      browser-safe shared code
+      i18n/                      messages.test.ts: the message check, which every message file
+                                 passes
 tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
@@ -340,10 +345,15 @@ tests/
                                  nginx/, fixtures/, contract.test.ts (starts the built server
                                  with a key it generates); .state/ is a run's, ignored
   fixtures/demo-fixtures.json    design fixtures
+messages/                        en.json and da.json: the messages, i18next JSON v4 (Weblate
+                                 reads them here)
+project.inlang/                  settings.json (the locales and the i18next plugin) and
+                                 paraglide.config.ts (Paraglide's options, for its CLI and its
+                                 Vite plugin); cache/ is gitignored
 drizzle/                         later: reviewed migrations
 panda.config.ts                  every design token; components use them through
                                  `#styled-system/<module>` (generated, gitignored)
-vite.config.ts                   SvelteKit (all its configuration), Panda and Vitest
+vite.config.ts                   SvelteKit (all its configuration), Panda, Paraglide and Vitest
 playwright.config.ts  tsconfig.json  package.json  bun.lock
 ```
 

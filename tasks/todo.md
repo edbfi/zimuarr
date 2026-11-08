@@ -16,33 +16,33 @@ in task 2. Add the message check, `lib/shared/i18n/messages.test.ts`, ported fro
 with its broken in-memory files. Run the Weblate round trip. (obzorarr's #297 and #301.)
 
 **Acceptance criteria:**
-- [ ] `@inlang/paraglide-js` and `@inlang/plugin-i18next` are exact-pinned dev dependencies at their
+- [x] `@inlang/paraglide-js` and `@inlang/plugin-i18next` are exact-pinned dev dependencies at their
   newest stable releases (D27; 3.2.1 and 6.5.3 on 2026-11-08).
   `project.inlang/settings.json` and `project.inlang/paraglide.config.ts` are as the spec gives
   them, and the Vite plugin is added with nothing else; the `unit` and `contract` projects stay as
   they are and inherit it.
-- [ ] `prepare` and `check` compile the messages after `svelte-kit sync` and before Panda's
+- [x] `prepare` and `check` compile the messages after `svelte-kit sync` and before Panda's
   codegen, calling the CLI as `bun --bun <bin>`, so a fresh clone's `bun ci` compiles them, and
   `check` then type-checks `project.inlang/*.ts`. Everything passes with no Node on `PATH` (CI's
   shims). Running `check` while `dev` is up doesn't rewrite the output under the dev server.
-- [ ] A call to a message that doesn't exist fails `check`, shown with a probe that isn't
+- [x] A call to a message that doesn't exist fails `check`, shown with a probe that isn't
   committed, its output in the PR body.
-- [ ] `src/lib/paraglide/` and `project.inlang/cache/` are gitignored, Panda's `exclude` skips the
+- [x] `src/lib/paraglide/` and `project.inlang/cache/` are gitignored, Panda's `exclude` skips the
   output, and `lint` and prek pass with it present.
-- [ ] The message files are flat and Biome-formatted, their names fit the spec's rule
+- [x] The message files are flat and Biome-formatted, their names fit the spec's rule
   (`placeholder_title`, `placeholder_status`), and they leave out the name Zimuarr:
   `placeholder_title` takes it as `{{name}}`.
-- [ ] The message check is written test first: after the toolchain compiles, `checkMessages`
+- [x] The message check is written test first: after the toolchain compiles, `checkMessages`
   stubbed to return `[]` makes every broken case fail (the real files and the valid pair pass),
   shown in the PR body. With the check, every rule in the spec's list, each clause on its own, has
   an in-memory file that breaks only it and is reported with the exact list of problems, the prose
   cases pass, and a file with several problems reports them all. It passes on `messages/*.json`
   and runs in the existing `tests` hook.
-- [ ] The Weblate round trip passes all four of the spec's conditions, with the script and its
+- [x] The Weblate round trip passes all four of the spec's conditions, with the script and its
   output in the PR body; neither the script nor its temporary message is committed. It is run
   here, not cited from obzorarr's #297, because zimuarr's Vite and Biome differ from `7368cff`'s;
   the PR body lists the versions it compared.
-- [ ] The placeholder page's text is unchanged in this PR.
+- [x] The placeholder page's text is unchanged in this PR.
 
 **Verification:** `bun run --bun test`, `check`, `lint`, `build`, `smoke`, prek; CI's `checks`,
 `smoke`, `contract` and `ci-ok`.
