@@ -2,9 +2,8 @@
 
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
-([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so is `secrets`
-([SPEC-secrets.md](SPEC-secrets.md)). Module 3, `i18n`, is specified and approved by the owner
-(2026-11-08) ([SPEC-i18n.md](SPEC-i18n.md)).
+([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so are `secrets`
+([SPEC-secrets.md](SPEC-secrets.md)) and `i18n` ([SPEC-i18n.md](SPEC-i18n.md)).
 
 ## Objective
 
@@ -36,7 +35,7 @@ adds in that layout, and review checks them. In short:
 - Tests sit next to their source.
 
 **Every module writes its text in English and Danish** through `i18n` (D18): no user-facing text in
-components or services, and dates and numbers formatted for the viewer's locale.
+components or services, and dates and numbers formatted for the viewer's language.
 
 **Instances run on their own** (D21): media, observations, desired subtitles, sessions, attempts and
 artifacts each belong to one Bazarr instance, and lists filter by instance. Policies, revisions,
@@ -46,7 +45,7 @@ providers and the global ceilings are shared by all instances.
 |---|---|---|---|---|
 | 1 | `contract-spike` | The Bazarr contract spike (D20): a callback that answers Bazarr's Lingarr translator, run against the latest stable Bazarr (D22), proving correlation by source and destination path with the fingerprint (with Bazarr's markup stripping replicated exactly), two episodes of one series at once, a normal and a forced subtitle from one source, and timeout, retry and cached replies, including a retry that arrives while the attempt before it still runs (D20), and the held callback and its answers through a real reverse proxy (D25). Its results become the first contract tests. No database, sign-in or UI, and its code becomes product code only through later specs | — | — |
 | 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17, D26), and the secret wrapper that shows only a redaction marker and opens at one named call | — | — |
-| 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's locale, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
+| 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's language, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
 | 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the address hint on the claim page (`sign-in`). zimuarr adds its health endpoint in place of `/healthz`'s fixed answer (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
 | 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy, password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code, with zimuarr's version beside it, from the first release (PRODUCT.md, License) | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
 | 6 | `two-factor` | Optional but strongly recommended (D17): authenticator codes, backup codes and the challenge after every way the owner signs in (except the optional OIDC skip, D17), with replay protection and a limit on failed attempts. Recovery turns it off. Adds the offer to first-run setup, right after the owner account is created and before any connection step, and the reminder in the operator shell while it is off | `sign-in` | the two-factor offer in first-run setup; its section of the Account tab; the reminder in the operator shell |
@@ -130,8 +129,6 @@ layout:
 
 ### Open decisions each module closes
 
-- `i18n`: the validation that D19 lists (pinned versions, the adapter-bun build, a Weblate round
-  trip).
 - `setup`: D14 (Turso and Drizzle versions), the logging library half of D13, and D15's backup
   and restore procedure, with the database file and the `secrets` key restored together.
   `verification` checks that a restore followed by a full mirror rebuild gives the same
@@ -650,10 +647,12 @@ export const GET: RequestHandler = () => healthResponse();
   handler (status 200, body `ok`, `cache-control: no-store`), the callback's modules, the contract
   job's case selection and the `secrets` module (`config/secret-key.test.ts`, and
   `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts` and `secret.test.ts` in
-  `security/secrets/`, under `src/lib/server/`), and the message check
-  (`src/lib/shared/i18n/messages.test.ts`), which runs on `messages/*.json` and on in-memory files
-  that each break one of its rules. Component tests use happy-dom when components exist; never
-  jsdom.
+  `security/secrets/`, under `src/lib/server/`), and `i18n`'s in `src/lib/shared/i18n/`: the
+  message check (`messages.test.ts`), which runs on `messages/*.json` and on in-memory files that
+  each break one of its rules; `format.test.ts`, which formats inside the language middleware for
+  each language and in several zones; and `language-name.test.ts`, which names D20's codes in both
+  languages and gives malformed and unknown codes back as given. Component tests use happy-dom
+  when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits

@@ -38,7 +38,7 @@ The claim is a guarantee, not more AI features: a translation is either provably
 - **How it is installed.** A single self-hosted instance: one container, one process and one HTTP port, with an embedded database on a persistent data volume (D4, D5, D16). Sign-in must work on a plain home network as well as behind an encrypting reverse proxy. Bazarr's callback is held open while Zimuarr translates, with a space sent every few seconds so Bazarr and any proxy see it active (D25), so every proxy on that path must pass a streamed response on without buffering it and allow long requests, and the callback endpoint must be safe to expose when Bazarr runs on a different network.
 - **How Bazarr is wired in.** Bazarr's translator is a single global setting, so the operator picks Bazarr's Lingarr translator and points it at Zimuarr with the address and per-instance key Zimuarr issues; Zimuarr answers that translator's request and is otherwise its own app (D20). Zimuarr then cannot coexist with Bazarr's built-in translators on that instance. Bazarr strips source markup such as italics and positioning before it calls, and Zimuarr cannot preserve it. Observation polls Bazarr because Bazarr has no change feed, and it stays incremental, paginated and rate-limited for large personal libraries (tens of thousands of episodes).
 - **Providers the operator brings.** Operators configure their own AI translation providers, credentials and models. Subtitle text goes to those providers; beyond provider and Bazarr calls, no telemetry leaves the instance.
-- **Language.** English, the default, and Danish, with dates and numbers formatted for the operator's locale (D18). Subtitle languages are domain data, named in the operator's language.
+- **Language.** English, the default, and Danish, with dates and numbers formatted for the operator's language (D18). Subtitle languages are domain data, named in the operator's language.
 - **The working rhythm.** First run is claimed with a one-time token printed to the console, which creates the owner account; it then offers two-factor, connects Bazarr, checks its version, issues the callback key, verifies Bazarr points at Zimuarr and runs a self-test round trip. The instance then starts observation-only. The operator adds a provider and model, writes a policy, previews the plan and only then activates it. After that, routine work is reading classified subtitle state on the dashboard, reviewing quarantine cases, watching budgets and pausing when needed. Desktop comes first. Mobile web is a real but secondary use: checking the dashboard, pausing and reviewing quarantine.
 
 ## Product requirements
@@ -68,7 +68,7 @@ What exists:
 
 What does not exist, and must not be invented:
 
-- No product feature, deployment, container image or validated product behaviour yet: only the ground floor, the Bazarr contract spike and `secrets` (`docs/SPEC.md`).
+- No product feature, deployment, container image or validated product behaviour yet: only the ground floor, the Bazarr contract spike, `secrets` and `i18n` (`docs/SPEC.md`).
 - No users, customers, testimonials, case studies, press, adoption or usage figures, benchmarks or performance measurements.
 - No real provider names, models or prices: every provider, price and figure in the fixtures and mockups is fictional.
 - No real integration logos or marks for Bazarr, Sonarr, Radarr or any provider in the repo. Do not reproduce generated connector logos.
