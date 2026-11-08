@@ -1,7 +1,7 @@
 # Spec: `i18n`
 
-**Status:** awaiting the owner's approval. Module 3 of the capability map ([docs/SPEC.md](SPEC.md)),
-after `contract-spike` and `secrets`. D18 and D19 hold the decisions.
+**Status:** approved by the owner (2026-11-08). Module 3 of the capability map
+([docs/SPEC.md](SPEC.md)), after `contract-spike` and `secrets`. D18 and D19 hold the decisions.
 
 **Ported from obzorarr,** the reference app for `i18n`
 ([Shared groundwork](../AGENTS.md#shared-groundwork)): its spec as approved

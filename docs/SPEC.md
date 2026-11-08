@@ -3,8 +3,8 @@
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
 ([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so is `secrets`
-([SPEC-secrets.md](SPEC-secrets.md)). Module 3, `i18n`, is specified and awaits the owner's approval
-([SPEC-i18n.md](SPEC-i18n.md)).
+([SPEC-secrets.md](SPEC-secrets.md)). Module 3, `i18n`, is specified and approved by the owner
+(2026-11-08) ([SPEC-i18n.md](SPEC-i18n.md)).
 
 ## Objective
 

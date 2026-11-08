@@ -83,5 +83,5 @@ switcher), and its formatting PR with this app's language names and the close of
 
 ## Open questions
 
-None. The choices obzorarr's spec left to each port were decided by the council while the owner was
-away, and the spec PR's body lists them for the owner's review.
+None. The choices obzorarr's spec left to each port were decided by the council, and the owner
+approved them with the spec and this task list (2026-11-08); the spec PR's body (#80) lists them.
