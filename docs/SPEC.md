@@ -3,7 +3,8 @@
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
 ([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so is `secrets`
-([SPEC-secrets.md](SPEC-secrets.md)).
+([SPEC-secrets.md](SPEC-secrets.md)). Module 3, `i18n`, is specified and awaits the owner's approval
+([SPEC-i18n.md](SPEC-i18n.md)).
 
 ## Objective
 
@@ -90,8 +91,8 @@ rhythm").
 ### Where modules live
 
 Paths are under `src/lib/server/`, except those starting with `routes/` (under `src/`) or `lib/`
-(under `src/`), `hooks.server.ts` (`src/hooks.server.ts`) and `vite.config.ts` (at the repo
-root). Signed-in pages sit in `routes/(app)/`, with the operator shell as its layout. The endpoint
+(under `src/`), the hooks (`src/hooks.server.ts`, `src/hooks.client.ts`), and `vite.config.ts`,
+`messages/` and `project.inlang/` (at the repo root). Signed-in pages sit in `routes/(app)/`, with the operator shell as its layout. The endpoint
 zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 `routes/bazarr/api/translate/content/` and stays apart from zimuarr's own versioned API under
 `routes/api/`. They follow the [Code structure](../AGENTS.md#code-structure) layout:
@@ -100,7 +101,7 @@ zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
 |---|---|
 | `contract-spike` | `tests/contract/` (the contract tests; `compose.yaml` pins the Bazarr release they run against), `routes/bazarr/api/translate/content/`, `services/translation/` and `config/contract-spike.ts` (the callback and its stand-in translator, until `translation` decides what it keeps), `src/env.ts` (its settings) |
 | `secrets` | `security/secrets/` (key checks, keyring, cipher, `Secret`), `config/secret-key.ts`, `src/env.ts` and the `init` hook in `hooks.server.ts` |
-| `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (Paraglide's settings), `lib/shared/i18n/` (formatting and language names); `paraglideMiddleware` in `hooks.server.ts` |
+| `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (the inlang project and Paraglide's options), `lib/shared/i18n/` (formatting, language names and the message check), `lib/components/layout/LanguageSwitcher.svelte`; the language handle in `hooks.server.ts`, and `hooks.client.ts` |
 | `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`; `routes/setup/`, `routes/healthz/`, and the setup gate and the headers in `hooks.server.ts` |
 | `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, the cross-origin check), `vite.config.ts` (SvelteKit's own form check off); the sign-in and the address hint at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
 | `two-factor` | `services/two-factor/`, the owner schema's two-factor fields in `db/`; the offer in `routes/setup/`, the challenge page beside `routes/login/`, its section of the Account tab, and the reminder in `lib/components/layout/` |
@@ -247,9 +248,9 @@ cites its own.
   check before `handle` is the remote-function one, which nothing uses. The cross-origin check
   replaces SvelteKit's form check.
 - **The cross-origin check** asks the browser, so the app doesn't need to know its own address and
-  stores none. It runs first in `handle` for every method except GET, HEAD and OPTIONS, and for
-  every content type (form, JSON, multipart, `text/plain`, empty). Internal `event.fetch`
-  subrequests (`event.isSubRequest`) skip it.
+  stores none. It is the first check in `handle`, after only the language (`i18n`), for every
+  method except GET, HEAD and OPTIONS, and for every content type (form, JSON, multipart,
+  `text/plain`, empty). Internal `event.fetch` subrequests (`event.isSubRequest`) skip it.
   - An `Origin` header, whenever it is present, must parse as one bare `http` or `https` origin;
     `null`, a malformed value or several values are refused. This applies on every branch below.
   - With `ORIGIN` set, a present `Origin` must equal `ORIGIN`, compared as parsed origins. Without
