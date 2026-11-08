@@ -92,10 +92,11 @@ rhythm").
 
 Paths are under `src/lib/server/`, except those starting with `routes/` (under `src/`) or `lib/`
 (under `src/`), the hooks (`src/hooks.server.ts`, `src/hooks.client.ts`), and `vite.config.ts`,
-`messages/` and `project.inlang/` (at the repo root). Signed-in pages sit in `routes/(app)/`, with the operator shell as its layout. The endpoint
-zimuarr gives Bazarr is its address plus `/bazarr`, so the callback is
-`routes/bazarr/api/translate/content/` and stays apart from zimuarr's own versioned API under
-`routes/api/`. They follow the [Code structure](../AGENTS.md#code-structure) layout:
+`messages/` and `project.inlang/` (at the repo root). Signed-in pages sit in `routes/(app)/`, with
+the operator shell as its layout. The endpoint zimuarr gives Bazarr is its address plus `/bazarr`,
+so the callback is `routes/bazarr/api/translate/content/` and stays apart from zimuarr's own
+versioned API under `routes/api/`. They follow the [Code structure](../AGENTS.md#code-structure)
+layout:
 
 | Module | Main homes |
 |---|---|

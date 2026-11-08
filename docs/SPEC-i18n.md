@@ -5,7 +5,8 @@ after `contract-spike` and `secrets`. D18 and D19 hold the decisions.
 
 **Ported from obzorarr,** the reference app for `i18n`
 ([Shared groundwork](../AGENTS.md#shared-groundwork)): its spec as approved
-(`f41c712:docs/SPEC-i18n.md`), the message rules its #301 added, and its code and tests at `7368cff`.
+(`f41c712:docs/SPEC-i18n.md`), the message rules its #301 added, and its code and tests at
+`7368cff`.
 What differs here:
 - **the placeholder's text:** zimuarr's own heading and paragraph, with the app's name passed in
   ([Messages](#messages));
@@ -16,8 +17,8 @@ What differs here:
   its own module's spec names ([Formatting](#formatting));
 - **the Bazarr callback,** which the language handle wraps from the build's second PR on
   ([The Bazarr callback](#the-bazarr-callback));
-- **the switcher's place:** at the top of the placeholder `/`, and no brief gains it, because zimuarr
-  has no `/` brief; each shell places it when that shell is built;
+- **the switcher's place:** at the top of the placeholder `/`, and no brief gains it, because
+  zimuarr has no `/` brief; each shell places it when that shell is built;
 - **the global focus ring,** which lands with the switcher, zimuarr's first focusable control;
 - **what isn't translated:** prompts and glossaries (D18), subtitle-language names and the
   callback's answers join obzorarr's list;
@@ -104,15 +105,15 @@ filled with a name can't inject markup.
 - text the owner writes, such as prompts and glossaries, which is content (D18);
 - subtitle-language names, which come from `Intl.DisplayNames`
   ([Subtitle-language names](#subtitle-language-names));
-- the Bazarr callback's answers, which Bazarr reads, its `{ "error": … }` strings included. Answers
-  meant for people, such as the cross-origin check's refusals, stay messages (`sign-in`);
+- the Bazarr callback's answers, which Bazarr reads, its `{ "error": … }` strings included.
+  Answers meant for people, such as the cross-origin check's refusals, stay messages (`sign-in`);
 - log entries and console output, which are for operators and stay in English;
 - the switcher's language names (below).
 
 **The placeholder page's messages:** `placeholder_title` is `{{name}} is being rebuilt.` ("Zimuarr
-bliver bygget om."), filled with `Zimuarr`, and `placeholder_status` is the paragraph below it. The
-English renders exactly as the page reads now, so the smoke test is unchanged. `<title>Zimuarr</title>`
-stays as it is.
+bliver bygget om."), filled with `Zimuarr`, and `placeholder_status` is the paragraph below it.
+The English renders exactly as the page reads now, so the smoke test is unchanged.
+`<title>Zimuarr</title>` stays as it is.
 
 **Who writes them:** agents write the English and the Danish. The owner may spot-check the Danish
 but doesn't approve it, and Weblate corrects it later.
@@ -277,8 +278,8 @@ lose focus (WCAG 2.2, 3.2.2 On Input).
 (`getLocale()`), on the server and in the browser alike. The language picks the `Intl` locale, not
 the browser's region, so server and browser always agree: `da` formats as `da`, and `en` as `en-GB`
 (the owner's choice for obzorarr, 2026-11-06, which ports keep), with the day first and a 24-hour
-clock ("05/11/2026, 23:30"). A message's `{{name, number}}` formats as `en`, which groups numbers the
-same way.
+clock ("05/11/2026, 23:30"). A message's `{{name, number}}` formats as `en`, which groups numbers
+the same way.
 - `formatNumber(value: number, options?: Intl.NumberFormatOptions)`: `Intl.NumberFormat`.
 - `formatDateTime(value: Date, options: Intl.DateTimeFormatOptions & { timeZone: string })`:
   `Intl.DateTimeFormat`.
