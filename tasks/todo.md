@@ -139,7 +139,9 @@ task also closes the work stream. (obzorarr's #300, this app's language names, a
   - D19's "Still to validate" paragraph goes, with the outcome in the PR body;
   - AGENTS.md's and PRODUCT.md's status lines name `i18n` as built;
   - `tasks/` is deleted;
-  - SPEC-i18n.md is reduced to what code and tests can't say, as obzorarr's #301 cut obzorarr's;
+  - SPEC-i18n.md is reduced to what code and tests can't say, as obzorarr's #301 cut obzorarr's,
+    keeping its opening lines that name obzorarr and what differs, "Where it shows", and, reduced
+    the same way, the Subtitle-language names, the Bazarr callback and the focus ring;
   - the PR body maps every removed requirement to a test, a spec or an owner-approved removal.
 
 **Verification:** `bun run --bun test`, `check`, `lint`, `build`, `smoke`, prek; CI's `checks`,

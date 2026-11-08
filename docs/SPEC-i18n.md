@@ -228,10 +228,8 @@ like every other request. Read from `@inlang/paraglide-js` 3.2.1's middleware:
   Bazarr's JSON body from the copy, as it reads it now;
 - it awaits only the `Response` object, never its body, so the held response streams its spaces and
   its answer as it does now; the work keeps running in the request's AsyncLocalStorage context;
-- it adds `Vary: Cookie, Accept-Language` to the held response's headers, beside
-  `Cache-Control: no-store, no-transform` and `X-Accel-Buffering: no`;
-- Bazarr sends neither a cookie nor `Accept-Language`, so the request's language is English, and
-  nothing the callback answers is a message.
+- it adds `Vary: Cookie, Accept-Language` to the held response's headers;
+- whatever language the request gets, nothing the callback answers is a message.
 
 The evidence that the callback and its held answers haven't changed is the contract job
 (`contract:up`, `contract`, `contract:down`): CI's `contract` job runs every case but C5 on each
@@ -404,7 +402,7 @@ project.inlang/paraglide.config.ts             Paraglide's options, for the CLI 
 src/app.html                                   <html lang="%lang%">, with the Biome suppression
 src/hooks.server.ts                            gains `handle`: the language handle
 src/hooks.client.ts                            the browser keeps the page's language
-src/lib/shared/i18n/format.ts                  formatNumber, formatDateTime (+ format.test.ts)
+src/lib/shared/i18n/format.ts                  formatNumber, formatDateTime, intlLocale (+ its test)
 src/lib/shared/i18n/language-name.ts           languageName (+ language-name.test.ts)
 src/lib/shared/i18n/messages.test.ts           the message check
 src/lib/components/layout/LanguageSwitcher.svelte
