@@ -57,7 +57,7 @@ for `bun ci` and `check`, and the testing section). Most gain a line or two.
 
 **Size:** M.
 
-## Task 2: each request gets the viewer's language, the browser keeps it, and the switcher changes it
+## Task 2: each request gets the viewer's language, the browser keeps it, the switcher changes it
 
 **Description:** Run every request through `paraglideMiddleware` in `handle`, write the language
 into `<html lang>`, and keep the page's language in the browser. The placeholder page renders its
@@ -65,14 +65,16 @@ text from the messages, and `LanguageSwitcher.svelte` sits at its top, with the 
 The held Bazarr callback is now behind the language handle. (obzorarr's #298 and #299.)
 
 **Acceptance criteria:**
-- [ ] `tests/e2e/i18n.test.ts`, against the built server, written first and failing without the
-  code: a `da-DK` browser gets `/` in Danish with `<html lang="da">` and
-  `Vary: Cookie, Accept-Language`; pressing "English" reloads `/` in English and writes
-  `PARAGLIDE_LOCALE=en` with `SameSite=Lax` and without `Secure` over plain HTTP, and the next visit
-  stays in English; a browser whose header says `fr-FR` and whose `navigator.languages` an init
-  script sets to `fr-FR`, `da-DK` gets English, the switcher marks English as current after
-  hydration, and no cookie is written; none logs a console error. The smoke test passes unchanged
-  in English.
+- [ ] `tests/e2e/i18n.test.ts`, ported from obzorarr's at `7368cff` with all its assertions,
+  against the built server, written first and failing without the code:
+  - a `da-DK` browser gets `/` in Danish with `<html lang="da">` and
+    `Vary: Cookie, Accept-Language`, and "Dansk" has `lang="da"` and `aria-current="true"`;
+  - pressing "English" there reloads `/` in English and writes `PARAGLIDE_LOCALE=en` with path `/`,
+    `SameSite=Lax` and without `Secure` over plain HTTP, and the next visit stays in English;
+  - a browser whose header says `fr-FR` and whose `navigator.languages` an init script sets to
+    `fr-FR`, `da-DK` gets English, the switcher marks English as current after hydration, pressing
+    "English" neither reloads the page nor writes a cookie, and no cookie is written at all;
+  - none logs a console error, and the smoke test passes unchanged in English.
 - [ ] The placeholder renders its messages as text, never with `{@html}`, with `Zimuarr` filled in
   as `{{name}}`, and `<title>Zimuarr</title>` stays as it is.
 - [ ] `app.html` has `<html lang="%lang%">` with the Biome suppression just above it, which doesn't
@@ -126,10 +128,10 @@ task also closes the work stream. (obzorarr's #300, this app's language names, a
   language: `da` formats as `da`, and `en` as `en-GB`, with the day first and a 24-hour clock.
 - [ ] `formatDateTime` follows the zone it is given, not the machine's, and its type refuses a
   call without `timeZone` (an `@ts-expect-error` case).
-- [ ] `language-name.test.ts`, the same way, written first: `sv`, `zh-TW` and `pt-BR` are named in
-  English and in Danish as `Intl.DisplayNames` names them, through `format.ts`'s mapping
-  (`intlLocale()`, `en` as `en-GB`); a malformed code (`""`, `"not a code"`) and an unknown one
-  (`"xx-yy"`) come back exactly as given, and nothing throws.
+- [ ] `language-name.test.ts`, the same way, written first: `sv`, `zh-CN`, `zh-TW` and `pt-BR`
+  are named in English and in Danish as `Intl.DisplayNames` names them, through `format.ts`'s
+  mapping (`intlLocale()`, `en` as `en-GB`); a malformed code (`""`, `"not a code"`) and an
+  unknown one (`"xx-yy"`) come back exactly as given, and nothing throws.
 - [ ] The PR body lists every validation in the spec with its evidence or the PR that holds it.
 - [ ] The end-of-work-stream cleanup is done:
   - the rest of the spec's "Docs this module changes when built" list, "locale" becoming
@@ -137,7 +139,7 @@ task also closes the work stream. (obzorarr's #300, this app's language names, a
   - SPEC.md's status line names `i18n` as built (the map has no built marker), and the `i18n` line
     of "Open decisions each module closes" goes;
   - D19's "Still to validate" paragraph goes, with the outcome in the PR body;
-  - AGENTS.md's and PRODUCT.md's status lines name `i18n` as built;
+  - AGENTS.md's status names `i18n` as built;
   - `tasks/` is deleted;
   - SPEC-i18n.md is reduced to what code and tests can't say, as obzorarr's #301 cut obzorarr's,
     keeping its opening lines that name obzorarr and what differs, "Where it shows", and, reduced

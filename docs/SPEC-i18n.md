@@ -110,8 +110,8 @@ filled with a name can't inject markup.
 - log entries and console output, which are for operators and stay in English;
 - the switcher's language names (below).
 
-**The placeholder page's messages:** `placeholder_title` is `{{name}} is being rebuilt.` ("Zimuarr
-bliver bygget om."), filled with `Zimuarr`, and `placeholder_status` is the paragraph below it.
+**The placeholder page's messages:** `placeholder_title` is `{{name}} is being rebuilt.` (`{{name}}
+bliver bygget om.`), filled with `Zimuarr`, and `placeholder_status` is the paragraph below it.
 The English renders exactly as the page reads now, so the smoke test is unchanged.
 `<title>Zimuarr</title>` stays as it is.
 
@@ -321,7 +321,8 @@ the tests run it on `messages/*.json` and on small in-memory files that break ea
 checks that:
 - every language the project has (Paraglide's `locales`) has its file, and no file is for another
   language, which Paraglide would ignore without a word;
-- every value is a non-empty string (a value of only whitespace counts as empty), so the files stay
+- each file is one JSON object of messages (not `null`, an array or a single value), and every
+  value in it is a non-empty string (a value of only whitespace counts as empty), so the files stay
   flat;
 - every message name fits the rule above, no key contains `_ordinal_`, and no message is both one
   key and plural forms;
@@ -451,8 +452,9 @@ overwriteGetLocale(() => locale);
     language (the language comes from the request, as in the app), and checks that English dates
     format as `en-GB` and that `formatDateTime` follows the time zone it is given, not the
     machine's, and that its type refuses a call without `timeZone`;
-  - `language-name.test.ts`, the same way: each form of code in both languages (`sv`, `zh-TW`,
-    `pt-BR`), and a malformed and an unknown code coming back exactly as given without throwing.
+  - `language-name.test.ts`, the same way: each form of code in both languages (`sv`, `zh-CN`,
+    `zh-TW`, `pt-BR`), and a malformed and an unknown code coming back exactly as given, without
+    throwing.
 - **e2e (Playwright, against the built server):** `i18n.test.ts` as listed under
   [Validation](#validation); `smoke.test.ts` unchanged.
 - **Contract:** the existing cases, unchanged, against the callback behind the language handle.
@@ -482,7 +484,8 @@ the messages, so a fresh clone type-checks without a dev server having run.
   - the `i18n` line of "Open decisions each module closes" goes;
   - the tech-stack table gains both packages;
   - the setup fact on `prepare` and `check` gains the compile;
-  - the Commands rows for `bun ci` and `check` gain the compile;
+  - the Commands rows for `bun ci` and `check` gain the compile, and the `smoke` row the language
+    tests;
   - the testing section gains the new tests;
   - the Design tokens section gains the focus ring.
 - **`docs/decisions.md`:** D19's "Still to validate" paragraph goes, with the outcome in the PR

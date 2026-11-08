@@ -49,7 +49,7 @@ switcher), and its formatting PR with this app's language names and the close of
 
 ### Phase 2: each page in the viewer's language
 
-- [ ] Task 2: each request gets the viewer's language, the browser keeps it, and the switcher
+- [ ] Task 2: each request gets the viewer's language, the browser keeps it, the switcher
   changes it
 
 ### Checkpoint: after task 2
