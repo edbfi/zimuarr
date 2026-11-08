@@ -329,9 +329,7 @@ src/
                                  `[redacted]` everywhere but `reveal()`; cipher.ts: encrypts a
                                  secret bound to its table, field and row, and decrypts it only
                                  there
-    paraglide/                   Paraglide's compiled messages (generated, gitignored):
-                                 `#lib/paraglide/messages.js` and `runtime.js` are browser-safe,
-                                 `server.js` (the middleware) is server-only
+    paraglide/                   the compiled messages (generated, gitignored)
     components/                  later: ui/ (Ark wrappers), layout/, <feature>/
     shared/                      browser-safe shared code
       i18n/                      messages.test.ts: the message check, which every message file
