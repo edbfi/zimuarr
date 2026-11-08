@@ -49,14 +49,14 @@ switcher), and its formatting PR with this app's language names and the close of
 
 ### Phase 2: each page in the viewer's language
 
-- [ ] Task 2: each request gets the viewer's language, the browser keeps it, the switcher
+- [x] Task 2: each request gets the viewer's language, the browser keeps it, the switcher
   changes it
 
 ### Checkpoint: after task 2
 
-- [ ] `check`, `test`, `lint`, `build`, `smoke` and prek pass; CI's `checks`, `smoke`, `contract`
+- [x] `check`, `test`, `lint`, `build`, `smoke` and prek pass; CI's `checks`, `smoke`, `contract`
   and `ci-ok` pass.
-- [ ] The built server serves `/` in Danish to a Danish browser and in English otherwise, the
+- [x] The built server serves `/` in Danish to a Danish browser and in English otherwise, the
   switcher changes it, and `/healthz` and the callback's answers are unchanged.
 
 ### Phase 3: the tools later modules write through

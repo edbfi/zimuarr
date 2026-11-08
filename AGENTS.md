@@ -297,12 +297,13 @@ The tree as it stands; `later:` marks the folders that modules add. Its rules ar
 
 ```text
 src/
-  app.html                       document shell; `class="dark"` sets the default colour mode
+  app.html                       document shell; `class="dark"` sets the default colour mode, and
+                                 `hooks.server.ts` writes the request's language into `lang`
   app.css                        Panda layer order; the Vite plugin appends the generated CSS
   app.d.ts                       SvelteKit ambient types
   routes/
     +layout.svelte               loads app.css; marks <html data-hydrated> once mounted
-    (public)/+page.svelte        `/`: placeholder page
+    (public)/+page.svelte        `/`: placeholder page, with the language switcher
     healthz/+server.ts           `/healthz`: public one-word status
     bazarr/api/translate/content/+server.ts
                                  Bazarr's Lingarr callback (the spike's stand-in, off unless its
@@ -312,7 +313,9 @@ src/
   env.ts                         the environment variables SvelteKit exposes (`$app/env/private`):
                                  `ZIMUARR_SECRET_KEY` and `ZIMUARR_SECRET_KEY_FILE` (private, read
                                  at runtime, optional) and the contract spike's settings
-  hooks.server.ts                the `init` hook: loads the keyring, except while building
+  hooks.server.ts                the `init` hook: loads the keyring, except while building; and
+                                 `handle`: each request's language (Paraglide's middleware)
+  hooks.client.ts                the browser keeps the language the server chose for the page
   lib/                           imported as `#lib/<path>.<ext>`, e.g.
                                  `#lib/server/services/health.ts`
     server/                      server-only: services/health.ts, services/translation/ (the
@@ -330,13 +333,15 @@ src/
                                  secret bound to its table, field and row, and decrypts it only
                                  there
     paraglide/                   the compiled messages (generated, gitignored)
-    components/                  later: ui/ (Ark wrappers), layout/, <feature>/
+    components/                  later: ui/ (Ark wrappers), <feature>/
+      layout/                    LanguageSwitcher.svelte: the language buttons
     shared/                      browser-safe shared code
       i18n/                      messages.test.ts: the message check, which every message file
                                  passes
 tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
+  e2e/i18n.test.ts               each viewer's language, and the switcher
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,
                                  fault-proxy.ts, select.ts (CI's choice of cases), caddy/,
