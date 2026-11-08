@@ -1,4 +1,5 @@
 {
 	"placeholder_title": "{{name}} is being rebuilt.",
-	"placeholder_status": "Sign-in, the first Bazarr connection and the operator dashboard are on their way back. No translations run yet."
+	"placeholder_status": "Sign-in, the first Bazarr connection and the operator dashboard are on their way back. No translations run yet.",
+	"language_switcher_label": "Language"
 }
