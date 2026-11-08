@@ -273,8 +273,10 @@ tests, one e2e smoke and the Bun web CI ([`docs/SPEC.md`](docs/SPEC.md)). Module
 `contract-spike`, is built: Bazarr's callback answered by a stand-in translator and the contract
 tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-spike.md)).
 Module 2, `secrets` ([`docs/SPEC-secrets.md`](docs/SPEC-secrets.md)), is built and ready for
-consumers. Nothing stores a secret yet, and no database exists. The other product modules come
-next, in the order of the approved capability map in `docs/SPEC.md`, each through an
+consumers. Nothing stores a secret yet, and no database exists. Module 3, `i18n`
+([`docs/SPEC-i18n.md`](docs/SPEC-i18n.md)), is built: English and Danish messages, each request's
+language, the language switcher, formatting and subtitle-language names. The other product
+modules come next, in the order of the approved capability map in `docs/SPEC.md`, each through an
 owner-approved `docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
@@ -336,7 +338,9 @@ src/
     components/                  later: ui/ (Ark wrappers), <feature>/
       layout/                    LanguageSwitcher.svelte: the language buttons
     shared/                      browser-safe shared code
-      i18n/                      messages.test.ts: the message check, which every message file
+      i18n/                      format.ts: numbers and dates in the current language, in a given
+                                 zone; language-name.ts: a subtitle language's name in it;
+                                 messages.test.ts: the message check, which every message file
                                  passes
 tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
