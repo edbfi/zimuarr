@@ -45,7 +45,7 @@ switcher), and its formatting PR with this app's language names and the close of
 
 ### Phase 1: the toolchain and the message check
 
-- [ ] Task 1: Paraglide compiles the messages, and the message check guards them
+- [x] Task 1: Paraglide compiles the messages, and the message check guards them
 
 ### Phase 2: each page in the viewer's language
 
