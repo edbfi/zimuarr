@@ -107,7 +107,8 @@ buttons are reachable by keyboard, focus is visible, and pressing the current la
 `src/routes/(public)/+page.svelte`, `lib/components/layout/LanguageSwitcher.svelte`,
 `messages/en.json`, `messages/da.json`, `panda.config.ts`, `tests/e2e/i18n.test.ts`,
 `docs/decisions.md` (D15), `AGENTS.md`, `docs/SPEC.md` (the testing section, the `smoke` Commands
-row and the Design tokens note on focus).
+row and the Design tokens note on focus, with its reason: no spacing token is 2px under
+`strictTokens`, so one `globalCss` rule keeps the ring the same on every control).
 
 **Size:** M.
 
@@ -144,7 +145,8 @@ The council reviews `language-name.ts` as new work, not as a port.
   - `tasks/` is deleted;
   - SPEC-i18n.md is reduced to what code and tests can't say, as obzorarr's #301 cut obzorarr's,
     keeping its opening lines that name obzorarr and what differs, "Where it shows", and, reduced
-    the same way, the Subtitle-language names, the Bazarr callback and the focus ring;
+    the same way, the Subtitle-language names and the Bazarr callback; the focus ring's rule
+    lives in SPEC.md's Design tokens (task 2) and `panda.config.ts`, so the cut drops it here;
   - the PR body maps every removed requirement to a test, a spec or an owner-approved removal.
 
 **Verification:** `bun run --bun test`, `check`, `lint`, `build`, `smoke`, prek; CI's `checks`,
