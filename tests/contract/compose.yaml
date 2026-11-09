@@ -20,7 +20,7 @@ x-bazarr: &bazarr
 services:
   sonarr:
     <<: *hotio
-    image: ghcr.io/hotio/sonarr:release-4.0.20.3014@sha256:17821f04d751be0c91b843b8540f60704f44cf1e15d58a3d2b821b827bf5c873
+    image: ghcr.io/hotio/sonarr:release-4.0.20.3014@sha256:4b7d2569dcae81bd29c558c2db68f3de46db3422f93f56645b1f4068084e1aa9
     volumes:
       - ${CONTRACT_STATE:?}/sonarr:/config
       - ${CONTRACT_MEDIA:?}:${CONTRACT_MEDIA:?}
