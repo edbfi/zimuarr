@@ -64,7 +64,7 @@ What exists:
 - **Seed tokens:** `panda.config.ts`, a proposed design seed that matches DESIGN.md.
 - **Surface briefs:** nine proposed route briefs in `.impeccable/surfaces/` (login, Bazarr setup, dashboard, inventory item, policy, quarantine case, system, provider settings, budgets).
 - **Demo data:** [tests/fixtures/demo-fixtures.json](tests/fixtures/demo-fixtures.json), a fictional historical snapshot (2025-10-15) with classification counts, budget figures, a quarantine case and the fictional provider "Demo Translate" with fictional prices.
-- **License:** `LICENSE` (AGPL-3.0). The web UI links to the corresponding source from the first release.
+- **License:** [README's grant](README.md#license). The web UI links to the corresponding source from the first release.
 
 What does not exist, and must not be invented:
 
