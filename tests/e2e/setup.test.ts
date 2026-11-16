@@ -508,6 +508,8 @@ test.describe("the bootstrap token", () => {
 		try {
 			const read = async (path: string) => (await fetch(`${server.url}${path}`)).text();
 			const pages = await Promise.all(["/", "/healthz", "/no-such-page"].map(read));
+			// Stopped first, so every entry it wrote, the shutdown's included, is in the output.
+			await server.stop();
 			const output = server.output();
 			const line = output.split("\n").find((text) => text.startsWith("Setup token: ")) ?? "";
 			const token = /Setup token: ([a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}) /.exec(line)?.[1];
