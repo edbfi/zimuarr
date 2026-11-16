@@ -9,7 +9,7 @@ related_targets: ["route:/login"]
 
 ## Status
 
-Built in `setup`'s task 8 (2026-11-16), code-led from this brief, approved by the owner with `setup`'s spec, with no mockup of its own; the header keeps the text wordmark until there is a logo in Polar Control's palette. Mode: **operate**. Audience: **the person installing Zimuarr**, who can read the server console. Route: `/setup`. Module: `setup` ([docs/SPEC-setup.md](../../docs/SPEC-setup.md)).
+Built in `setup`'s #115 (2026-11-16), code-led from this brief, approved by the owner with `setup`'s spec, with no mockup of its own; the header keeps the text wordmark until there is a logo in Polar Control's palette. Mode: **operate**. Audience: **the person installing Zimuarr**, who can read the server console. Route: `/setup`. Module: `setup` ([docs/SPEC-setup.md](../../docs/SPEC-setup.md)).
 
 ## Purpose and composition
 

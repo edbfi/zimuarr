@@ -275,14 +275,12 @@ tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-
 2, `secrets` ([`docs/SPEC-secrets.md`](docs/SPEC-secrets.md)), is built and ready for consumers.
 Nothing stores a secret yet. Module 3, `i18n` ([`docs/SPEC-i18n.md`](docs/SPEC-i18n.md)), is built:
 English and Danish messages, each request's language, the language switcher, formatting and
-subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-setup.md)), is being
-built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database, the app logs
-redacted JSON, it stops cleanly, `/healthz` reads and writes the database, and every response
-carries the security headers and every page a nonce CSP, and a state-changing request from another
-site is refused. While no owner exists, startup prints a bootstrap token to the console, and
-`/setup` claims the instance with it, creating the owner; until then, every page sends the visitor
-to `/setup`. The other product modules come next, in the order of the approved capability map in
-`docs/SPEC.md`, each through an owner-approved `docs/SPEC-<id>.md`.
+subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-setup.md)), is built:
+the database and its migrations, redacted JSON logs, clean shutdown, `/healthz` from the database,
+the security headers and CSP, the cross-origin check, and first run, which ends at the claim at
+`/setup`. A claimed instance has no way to sign in until `sign-in`. The other product modules come
+next, in the order of the approved capability map in `docs/SPEC.md`, each through an owner-approved
+`docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
 and `preview` need, see the README's [Master key](README.md#master-key).

@@ -3,9 +3,8 @@
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
 ([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so are `secrets`
-([SPEC-secrets.md](SPEC-secrets.md)) and `i18n` ([SPEC-i18n.md](SPEC-i18n.md)); `setup` is specified
-in [SPEC-setup.md](SPEC-setup.md), approved by the owner (2026-11-16), and being built
-([tasks/plan.md](../tasks/plan.md)).
+([SPEC-secrets.md](SPEC-secrets.md)), `i18n` ([SPEC-i18n.md](SPEC-i18n.md)) and `setup`
+([SPEC-setup.md](SPEC-setup.md)).
 
 ## Objective
 
@@ -131,10 +130,10 @@ layout:
 
 ### Open decisions each module closes
 
-- `setup`: D15's backup and restore procedure (D14 and D13's logging half are closed), with the
-  database file and the `secrets` key restored together
-  ([SPEC-setup.md](SPEC-setup.md#backup-and-restore)). `verification` checks that a restore
-  followed by a full mirror rebuild gives the same classifications.
+- `two-factor`: the first stored secret, with which a restore under another master key is tested
+  (D15).
+- `verification`: that a restore followed by a full mirror rebuild gives the same
+  classifications.
 - `sign-in`: how long an owner session lasts.
 - `sign-in`: how repeated failed sign-ins are slowed beyond the rate limits (backoff, or a lockout
   where the app's approved docs allow one). The password rules are `setup`'s, since the claim sets
