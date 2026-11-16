@@ -1,9 +1,9 @@
 # Spec: `setup`
 
-**Status:** proposed for the owner's approval. Module 4 of the capability map
-([docs/SPEC.md](SPEC.md)); it closes D14, the logging half of D13, D15's backup and restore
-procedure, and ground-floor choices 1, 3 and 5 (the health endpoint's job-runner half comes with
-the first job, D13).
+**Status:** approved by the owner (2026-11-16), with its six dependencies, the `/setup` brief and
+the text wordmark. Module 4 of the capability map ([docs/SPEC.md](SPEC.md)); it closes D14, the
+logging half of D13, D15's backup and restore procedure, and ground-floor choices 1, 3 and 5 (the
+health endpoint's job-runner half comes with the first job, D13).
 
 **Ported from obzorarr,** the reference app for `setup`
 ([Shared groundwork](../AGENTS.md#shared-groundwork)): its spec as approved
@@ -20,7 +20,8 @@ redaction allowlist), #340 (encoded nested URLs in logs), #341 and #342, and its
 - **the fonts:** the claim page is zimuarr's first real surface, so it bundles DESIGN.md's Public
   Sans and Roboto Mono (ground-floor choice 1), and its brief is new
   ([`route-setup.md`](../.impeccable/surfaces/route-setup.md));
-- **the redaction allowlist** holds only names zimuarr logs ([Logging](#logging));
+- **the redaction allowlist** holds only names zimuarr logs, and **unexpected errors** reach the
+  logger through `handleError`, which obzorarr lacks ([Logging](#logging));
 - **the contract tests' server** gets a database of its own for each run;
 - **what obzorarr's spec leaves to `plex-connection`** (environment locks, settings versions,
   settings URLs, Plex fingerprints in logs) has no counterpart here;
@@ -214,6 +215,14 @@ without cause adds it, with a test, when no value it can hold is a credential. A
 authentication error, which can echo part of its key in prose, is `providers`' to judge against
 real error bodies.
 The tests add Bazarr's own credentials: its `apikey` query parameter and `X-Api-Key` header.
+
+**Unexpected errors** in a page load, form action or endpoint reach SvelteKit's `handleError` hook
+in `hooks.server.ts`, which logs them through the logger, so they are redacted and one JSON line
+like every other entry, never SvelteKit's default `console.error` of the stack. It logs the error,
+the status and the request's path (never its query), at `error` for a status of 500 or more and at
+`debug` below it, so a scanner's 404s don't flood the log. It returns SvelteKit's generic message,
+never the error's own text or stack. (obzorarr has no `handleError`; the comradarr port found the
+gap, and the owner added it here, 2026-11-16.)
 
 Console output meant for whoever runs the server, such as the bootstrap token, is never a log
 entry. It still reaches the container's output, which is why the console is trusted (below).
@@ -480,7 +489,7 @@ The build runs D14's validation with the pinned versions, and records the eviden
 ```text
 src/env.ts                                  + ZIMUARR_DATABASE_PATH, ORIGIN, ZIMUARR_LOG_DEBUG
 src/hooks.server.ts                         init: startup; handle: language, headers,
-                                            cross-origin check, setup gate
+                                            cross-origin check, setup gate; handleError
 src/lib/server/config/config-error.ts       the error every variable check throws
 src/lib/server/config/error-code.ts         a system error's code, for messages without paths
 src/lib/server/config/database-path.ts      the database file's path
@@ -533,6 +542,9 @@ and backups, the address browsers use, first run, logs, and stopping and the ser
   - the redaction rules, one case each and nested, Bazarr's `apikey` and `X-Api-Key` included, and
     the growth check;
   - the logger's entry shape, the debug filter and the flush through a slow pipe;
+  - `handleError`: an error holding a token in its message and a URL with a token in its query
+    logs one redacted JSON entry, at `error` for a 500 and `debug` for a 404, and returns only the
+    generic message;
   - the headers for HTTPS, plain HTTP, loopback and `ORIGIN`, and a copied response whose body
     still streams;
   - the cross-origin check against a matrix of methods, content types and `Origin`,

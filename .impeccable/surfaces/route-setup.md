@@ -9,7 +9,7 @@ related_targets: ["route:/login"]
 
 ## Status
 
-Proposed brief for review. Mode: **operate**. Audience: **the person installing Zimuarr**, who can read the server console. Route: `/setup`. Module: `setup` ([docs/SPEC-setup.md](../../docs/SPEC-setup.md)).
+Approved by the owner with `setup`'s spec (2026-11-16), with no mockup of its own; the header keeps the text wordmark until there is a logo in Polar Control's palette. Mode: **operate**. Audience: **the person installing Zimuarr**, who can read the server console. Route: `/setup`. Module: `setup` ([docs/SPEC-setup.md](../../docs/SPEC-setup.md)).
 
 ## Purpose and composition
 

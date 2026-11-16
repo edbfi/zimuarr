@@ -4,7 +4,7 @@
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
 ([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so are `secrets`
 ([SPEC-secrets.md](SPEC-secrets.md)) and `i18n` ([SPEC-i18n.md](SPEC-i18n.md)); `setup` is specified
-in [SPEC-setup.md](SPEC-setup.md).
+in [SPEC-setup.md](SPEC-setup.md), approved by the owner (2026-11-16).
 
 ## Objective
 
