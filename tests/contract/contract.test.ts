@@ -412,6 +412,13 @@ describe.concurrent("phase 1", () => {
 				expect(timing.firstBodyMs).toBeLessThan(2000);
 				expect(timing.maxGapMs).toBeLessThanOrEqual(10_000);
 			}
+			// The held 200, straight from zimuarr: setup's security headers next to its own (D25).
+			const [direct] = all;
+			const held = (direct?.exchanges[0] as Exchange | undefined)?.responseHeaders ?? {};
+			expect(held["x-frame-options"]).toBe("DENY");
+			expect(held["x-content-type-options"]).toBe("nosniff");
+			expect(held["cache-control"]).toBe("no-store, no-transform");
+			expect(held["x-accel-buffering"]).toBe("no");
 		},
 		15 * MINUTE,
 	);

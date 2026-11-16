@@ -25,7 +25,9 @@ export function readOrigin(env: OriginEnv): string | undefined {
 	}
 	// The raw text is checked as well: the parser drops an empty `@`, `?` or `#`, and removes dot
 	// segments, so `https://host/app/..` would parse to a bare origin.
-	const rest = value.slice(value.indexOf("//") + 2);
+	// The parser reads `\` as `/` in http(s) URLs, so the raw text does too.
+	const raw = value.replaceAll("\\", "/");
+	const rest = raw.slice(raw.indexOf("//") + 2);
 	const authority = rest.split(/[/?#]/, 1)[0] ?? "";
 	const rawPath = rest.slice(authority.length).split(/[?#]/, 1)[0] ?? "";
 	if (url.username !== "" || url.password !== "" || authority.includes("@")) {

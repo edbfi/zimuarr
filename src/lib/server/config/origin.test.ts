@@ -42,6 +42,9 @@ describe("readOrigin", () => {
 		["https://zimuarr.example/app/..", "ORIGIN must not have a path"],
 		["https://zimuarr.example/%2e", "ORIGIN must not have a path"],
 		["https://zimuarr.example/.", "ORIGIN must not have a path"],
+		// The parser reads a backslash as a slash, so these hold a path too.
+		["https://zimuarr.example\\app\\..", "ORIGIN must not have a path"],
+		["https:\\\\zimuarr.example\\app\\..", "ORIGIN must not have a path"],
 		["https://zimuarr.example/?x=1", "ORIGIN must not have a query"],
 		["https://zimuarr.example?", "ORIGIN must not have a query"],
 		["https://zimuarr.example/#top", "ORIGIN must not have a fragment"],

@@ -118,8 +118,8 @@ binding for your platform, as `bun ci` installs it:
 | `ORIGIN` | the address browsers use, such as `https://zimuarr.example` or `http://192.168.1.20:3000` | unset |
 
 Zimuarr won't start if `ORIGIN` is empty or holds a path, a query, a fragment or credentials; leave
-it out instead. Over HTTPS, when `ORIGIN` is `https` or the browser shows it, pages ask browsers to
-keep using HTTPS. `ORIGIN` is never the address Bazarr calls Zimuarr at; that is set per Bazarr
+it out instead. Over HTTPS, when `ORIGIN` is `https`, or, with `ORIGIN` unset, when the browser's
+request shows HTTPS, pages ask browsers to keep using HTTPS. `ORIGIN` is never the address Bazarr calls Zimuarr at; that is set per Bazarr
 instance.
 
 ## Logs
