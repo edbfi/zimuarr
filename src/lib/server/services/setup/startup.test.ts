@@ -33,7 +33,9 @@ beforeEach(() => {
 	});
 });
 
-afterEach(() => {
+afterEach(async () => {
+	// A test's startup leaves its database open; closing it keeps handles from piling up.
+	await closeServices();
 	vi.restoreAllMocks();
 });
 

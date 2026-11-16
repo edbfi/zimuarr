@@ -109,12 +109,12 @@ class Zimuarr {
 		return server;
 	}
 
-	/** Sends a signal and resolves with how long the process took to exit. */
-	async stop(signal: "SIGTERM" | "SIGKILL" = "SIGTERM"): Promise<number> {
+	/** Sends a signal and resolves with how long the process took to exit, and its exit code. */
+	async stop(signal: "SIGTERM" | "SIGKILL" = "SIGTERM"): Promise<{ ms: number; code: number }> {
 		const sent = Date.now();
 		this.proc.kill(signal);
-		await this.proc.exited;
-		return Date.now() - sent;
+		const code = await this.proc.exited;
+		return { ms: Date.now() - sent, code };
 	}
 
 	for(source: string, since: number): Event[] {
@@ -540,7 +540,7 @@ describe("phase 2", () => {
 		const job = bazarrs.direct.translate(r, target(r), 5 * MINUTE);
 		await received(source, MINUTE);
 		await new Promise((resolve) => setTimeout(resolve, 5000));
-		const exitMs = await zimuarr.stop();
+		const { ms: exitMs, code: exitCode } = await zimuarr.stop();
 		try {
 			const ended = await job;
 			const exchanges = proxies.direct.forSource(source).filter((e) => e.openedAt >= since);
@@ -549,6 +549,7 @@ describe("phase 2", () => {
 			).translatedSubtitlePath;
 			cases.C11 = {
 				exitMs,
+				exitCode,
 				job: ended.status,
 				attempts: exchanges.length,
 				exchanges: exchanges.map(timings),
@@ -557,6 +558,8 @@ describe("phase 2", () => {
 			// for the full 30 seconds, so the process can't exit earlier.
 			expect(exitMs).toBeGreaterThanOrEqual(30_000);
 			expect(exitMs).toBeLessThanOrEqual(35_000);
+			// The drain cut the held callback, then setup's shutdown closed cleanly (SPEC-setup.md).
+			expect(exitCode).toBe(0);
 			expect(ended.status).toBe("failed");
 			expect(exchanges.length).toBeGreaterThanOrEqual(1);
 			expect(exchanges.length).toBeLessThanOrEqual(3);

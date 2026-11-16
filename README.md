@@ -137,7 +137,8 @@ longer than `SHUTDOWN_TIMEOUT` plus 5 seconds to stop, or it's killed mid-write.
 10 seconds, so with the default `SHUTDOWN_TIMEOUT`, set Compose's `stop_grace_period` to `40s`.
 
 - **`CONNECTION_IDLE_TIMEOUT`:** while Zimuarr works on a translation, it keeps Bazarr's request
-  open by sending a space every 5 seconds. Don't set this below that, or Bun closes the request.
+  open by sending a space every 5 seconds. Keep it above 5 seconds, or Bun closes the request; the
+  default of 10 leaves room.
 - **`BODY_SIZE_LIMIT`:** Bazarr sends a whole subtitle's lines in one request, and the longest the
   contract tests send is under half the default, so leave it.
 
