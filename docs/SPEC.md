@@ -3,7 +3,8 @@
 **Status:** the ground floor (skeleton) is specified here, approved by the orchestrator
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
 ([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so are `secrets`
-([SPEC-secrets.md](SPEC-secrets.md)) and `i18n` ([SPEC-i18n.md](SPEC-i18n.md)).
+([SPEC-secrets.md](SPEC-secrets.md)) and `i18n` ([SPEC-i18n.md](SPEC-i18n.md)); `setup` is specified
+in [SPEC-setup.md](SPEC-setup.md), approved by the owner (2026-11-16).
 
 ## Objective
 
@@ -46,8 +47,8 @@ providers and the global ceilings are shared by all instances.
 | 1 | `contract-spike` | The Bazarr contract spike (D20): a callback that answers Bazarr's Lingarr translator, run against the latest stable Bazarr (D22), proving correlation by source and destination path with the fingerprint (with Bazarr's markup stripping replicated exactly), two episodes of one series at once, a normal and a forced subtitle from one source, and timeout, retry and cached replies, including a retry that arrives while the attempt before it still runs (D20), and the held callback and its answers through a real reverse proxy (D25). Its results become the first contract tests. No database, sign-in or UI, and its code becomes product code only through later specs | — | — |
 | 2 | `secrets` | Encrypts stored secrets (Bazarr API keys, issued callback keys, provider keys, two-factor secrets, the OIDC client secret) before they reach the database (D17, D26), and the secret wrapper that shows only a redaction marker and opens at one named call | — | — |
 | 3 | `i18n` | The translation groundwork (D18) with Paraglide JS (D19): message files in English and Danish, choosing each request's language, the language switcher, formatting dates and numbers for the viewer's language, language names through `Intl.DisplayNames`, and a check that every message exists in both languages | — | the language switcher in each shell |
-| 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the address hint on the claim page (`sign-in`). zimuarr adds its health endpoint in place of `/healthz`'s fixed answer (ground-floor choice 5) | `secrets`, `i18n` | first-run setup: claim and account (no brief yet); `/healthz` |
-| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override) and its address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy, password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code, with zimuarr's version beside it, from the first release (PRODUCT.md, License) | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
+| 4 | `setup` | Startup checks, the database and migrations (D5), runtime settings, structured logging with redaction (D11), security headers and CSP (ground-floor choice 3), `ORIGIN` and the cross-origin check (it asks the browser, stores no address and takes `ORIGIN` as an optional override), the setup gate, the bootstrap token, printed to the console and never through the stored logs, and claiming the instance for its one owner, with the owner's password rules and hashing, and the address hint on the claim page (`sign-in`). zimuarr adds its health endpoint in place of `/healthz`'s fixed answer (ground-floor choice 5) and the backup and restore procedure (D15) | `secrets`, `i18n` | first-run setup: the claim (brief: `/setup`); `/healthz` |
+| 5 | `sign-in` | Owner sign-in with username and password, signing the new owner in at the claim (D17), sessions, sign-out (POST only), rate limits, the address hint on the claim and sign-in pages, app-named cookies that work over plain HTTP at home and behind an HTTPS proxy, password change, error pages, recovery (D17), and the operator shell. zimuarr adds the shell's sidebar and its link to the source code, with zimuarr's version beside it, from the first release (PRODUCT.md, License) | `setup` | `/login`; the address hint on the claim page and `/login`; the operator shell; the Account tab of the settings (no brief yet); the password section of the Account tab |
 | 6 | `two-factor` | Optional but strongly recommended (D17): authenticator codes, backup codes and the challenge after every way the owner signs in (except the optional OIDC skip, D17), with replay protection and a limit on failed attempts. Recovery turns it off. Adds the offer to first-run setup, right after the owner account is created and before any connection step, and the reminder in the operator shell while it is off | `sign-in` | the two-factor offer in first-run setup; its section of the Account tab; the reminder in the operator shell |
 | 7 | `events` | Domain events and the append-only audit record of what happened and why, and the live stream to the browser with versioned envelopes and durable ids, so a page that reconnects catches up on what it missed | `sign-in` | — |
 | 8 | `bazarr-provider` | The Bazarr API client: system status and version, series, episodes, movies and their subtitles page by page, subtitle content for fingerprints, the translate action, and the translator and upgrade settings for the checks in `bazarr-instances` (D23), with language codes normalised at the boundary | `setup` | — |
@@ -102,8 +103,8 @@ layout:
 | `contract-spike` | `tests/contract/` (the contract tests; `compose.yaml` pins the Bazarr release they run against), `routes/bazarr/api/translate/content/`, `services/translation/` and `config/contract-spike.ts` (the callback and its stand-in translator, until `translation` decides what it keeps), `src/env.ts` (its settings) |
 | `secrets` | `security/secrets/` (key checks, keyring, cipher, `Secret`), `config/secret-key.ts`, `src/env.ts` and the `init` hook in `hooks.server.ts` |
 | `i18n` | `messages/en.json` and `messages/da.json`, `project.inlang/` (the inlang project and Paraglide's options), `lib/shared/i18n/` (formatting, language names and the message check), `lib/components/layout/LanguageSwitcher.svelte`; the language handle in `hooks.server.ts`, and `hooks.client.ts` |
-| `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`; `routes/setup/`, `routes/healthz/`, and the setup gate and the headers in `hooks.server.ts` |
-| `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token and password hashing, rate limiting, the cross-origin check), `vite.config.ts` (SvelteKit's own form check off); the sign-in and the address hint at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
+| `setup` | `db/` (client, migrations, settings and owner schema), `config/`, `logging/` (with redaction), `services/setup/`, `services/health.ts`, `security/bootstrap-token.ts`, `security/headers.ts`, `security/password.ts`, `security/cross-origin.ts`, `security/access-denied.ts`, `vite.config.ts` (SvelteKit's own form check off, the CSP); `routes/setup/`, `routes/healthz/`, and the headers, the cross-origin check and the setup gate in `hooks.server.ts` |
+| `sign-in` | `services/sign-in/` (sessions and their storage, recovery), `db/` session schema, `security/` (session-token hashing, rate limiting); the sign-in and the address hint at the claim in `routes/setup/`, `routes/login/`, `routes/(app)/` layout, the Account tab under `routes/(app)/settings/`, `lib/components/layout/` |
 | `two-factor` | `services/two-factor/`, the owner schema's two-factor fields in `db/`; the offer in `routes/setup/`, the challenge page beside `routes/login/`, its section of the Account tab, and the reminder in `lib/components/layout/` |
 | `events` | `services/events/` (the bus and the audit record), `db/` event schema; the stream under `routes/api/`; the listener in `lib/components/layout/` |
 | `bazarr-provider` | `providers/bazarr/`, `http/` (the SSRF-safe fetch, D8) |
@@ -130,13 +131,13 @@ layout:
 ### Open decisions each module closes
 
 - `setup`: D14 (Turso and Drizzle versions), the logging library half of D13, and D15's backup
-  and restore procedure, with the database file and the `secrets` key restored together.
-  `verification` checks that a restore followed by a full mirror rebuild gives the same
-  classifications.
+  and restore procedure, with the database file and the `secrets` key restored together
+  ([SPEC-setup.md](SPEC-setup.md#backup-and-restore)). `verification` checks that a restore
+  followed by a full mirror rebuild gives the same classifications.
 - `sign-in`: how long an owner session lasts.
-- `sign-in`: the password rules: the minimum length, whether a list of common passwords is
-  refused, and how repeated failed sign-ins are slowed beyond the rate limits (backoff, or a lockout
-  where the app's approved docs allow one).
+- `sign-in`: how repeated failed sign-ins are slowed beyond the rate limits (backoff, or a lockout
+  where the app's approved docs allow one). The password rules are `setup`'s, since the claim sets
+  the first password ([SPEC-setup.md](SPEC-setup.md#first-run)).
 - The first module with a background job closes the job half of D13: `sign-in` if its session
   cleanup is a job, otherwise `observation`.
 - `observation`: the cadence, and whether it asks Bazarr to rescan a series or movie from disk
@@ -196,18 +197,18 @@ layout:
 
 ### Surfaces with no brief yet
 
-First-run setup's claim and account and two-factor steps, the Account tab, the Bazarr instances
-settings, the prompt, glossary and validation editors, the policy list, the Plans, Activity and
-Quarantine lists, the windows and caps settings, the upgrade, adoption and rollback actions, the
-`/inventory` list and the API keys section are needed (each is named in its capability-map row) but
-have no brief. The `/setup/bazarr` brief needs the Bazarr settings to change (D20), a version
-warning in place of its "Version compatible" check (D22), the upgrade-settings check (D23), and the
-callback address and the plain-HTTP opt-in (Module notes, `bazarr-instances` and `bazarr-provider`).
-The `/settings/budgets` brief needs the ceilings per instance (D21), and the `/policies/[policy]`
-brief the instance scope (D21) and the fallback chain, context and proofreading (D24). The
-`/settings/providers` brief needs the provider kinds and their capabilities (D24), the plain-HTTP
-opt-in and typing the key again for a changed URL (Module notes, `providers`). Each gets its brief,
-or its brief's change, before its module is specced.
+First-run setup's two-factor step, the Account tab, the Bazarr instances settings, the prompt,
+glossary and validation editors, the policy list, the Plans, Activity and Quarantine lists, the
+windows and caps settings, the upgrade, adoption and rollback actions, the `/inventory` list and the
+API keys section are needed (each is named in its capability-map row) but have no brief. The
+`/setup/bazarr` brief needs the Bazarr settings to change (D20), a version warning in place of its
+"Version compatible" check (D22), the upgrade-settings check (D23), and the callback address and the
+plain-HTTP opt-in (Module notes, `bazarr-instances` and `bazarr-provider`). The `/settings/budgets`
+brief needs the ceilings per instance (D21), and the `/policies/[policy]` brief the instance scope
+(D21) and the fallback chain, context and proofreading (D24). The `/settings/providers` brief needs
+the provider kinds and their capabilities (D24), the plain-HTTP opt-in and typing the key again for
+a changed URL (Module notes, `providers`). Each gets its brief, or its brief's change, before its
+module is specced.
 
 ### Module notes
 
@@ -215,62 +216,14 @@ What a capability-map row commits to in more detail than a clause fits. It is be
 unless the module's approved spec or a decision changes it. Layout, placement, visuals and exact
 wording are not behaviour: where a note describes them, DESIGN.md and the surface's brief win, and
 for a surface with no brief yet the note is only a starting point for that brief. Each block moves
-into its module's `SPEC-<id>.md` when that module is specced. `setup` and `sign-in` are shared with
-the other edbfi apps (D17): a bullet or clause marked "(zimuarr)" is this app's own, and the rest is
-the shared wording; a "(zimuarr)" mark inside a bullet covers the rest of that bullet, and
-"(zimuarr: …)" only its own parentheses. Decision numbers in these blocks are zimuarr's; each app
-cites its own.
-
-#### setup
-
-- **The claim** is a POST, cross-origin-checked like any other (`sign-in`), and it stores no
-  address. It needs a valid bootstrap token and the browser's address (`sign-in`). Using up the
-  token and creating the owner are one atomic step, and the owner session it starts follows
-  `sign-in`'s cookies.
-- **Security headers** (zimuarr: ground-floor choice 3), on every response, early returns included,
-  include a referrer policy of `same-origin` or `strict-origin-when-cross-origin`, never
-  `no-referrer` (which makes browsers send `Origin: null` on the app's own form posts).
-- **The health endpoint** (zimuarr) takes the place of `/healthz`'s fixed `ok`, at the same path. It
-  is public, so it says only whether zimuarr itself can serve: `200` with `ok`, or `503` while its
-  database can't be read and written or its job runner has stopped (D7). The setup gate lets it
-  through, so it answers before the claim too. An unreachable Bazarr instance or provider doesn't
-  fail it, so a container health check never marks zimuarr unhealthy for someone else's outage. It
-  shows no version (D22) and no names; instances, providers, jobs, the last observation of each
-  instance and the breakers are shown behind sign-in on `/system` (`system`).
+into its module's `SPEC-<id>.md` when that module is specced (`setup`'s is in
+[SPEC-setup.md](SPEC-setup.md)). `sign-in` is shared with the other edbfi apps (D17): a bullet or
+clause marked "(zimuarr)" is this app's own, and the rest is the shared wording; a "(zimuarr)" mark
+inside a bullet covers the rest of that bullet, and "(zimuarr: …)" only its own parentheses.
+Decision numbers in these blocks are zimuarr's; each app cites its own.
 
 #### sign-in
 
-- **SvelteKit's own form check is off:** `sveltekit({ csrf: { trustedOrigins: ['*'] } })` in
-  `vite.config.ts` (SvelteKit 3 takes its options in the `sveltekit()` call, with no `kit:`
-  wrapper). Remote functions stay off. A config test asserts both, so SvelteKit's only remaining
-  check before `handle` is the remote-function one, which nothing uses. The cross-origin check
-  replaces SvelteKit's form check.
-- **The cross-origin check** asks the browser, so the app doesn't need to know its own address and
-  stores none. It is the first check in `handle`, after only the language (`i18n`), for every
-  method except GET, HEAD and OPTIONS, and for every content type (form, JSON, multipart,
-  `text/plain`, empty). Internal `event.fetch` subrequests (`event.isSubRequest`) skip it.
-  - An `Origin` header, whenever it is present, must parse as one bare `http` or `https` origin;
-    `null`, a malformed value or several values are refused. This applies on every branch below.
-  - With `ORIGIN` set, a present `Origin` must equal `ORIGIN`, compared as parsed origins. Without
-    `Origin`, `Sec-Fetch-Site` must be `same-origin` or `none`.
-  - With `ORIGIN` unset, a present `Sec-Fetch-Site` passes only as `same-origin` or `none`
-    (`same-site` and `cross-site` are refused). Otherwise `Origin`'s host and port must equal the
-    `Host` header, with default ports normalised. Browsers send `Sec-Fetch-Site` only to HTTPS,
-    `localhost` and loopback addresses, so over plain HTTP outside loopback every browser gets
-    this comparison.
-  - A request with neither `Origin` nor `Sec-Fetch-Site` doesn't come from a browser. It passes only
-    on an explicit list of machine routes (zimuarr: Bazarr's translator callback,
-    `POST /bazarr/api/translate/content` with its `X-Api-Key` under D20, and the versioned JSON API
-    with one of the owner's API keys under `api-keys`): the API-key endpoints and other machine
-    routes the app's approved docs already name, each with the credentials those docs require. The
-    session cookie is never honoured on it: such a request that carries only a session cookie gets a
-    403. (zimuarr) The cross-origin check doesn't check those keys: on those routes, a request with
-    neither header that doesn't carry only a session cookie goes on to the route's own key check, so
-    the callback still answers a missing or wrong `X-Api-Key` with `401` (D25; `contract-spike`
-    does the same for its stand-in keys), and the cross-origin check, like every other check, runs
-    before the callback's held `200`.
-  - A refusal is a 403 with the app's own "Access denied" page, or a JSON error for JSON callers,
-    with the security headers and in the viewer's language.
 - **The browser's address** is `ORIGIN` when it is set, and otherwise the validated `Origin` of the
   POST that passed the cross-origin check. It decides the cookies' `Secure` flag and the OIDC
   `redirect_uri`. Every POST that sets or deletes a cookie needs it, such as the claim, sign-in, the
@@ -289,30 +242,10 @@ cites its own.
   adding the proxy line `proxy_set_header Host $http_host`, so someone without a session can
   recover. (zimuarr) zimuarr has no module that diagnoses the browser's address, so this hint is
   the whole of that diagnosis.
-- **`ORIGIN`** is optional and never required. It is plain `ORIGIN`, not an app-prefixed name (an
-  app prefix would mean setting adapter-bun's `envPrefix`, which would then reject the master key's
-  variable). When set, it must be a bare `http` or `https` origin (a trailing `/` is fine; no path,
-  query, fragment or credentials), compared as a parsed origin, or startup stops with an error that
-  doesn't echo the value. adapter-bun 1.0.0 ignores `ORIGIN`; from 1.0.1 a set `ORIGIN` also
-  corrects SvelteKit's `event.url`, and an empty `ORIGIN=""` throws with the value in the message,
-  so the container image's entrypoint unsets an empty `ORIGIN` and its templates leave it out (the
-  image's work, not this repo's).
-- **When `ORIGIN` or a proxy fix is still needed:** behind a proxy that rewrites `Host`, over plain
-  HTTP for every browser, and over HTTPS only for browsers without `Sec-Fetch-Site` (Safari before
-  16.4, Firefox before 90, Chrome before 76). The proxy fix is `proxy_set_header Host $http_host`
-  (not `$host`, which drops a non-default port). Remote functions would need it too; they stay
-  off.
-- **Accepted residual risks.** Over plain HTTP, the `Origin` and `Host` comparison can't tell `http`
-  from `https`, which is harmless on a port that speaks only HTTP; over HTTPS it affects only
-  browsers without `Sec-Fetch-Site`, and only against a network attacker, and HSTS or `ORIGIN`
-  closes it. DNS rebinding reaches only actions that need no sign-in, because cookies don't follow
-  a rebind, and those are gated by a console token or rate-limited (zimuarr: the machine routes also
-  need their keys).
-- **Tests:** the cross-origin check is one pure module, unit-tested against a matrix of headers and
-  copied to each app as D17 shares the opening modules. One Playwright test against the built server
-  (`bun ./build`) checks that a cross-site form POST is refused and that a same-origin POST carrying
-  no `Sec-Fetch-*` headers passes, both on `localhost` and on a plain-HTTP host name that isn't
-  loopback (such as Chromium's `--host-resolver-rules="MAP app.test 127.0.0.1"`).
+- **Machine routes and the session cookie:** `setup`'s cross-origin check passes a request with
+  neither `Origin` nor `Sec-Fetch-Site` on to a machine route's own key check
+  ([SPEC-setup.md](SPEC-setup.md#the-cross-origin-check)). Once the session cookie exists, such a
+  request that carries only a session cookie gets a 403: the cookie is never honoured there.
 - **Cookies:** session cookies are named after the app (zimuarr: `zimuarr_session` for the owner
   session), because cookies ignore ports and apps on one address would otherwise sign each other
   out. They are host-only, `HttpOnly` and `SameSite=Lax`. Every cookie is `Secure` exactly when the
@@ -708,16 +641,17 @@ design doesn't call for anything different; choices 4 and 5 are zimuarr's own.
 
 1. **Fonts.** DESIGN.md wants Public Sans and Roboto Mono bundled locally, with no remote font
    requests. The skeleton defines the font tokens with system fallbacks; the first surface adds the
-   font files (a dependency the owner approves then).
+   font files (a dependency the owner approves then): `setup`'s claim page
+   ([SPEC-setup.md](SPEC-setup.md#fonts-and-icons)).
 2. **Ark UI before its first use.** The skeleton installs `@ark-ui/svelte`, so the Panda and Ark
    pairing and `check-peers` are settled early; the first `ui/` wrapper comes with the first surface
    that needs one.
 3. **Security headers and CSP.** zimuarr needs authentication on its interface and API, and a
-   first-run setup that closes after use (D17). Security headers and a CSP belong to the first
-   module that serves real pages (`setup`, whose claim page comes before `sign-in`), not the
-   skeleton.
+   first-run setup that closes after use (D17). Security headers and a CSP
+   ([SPEC-setup.md](SPEC-setup.md#security-headers-and-csp)) belong to the first module that
+   serves real pages (`setup`, whose claim page comes before `sign-in`), not the skeleton.
 4. **No logo yet.** zimuarr has no logo or icon file, so the skeleton has no `static/` folder and no
    favicon; the visible name is the text "Zimuarr". A logo joins when the owner provides one.
 5. **Health.** `/healthz` always answers `ok`. `setup`, which adds the database, replaces that with
-   the health endpoint in its Module notes, and the parts it leaves out are shown on `/system`
-   (row 24).
+   the health endpoint in [SPEC-setup.md](SPEC-setup.md#the-health-endpoint), and the parts it
+   leaves out are shown on `/system` (row 24).

@@ -258,7 +258,7 @@ real Bazarr:
 - `POST <endpoint>/api/translate/content`, with the key in `X-Api-Key`. Bazarr makes the key
   optional; zimuarr requires it and rejects every other caller. It is a JSON POST
   (`Content-Type: application/json`, from `python-requests`) with neither `Origin` nor
-  `Sec-Fetch-Site`, so SvelteKit's form check lets it through and `sign-in`'s cross-origin check
+  `Sec-Fetch-Site`, so SvelteKit's form check lets it through and `setup`'s cross-origin check
   treats it as a machine route (contract test C1).
 - A JSON body with `arrMediaId` (the Sonarr series id for episodes, the Radarr id for movies),
   `title` (with the source file's name), `sourceLanguage` and `targetLanguage` (two-letter codes,
