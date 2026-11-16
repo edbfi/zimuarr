@@ -583,25 +583,28 @@ export const GET: RequestHandler = () => healthResponse();
 ## Testing strategy
 
 - **Unit (Vitest's `unit` project, `node` environment):** next to their source: the `/healthz`
-  handler (status 200, body `ok`, `cache-control: no-store`), the callback's modules, the contract
-  job's case selection and the `secrets` module (`config/secret-key.test.ts`, and
-  `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts` and `secret.test.ts` in
-  `security/secrets/`, under `src/lib/server/`), `setup`'s (under `src/lib/server/`:
-  `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on a new database, a
-  second run applying nothing, and the rows compared with Drizzle Kit's file migrator's;
-  `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
+  handler (`ok` or `503 unavailable` from the health check, `cache-control: no-store`) and
+  `services/health.test.ts` (the probe against a real and a closed database, one probe per 5-second
+  window, `503` after 3 seconds, no second probe while one hangs, and one log entry per change of
+  state), the callback's modules, the contract job's case selection and the `secrets` module
+  (`config/secret-key.test.ts`, and `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts` and
+  `secret.test.ts` in `security/secrets/`, under `src/lib/server/`), `setup`'s (under
+  `src/lib/server/`: `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on
+  a new database, a second run applying nothing, and the rows compared with Drizzle Kit's file
+  migrator's; `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
   `services/setup/startup.test.ts`, the steps' order, a failed step logged then thrown, a database
   path or `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed on as
   `SIGTERM`, the cleanup's order, a failed close still exiting 0, the 5-second deadline with its
   bounded flush, and no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`,
   each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an empty allowlist and a
   growth check for linear time; `logging/logger.test.ts`, the entry's shape, the debug filter and
-  the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs), and `i18n`'s in
-  `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on `messages/*.json`
-  and on in-memory files that each break one of its rules; `format.test.ts`, which formats inside
-  the language middleware for each language and in several zones; and `language-name.test.ts`, which
-  names D20's codes in both languages and gives malformed and unknown codes back as given. Component
-  tests use happy-dom when components exist; never jsdom.
+  the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs; and
+  `db/settings.test.ts`), and `i18n`'s in `src/lib/shared/i18n/`: the message check
+  (`messages.test.ts`), which runs on `messages/*.json` and on in-memory files that each break one
+  of its rules; `format.test.ts`, which formats inside the language middleware for each language and
+  in several zones; and `language-name.test.ts`, which names D20's codes in both languages and gives
+  malformed and unknown codes back as given. Component tests use happy-dom when components exist;
+  never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
@@ -676,6 +679,6 @@ design doesn't call for anything different; choices 4 and 5 are zimuarr's own.
    serves real pages (`setup`, whose claim page comes before `sign-in`), not the skeleton.
 4. **No logo yet.** zimuarr has no logo or icon file, so the skeleton has no `static/` folder and no
    favicon; the visible name is the text "Zimuarr". A logo joins when the owner provides one.
-5. **Health.** `/healthz` always answers `ok`. `setup`, which adds the database, replaces that with
-   the health endpoint in [SPEC-setup.md](SPEC-setup.md#the-health-endpoint), and the parts it
-   leaves out are shown on `/system` (row 24).
+5. **Health.** `/healthz` answers `ok` while the database can be read and written, and `503`
+   otherwise ([SPEC-setup.md](SPEC-setup.md#the-health-endpoint)); the first module with a job adds
+   the job runner to it (D13), and what it leaves out is shown on `/system` (row 24).
