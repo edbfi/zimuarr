@@ -596,8 +596,13 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
   check against methods, content types and `Origin`, `Sec-Fetch-Site`, `Host` and `ORIGIN` values,
   and Bazarr's callback with neither header passing, with `ORIGIN` set and unset, on its exact
   method and path only; `security/access-denied.test.ts`, the refusal's page and JSON in both
-  languages; `security/headers.test.ts`, the headers for HTTPS, plain HTTP and loopback hosts, and a
-  held, streaming response that keeps streaming whether its headers are set in place or on a copy;
+  languages; `security/bootstrap-token.test.ts`, the token's format, alphabet, unbiased draw, entry
+  with or without dashes in any case, constant-time comparison and 15-minute expiry;
+  `db/owner.test.ts`, `ownerExists` and the one-row limit; `services/setup/first-run.test.ts`, the
+  token printed with `/setup` (or the full address with `ORIGIN`), renewed at expiry, held back
+  while a claim is in progress, stopped by shutdown, and never printed once an owner exists;
+  `security/headers.test.ts`, the headers for HTTPS, plain HTTP and loopback hosts, and a held,
+  streaming response that keeps streaming whether its headers are set in place or on a copy;
   `services/setup/startup.test.ts`, the steps' order, a bad `ORIGIN` refused before the database
   opens, a failed step logged then thrown, a database path or `ZIMUARR_LOG_DEBUG` refused without
   echoing it, and shutdown: `SIGHUP` passed on as `SIGTERM`, the cleanup's order, a failed close
@@ -634,8 +639,9 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     being echoed; a cross-site form POST gets the "Access denied" page with the headers, its own
     policy and the viewer's language, and a same-origin POST with no `Sec-Fetch-*` headers passes,
     on `localhost` and on a plain-HTTP host name that isn't loopback (`app.test`, through Chromium's
-    `--host-resolver-rules`); with `ORIGIN` set, Bazarr's callback still reaches its route; and
-    `SIGTERM` and `SIGHUP` each stop the built server with exit code 0.
+    `--host-resolver-rules`); with `ORIGIN` set, Bazarr's callback still reaches its route; a fresh
+    server prints its bootstrap token before it listens, in no log entry or response; and `SIGTERM`
+    and `SIGHUP` each stop the built server with exit code 0.
   - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for

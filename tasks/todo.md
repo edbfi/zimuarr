@@ -233,7 +233,7 @@ before the `ORIGIN` branches. SvelteKit's own form check goes off in the same PR
 
 ## Checkpoint: after task 6
 
-- [ ] As in [plan.md](plan.md#checkpoint-after-task-6).
+- [x] As in [plan.md](plan.md#checkpoint-after-task-6).
 
 ## Task 7: the bootstrap token
 
@@ -242,14 +242,14 @@ before the `ORIGIN` branches. SvelteKit's own form check goes off in the same PR
 Shutdown stops the timer. First run's state is loaded into memory at startup.
 
 **Acceptance criteria:**
-- [ ] `server/security/bootstrap-token.test.ts` first fails, then passes: the format and alphabet,
+- [x] `server/security/bootstrap-token.test.ts` first fails, then passes: the format and alphabet,
   the unbiased draw (a mocked byte stream), display, entry with or without dashes in any case,
   constant-time comparison and the 15-minute boundary.
-- [ ] `server/services/setup/first-run.test.ts`, against a temporary file and with a fake clock: a
+- [x] `server/services/setup/first-run.test.ts`, against a temporary file and with a fake clock: a
   token printed and a new one at expiry; held back while a claim is in progress; stopped by
   shutdown; the full address with `ORIGIN`; none once an owner exists.
-- [ ] `owner.ts` gains `ownerExists`; startup's signal handler stops the timer.
-- [ ] `setup.test.ts`: the built server prints the token line before "Listening on", and neither
+- [x] `owner.ts` gains `ownerExists`; startup's signal handler stops the timer.
+- [x] `setup.test.ts`: the built server prints the token line before "Listening on", and neither
   form of the token appears in a log entry or a response.
 
 **Verification:** the gates.

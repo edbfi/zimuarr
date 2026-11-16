@@ -279,8 +279,9 @@ subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-set
 built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database, the app logs
 redacted JSON, it stops cleanly, `/healthz` reads and writes the database, and every response
 carries the security headers and every page a nonce CSP, and a state-changing request from another
-site is refused. The other product modules come next, in the order of the approved capability map in
-`docs/SPEC.md`, each through an owner-approved `docs/SPEC-<id>.md`.
+site is refused. While no owner exists, startup prints a bootstrap token to the console. The other
+product modules come next, in the order of the approved capability map in `docs/SPEC.md`, each
+through an owner-approved `docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
 and `preview` need, see the README's [Master key](README.md#master-key).
@@ -342,13 +343,15 @@ src/
                                  error's code, for messages that never hold a path
       db/                        client.ts: opens the database; migrate.ts: applies the bundled
                                  migrations; settings.ts: its table and the operations to read
-                                 and write a key; owner.ts: its table
+                                 and write a key; owner.ts: its table and whether an owner exists
       logging/                   logger.ts: JSON entries on standard output; redact.ts: the
                                  redaction rules; unexpected-error.ts: what `handleError` logs
       services/setup/            startup.ts: startup's steps, in order, a failure logged,
                                  shutdown on `SIGTERM`, `SIGINT` and `SIGHUP`, and the database
-                                 it opened
-      security/                  headers.ts: the security headers for a request;
+                                 it opened; first-run.ts: first run's state and the bootstrap
+                                 token printed to the console
+      security/                  bootstrap-token.ts: the token, drawn, shown, compared and
+                                 expired; headers.ts: the security headers for a request;
                                  cross-origin.ts: the cross-origin check and the machine routes;
                                  access-denied.ts: its refusal, a page or JSON
       security/secrets/          key-text.ts: a master key's text to its 32 bytes, refusing
@@ -370,8 +373,8 @@ tests/
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
   e2e/i18n.test.ts               each viewer's language, and the switcher
   e2e/setup.test.ts              `setup` on the built server: so far, the database, logging,
-                                 shutdown, the security headers, the CSP and the cross-origin
-                                 check
+                                 shutdown, the security headers, the CSP, the cross-origin check
+                                 and the bootstrap token
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,
                                  fault-proxy.ts, select.ts (CI's choice of cases), caddy/,
