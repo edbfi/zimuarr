@@ -288,7 +288,7 @@ and Lucide join here. No gate yet.
   neither the token nor the password in a response or a log entry.
 - [x] `@fontsource-variable/public-sans`, `@fontsource-variable/roboto-mono` and `@lucide/svelte`
   are exact-pinned dev dependencies; the root layout imports the fonts and `panda.config.ts` names
-  the families; the token field uses the `code` style.
+  the families; the token field uses the code face (Roboto Mono) at the body size.
 - [x] The page follows `route-setup.md` through `/impeccable`, with the language switcher and the
   text wordmark; every string is a `setup_…` message in both languages. Checked at 360, 390, 768
   and 1440 px, 200% zoom, the keyboard and reduced motion, in every state the brief names, in

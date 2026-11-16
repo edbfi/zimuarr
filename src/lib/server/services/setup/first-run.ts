@@ -42,10 +42,9 @@ const toStandardOutput = (line: string) => process.stdout.write(`${line}\n`);
 
 /**
  * Loads first run's state at startup: whether an owner exists, and the step pointer from
- * `settings`. While no owner exists, a bootstrap
- * token is printed with the address to claim the instance at, and a new one every time it
- * expires; once the instance is claimed, none is printed again (SPEC-setup.md, "The bootstrap
- * token").
+ * `settings`. While no owner exists, a bootstrap token is printed with the address to claim the
+ * instance at, and a new one every time it expires; once the instance is claimed, none is printed
+ * again (SPEC-setup.md, "The bootstrap token").
  */
 export async function startFirstRun(options: FirstRunOptions): Promise<void> {
 	stopFirstRun();

@@ -469,8 +469,9 @@ No release is cut between `setup` and `sign-in`.
 (zimuarr) Ground-floor choice 1 left the font files to the first surface, which the claim page is:
 - `@fontsource-variable/public-sans` and `@fontsource-variable/roboto-mono`, imported in the root
   layout, so every page renders in DESIGN.md's typefaces with no remote font request; the tokens
-  name the families with their system fallbacks after them. The token field uses the `code` style
-  (Roboto Mono), the one input that echoes the console line it came from.
+  name the families with their system fallbacks after them. The token field uses the code face
+  (Roboto Mono), the one input that echoes the console line it came from, at the body size rather
+  than the `code` style's 13px, since iOS zooms in on a smaller input.
 - `@lucide/svelte` for the eye icon on the password field's Show and Hide control (the entry
   mockup, `docs/design/screens/01-entry-and-onboarding.webp`): DESIGN.md asks for one 20px line
   family with a 1.5–2px stroke, which Lucide is, imported one icon per path.
