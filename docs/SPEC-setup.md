@@ -501,6 +501,7 @@ src/lib/server/db/settings.ts               the settings table and its operation
 src/lib/server/db/owner.ts                  the owner table and its operations
 src/lib/server/logging/logger.ts            levels, entries, standard output, flushing
 src/lib/server/logging/redact.ts            the redaction rules
+src/lib/server/logging/unexpected-error.ts  what handleError logs and returns
 src/lib/server/security/access-denied.ts    the cross-origin refusal: the page or JSON
 src/lib/server/security/bootstrap-token.ts  the token: drawing, formatting, comparing, expiry
 src/lib/server/security/cross-origin.ts     the cross-origin check and the machine routes
@@ -616,9 +617,9 @@ Kit generates a migration from the schema, then Biome formats it). `smoke` also 
 ## Docs this module changes when built
 
 - **`docs/SPEC.md`:** the status line and row 4 (built); the tech-stack table (Turso, Drizzle, the
-  fonts and Lucide); "`bun ./build` needs no `node_modules`"; the `db:generate`, `preview` and
-  `smoke` command rows; the testing section; "Open decisions": the `setup` line goes; ground-floor
-  choices 1, 3 and 5 close.
+  fonts and Lucide); "`bun ./build` needs no `node_modules`"; the `db:generate` and `smoke` command
+  rows; the testing section; "Open decisions": the `setup` line goes; ground-floor choices 1, 3 and
+  5 close.
 - **`docs/decisions.md`:** D14 moves to Decided with the validated pair; D13's logging half moves to
   D11 as the app's own logger and why, and D13 keeps only the job half; D15 drops the backup
   procedure, which this spec defines and tests.
