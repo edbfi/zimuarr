@@ -221,3 +221,24 @@ test.describe("logging", () => {
 		]);
 	});
 });
+
+test.describe("shutdown", () => {
+	for (const signal of ["SIGTERM", "SIGHUP"] as const) {
+		test(`${signal} shuts the built server down with exit code 0`, async () => {
+			const server = await startServer(root, {
+				ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+			});
+			expect(await (await fetch(`${server.url}/healthz`)).text()).toBe("ok");
+
+			expect(await server.stop(signal)).toBe(0);
+			const stopping = server
+				.output()
+				.split("\n")
+				.filter((line) => line.startsWith("{"))
+				.map((line) => JSON.parse(line))
+				.filter((entry) => entry.message === "stopping");
+			// SIGHUP arrives as itself, then the app passes it on as SIGTERM.
+			expect(stopping.map((entry) => entry.metadata.signal)).toEqual(["SIGTERM"]);
+		});
+	}
+});

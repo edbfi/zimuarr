@@ -276,9 +276,9 @@ tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-
 Nothing stores a secret yet. Module 3, `i18n` ([`docs/SPEC-i18n.md`](docs/SPEC-i18n.md)), is built:
 English and Danish messages, each request's language, the language switcher, formatting and
 subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-setup.md)), is being
-built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database, and the app logs
-redacted JSON. The other product modules come next, in the order of the approved capability map in
-`docs/SPEC.md`, each through an owner-approved `docs/SPEC-<id>.md`.
+built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database, the app logs
+redacted JSON, and it stops cleanly. The other product modules come next, in the order of the
+approved capability map in `docs/SPEC.md`, each through an owner-approved `docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
 and `preview` need, see the README's [Master key](README.md#master-key).
@@ -338,7 +338,8 @@ src/
                                  migrations; settings.ts and owner.ts: their tables
       logging/                   logger.ts: JSON entries on standard output; redact.ts: the
                                  redaction rules; unexpected-error.ts: what `handleError` logs
-      services/setup/            startup.ts: startup's steps, in order, a failure logged
+      services/setup/            startup.ts: startup's steps, in order, a failure logged, and
+                                 shutdown on `SIGTERM`, `SIGINT` and `SIGHUP`
       security/secrets/          key-text.ts: a master key's text to its 32 bytes, refusing
                                  malformed and weak keys; keyring.ts: loads the key and derives
                                  the AES key and key ID; secret.ts: the `Secret` wrapper,
@@ -357,7 +358,8 @@ tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
   e2e/i18n.test.ts               each viewer's language, and the switcher
-  e2e/setup.test.ts              `setup` on the built server: so far, the database and logging
+  e2e/setup.test.ts              `setup` on the built server: so far, the database, logging and
+                                 shutdown
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,
                                  fault-proxy.ts, select.ts (CI's choice of cases), caddy/,
