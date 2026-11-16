@@ -63,7 +63,9 @@ describe("probeDatabase", () => {
 		const db = drizzle({ client: await connect(path, { readonly: true }) });
 		try {
 			expect(await readSetting(db, "health.checked_at")).toBeUndefined();
-			await expect(probeDatabase(db, new Date())).rejects.toThrow(/readonly/);
+			// Drizzle wraps Turso's error, which names the read-only database, as its cause.
+			const error = await probeDatabase(db, new Date()).catch((caught: unknown) => caught);
+			expect((error as Error).cause).toMatchObject({ message: expect.stringMatching(/readonly/) });
 			const check = createHealthCheck({ probe: () => probeDatabase(db, new Date()) });
 			expect(await check()).toBe(false);
 		} finally {
