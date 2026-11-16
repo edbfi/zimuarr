@@ -131,7 +131,7 @@ layout:
 ### Open decisions each module closes
 
 - `two-factor`: the first stored secret, with which a restore under another master key is tested
-  ([SPEC-setup.md](SPEC-setup.md#backup-and-restore)).
+  (D15).
 - `verification`: that a restore followed by a full mirror rebuild gives the same
   classifications.
 - `sign-in`: how long an owner session lasts.

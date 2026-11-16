@@ -97,10 +97,10 @@ flushed first, for at most a second, so it isn't lost behind a slow reader.
 signal, and emits `sveltekit:shutdown` without waiting for its listeners. So the app stops the jobs
 and timers and closes open event streams on the signal, so browsers reconnect, while the adapter
 drains; on `sveltekit:shutdown` it waits for those jobs, closes the database, flushes the logs and
-exits 0; and it exits non-zero anyway 5 seconds after `sveltekit:shutdown`, even with an upstream
-call still outstanding. `SIGHUP` counts as a stop. (zimuarr) Held Bazarr callbacks are not closed:
-the adapter drains them like any request and cuts what is still open when its window ends (D25,
-contract test C11). What survives a restart is `translation`'s.
+exits 0; and if that cleanup hasn't finished 5 seconds after `sveltekit:shutdown`, it exits non-zero
+anyway, even with an upstream call still outstanding. `SIGHUP` counts as a stop. (zimuarr) Held
+Bazarr callbacks are not closed: the adapter drains them like any request and cuts what is still
+open when its window ends (D25, contract test C11). What survives a restart is `translation`'s.
 
 ## The database
 
@@ -118,9 +118,8 @@ D5, D6 and D14 hold the engine, the access rules and the validated versions.
 backup is the whole folder, copied while zimuarr is stopped, with the master key kept apart; a
 restore puts the folder back and starts with the same key (D26), and after a bad upgrade, with the
 release the copy was taken with, since migrations only go forward. The README gives the steps, and
-an e2e test restores a copy. A restore with another key is tested once a secret is stored
-(`two-factor`), and `verification` adds its own restore check
-([SPEC.md](SPEC.md#open-decisions-each-module-closes)).
+an e2e test restores a copy; the restore checks still to come are in
+[SPEC.md](SPEC.md#open-decisions-each-module-closes).
 
 An online backup, which needs no stop, is left out, because embedded Turso's online backup isn't
 validated. Its cost: a callback still held when the drain window ends fails its Bazarr job, since
@@ -129,8 +128,8 @@ Bazarr's three attempts are over within seconds while zimuarr is stopped (D20).
 ## Logging
 
 D11 holds the decision and why the app has its own logger. Four levels, debug dropped unless
-`ZIMUARR_LOG_DEBUG` is on. Each entry is one JSON line on standard output with a level, a message,
-a source, structured metadata and a millisecond timestamp.
+`ZIMUARR_LOG_DEBUG` is on. Each entry is one JSON line on standard output with `time` (ISO, to the
+millisecond), `level`, `source`, `message` and `metadata`.
 
 **Redaction** runs before an entry is written:
 - credentials in URLs, and token-like query parameters, also inside a parameter's value once
@@ -164,9 +163,9 @@ until `translation` decides what it keeps; the contract harness tells them apart
 ## The request checks
 
 `handle` runs the language (`i18n`), the security headers, the cross-origin check, then the setup
-gate; SPEC.md's `sign-in` notes give the stages later modules add. Every refusal is returned, never
-thrown ([SPEC-i18n.md](SPEC-i18n.md#choosing-the-language)), so it keeps the language and the
-headers.
+gate; `sign-in` adds its stages between the cross-origin check and the gate. Every refusal is
+returned, never thrown ([SPEC-i18n.md](SPEC-i18n.md#choosing-the-language)), so it keeps the
+language and the headers.
 
 ### The cross-origin check
 
@@ -247,7 +246,7 @@ database can be read and written, `503 unavailable` otherwise.
   still go unnoticed while Turso's write-ahead log has room to reuse.
 - **Because it is public,** a probe runs at most once every 5 seconds and one at a time; a probe
   that hasn't answered within 3 seconds is unhealthy, and while it still hangs no second probe
-  starts, so a stuck database never piles up probes. The council chose this unanimously.
+  starts, so a stuck database never piles up probes.
 - An unreachable Bazarr instance or provider never fails it, so a container health check never
   marks zimuarr unhealthy for someone else's outage; it shows no version (D22) and no names.
   Instances, providers, jobs, the last observation of each instance and the breakers are shown
@@ -273,8 +272,8 @@ order (D17).
 `/setup`, and the full address when `ORIGIN` is set, since the server doesn't otherwise know its
 address. A new one is printed every 15 minutes until the claim, and none after it.
 
-**The claim** checks the fields, then checks and uses up the token with no `await` between the
-two, then hashes the password, then creates the owner and moves the step pointer in one
+**The claim** checks the fields, then checks the token and uses it up with no `await` in between,
+then hashes the password, then creates the owner and moves the step pointer in one
 transaction. The cheap checks come first so a wrong guess never costs a hash, and a field error
 leaves the token unused. The claim stores no address, and nothing but the owner row and the
 pointer. After it, the claim no longer exists: `/setup` answers "not found" once first run is
