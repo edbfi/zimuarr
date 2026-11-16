@@ -25,7 +25,7 @@ Heading 'Claim this Zimuarr'. One line: 'Enter the setup token printed in the se
 
 ## Acceptance criteria
 
-- The token field uses the `code` style (Roboto Mono): the one input that echoes the console line it came from. It takes the token with or without dashes and in any case, inserts the dashes as it is typed when JavaScript runs, and is not a password field, so the person can check what they typed.
+- The token field is set in the code face (Roboto Mono) at body size (DESIGN.md's 16px Field Rule): the one input that echoes the console line it came from. It takes the token with or without dashes and in any case, inserts the dashes as it is typed when JavaScript runs, and is not a password field, so the person can check what they typed.
 - Errors sit beside their field with helper/error IDs and `aria-invalid`; a wrong or expired token gets one message that names the console, never which of the two it was. A server failure says to try again.
 - After a failed submit, the username is kept; the token and password are not, and focus moves to the first field with an error, or to the token field.
 - The Show/Hide control is a labelled button with the eye icon, reveals only what was just typed, and is absent without JavaScript; the form works without JavaScript.
@@ -48,6 +48,3 @@ Heading 'Claim this Zimuarr'. One line: 'Enter the setup token printed in the se
 
 Made while building it (2026-11-16), after Impeccable's finish review:
 - **The fold** is a 360×740 screen, today's usual phone; the button's bottom sits at 660px in English and 698px in Danish. Fitting 360×640 would mean cutting DESIGN.md's 24px between form groups.
-- **The token field** is set in the code face (Roboto Mono) at the body size, not the `code` style's 13px, since iOS zooms in on a smaller input.
-- **The fields** take DESIGN.md's `text-field` fill (`surface`), on the panel's `surface`, bounded by `control-border`; the mockup's darker well would need a token change first.
-- **The primary button** keeps its fill on hover: `secondary` is for information, links and focus.
