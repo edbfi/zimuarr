@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { connect } from "@tursodatabase/database";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ConfigError } from "#lib/server/config/config-error.ts";
 import { KeyringError } from "#lib/server/security/secrets/keyring.ts";
@@ -32,7 +33,18 @@ describe("startUp", () => {
 	it("opens and migrates the database at the path", async () => {
 		const path = join(root, "data", "app.db");
 		await startUp({ ZIMUARR_SECRET_KEY: key(), ZIMUARR_DATABASE_PATH: path });
-		expect(await Bun.file(path).exists()).toBe(true);
+		// Turso creates the file on open, so the tables are what show the migrations ran.
+		const db = await connect(path);
+		try {
+			const tables = (await (
+				await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
+			).all()) as { name: string }[];
+			expect(tables.map((row) => row.name)).toEqual(
+				expect.arrayContaining(["__drizzle_migrations", "owner", "settings"]),
+			);
+		} finally {
+			db.close();
+		}
 	});
 
 	it("checks the master key first, so a missing key opens and creates no database", async () => {

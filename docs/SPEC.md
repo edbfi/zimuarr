@@ -535,7 +535,7 @@ Setup facts for this stack:
 | `bun ci` | frozen install; `prepare` runs `svelte-kit sync`, the Paraglide compile and Panda codegen |
 | `bun run --bun dev` | Vite dev server; needs a key in `.env` or the environment, and without one every request fails with the key error |
 | `bun run --bun build` | production build through adapter-bun into `build/`; needs no key and never embeds one |
-| `bun run --bun preview` | runs the built server (`bun --no-install ./build`, so a missing Turso binding stops it, D14; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
+| `bun run --bun preview` | runs the built server (`bun --no-install ./build`, D14; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, the Paraglide compile, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch) |
 | `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests and `setup`'s, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |

@@ -5,14 +5,12 @@ import {
 	readDatabasePath,
 } from "#lib/server/config/database-path.ts";
 import type { SecretKeyEnv } from "#lib/server/config/secret-key.ts";
-import { type Database, openDatabase } from "#lib/server/db/client.ts";
+import { openDatabase } from "#lib/server/db/client.ts";
 import { migrateDatabase } from "#lib/server/db/migrate.ts";
 import { loadKeyring } from "#lib/server/security/secrets/keyring.ts";
 
 /** Every variable startup reads. */
 export type StartupEnv = SecretKeyEnv & DatabasePathEnv;
-
-let database: Database | undefined;
 
 /**
  * Runs startup's steps in order, before any request is served (SPEC-setup.md, "Startup and
@@ -29,13 +27,6 @@ export async function startUp(env: StartupEnv): Promise<void> {
 		throw openError(error, path, databasePathSubject(env));
 	});
 	await migrateDatabase(db);
-	database = db;
-}
-
-/** The database startup opened; it throws before startup has opened it. */
-export function currentDatabase(): Database {
-	if (database === undefined) throw new Error("the database is used before startup opened it");
-	return database;
 }
 
 /**
