@@ -120,7 +120,7 @@ const field = css({ display: "flex", flexDirection: "column", gap: "sm" });
 const label = css({ textStyle: "label" });
 const help = css({ textStyle: "caption", color: "muted" });
 const error = css({ textStyle: "caption", color: "danger", fontWeight: "semibold" });
-// Fields sit in a `background` well inside the `surface` panel (DESIGN.md, "Inputs").
+// Fields sit in a `background` well inside the `surface` panel (DESIGN.md, "Inputs / Fields").
 const control = css({
 	minHeight: "controlHeight",
 	paddingInline: "md",

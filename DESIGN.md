@@ -171,7 +171,7 @@ A cold, low-saturation blue ladder with two pale accents and three fixed semanti
 - **Shelf Ice** (`raised`, #2B5064): a layer above a panel, the current choice in a segmented
   control, and a disabled primary button.
 - **Floe Line** (`border`, #52778A): decorative separation of panels and sections.
-- **Pack Line** (`control-border`, #86A0AD): the boundary of fields and controls, 4:1 on
+- **Pack Line** (`control-border`, #86A0AD): the boundary of fields and controls, 3.99:1 on
   `surface` and 5.3:1 on `background`.
 - **Snow** (`text`, #F0F7FB): body text and headings.
 - **Frost** (`muted`, #B9CDDA): secondary text, helpers, inactive controls; 6.7:1 on `surface`.
@@ -351,6 +351,5 @@ below 768px (Layout).
 
 - **Don't** blend the edbfi apps into one theme: this palette and type hierarchy are zimuarr's, on
   every route.
-- **Don't** set field text below 16px.
 - **Don't** add drop shadows to panels or cards, or glows to status dots.
 - **Don't** put imagery behind data, text fields or tables.

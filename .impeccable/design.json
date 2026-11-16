@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-16T21:05:37.005Z",
+  "generatedAt": "2026-11-16T21:12:07.700Z",
   "title": "Design System: Zimuarr Polar Control",
   "extensions": {
     "colorMeta": {
@@ -361,7 +361,6 @@
     ],
     "donts": [
       "**Don't** blend the edbfi apps into one theme: this palette and type hierarchy are zimuarr's, on every route.",
-      "**Don't** set field text below 16px.",
       "**Don't** add drop shadows to panels or cards, or glows to status dots.",
       "**Don't** put imagery behind data, text fields or tables."
     ]
