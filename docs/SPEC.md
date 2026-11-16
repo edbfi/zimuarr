@@ -590,16 +590,18 @@ export const GET: RequestHandler = () => healthResponse();
   `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on a new database, a
   second run applying nothing, and the rows compared with Drizzle Kit's file migrator's;
   `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
-  `services/setup/startup.test.ts`, the steps' order, a failed step logged then thrown, and a
-  database path or `ZIMUARR_LOG_DEBUG` refused without echoing it; `config/log-debug.test.ts`;
-  `logging/redact.test.ts`, each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an
-  empty allowlist and a growth check for linear time; `logging/logger.test.ts`, the entry's shape,
-  the debug filter and the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs),
-  and `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
-  `messages/*.json` and on in-memory files that each break one of its rules; `format.test.ts`, which
-  formats inside the language middleware for each language and in several zones; and
-  `language-name.test.ts`, which names D20's codes in both languages and gives malformed and unknown
-  codes back as given. Component tests use happy-dom when components exist; never jsdom.
+  `services/setup/startup.test.ts`, the steps' order, a failed step logged then thrown, a database
+  path or `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed on as
+  `SIGTERM`, the cleanup's order, a failed close still exiting 0, the 5-second deadline with its
+  bounded flush, and no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`,
+  each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an empty allowlist and a
+  growth check for linear time; `logging/logger.test.ts`, the entry's shape, the debug filter and
+  the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs), and `i18n`'s in
+  `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on `messages/*.json`
+  and on in-memory files that each break one of its rules; `format.test.ts`, which formats inside
+  the language middleware for each language and in several zones; and `language-name.test.ts`, which
+  names D20's codes in both languages and gives malformed and unknown codes back as given. Component
+  tests use happy-dom when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
@@ -616,7 +618,8 @@ export const GET: RequestHandler = () => healthResponse();
     nothing on a second start, one defaults to `data/zimuarr.db`, and a database folder that can't
     be created or a path that isn't a database stops the server with one line that names the
     variable and never the path; a bad `ZIMUARR_LOG_DEBUG` is one JSON log entry that never holds
-    the value; and with debug on, a 404 is logged through `handleError`, without its query.
+    the value; with debug on, a 404 is logged through `handleError`, without its query; and
+    `SIGTERM` and `SIGHUP` each stop the built server with exit code 0.
   - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for

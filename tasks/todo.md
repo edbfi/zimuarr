@@ -114,13 +114,13 @@ the jobs and timers (none yet) while the adapter drains, leaving held callbacks 
 5-second deadline. The handlers go in only in the built server, one turn after `init` resolves.
 
 **Acceptance criteria:**
-- [ ] `server/services/setup/startup.test.ts` first fails, then passes: `SIGHUP` passed on as
+- [x] `server/services/setup/startup.test.ts` first fails, then passes: `SIGHUP` passed on as
   `SIGTERM`, the cleanup's order, a failed close still exiting 0, the deadline with a cleanup that
   never finishes exiting 1 after a bounded flush, no handler in `dev`, and the handlers one turn
   after startup.
-- [ ] `setup.test.ts`: `SIGHUP` and `SIGTERM` each shut the built server down with exit code 0.
-- [ ] The contract job passes, C11 included (the drain still holds a callback for the window).
-- [ ] The README lists adapter-bun's `SHUTDOWN_TIMEOUT`, `CONNECTION_IDLE_TIMEOUT` (not below the
+- [x] `setup.test.ts`: `SIGHUP` and `SIGTERM` each shut the built server down with exit code 0.
+- [x] The contract job passes, C11 included (the drain still holds a callback for the window).
+- [x] The README lists adapter-bun's `SHUTDOWN_TIMEOUT`, `CONNECTION_IDLE_TIMEOUT` (not below the
   callback's heartbeat) and `BODY_SIZE_LIMIT`, and says the container's stop timeout must exceed
   `SHUTDOWN_TIMEOUT` plus 5 seconds.
 

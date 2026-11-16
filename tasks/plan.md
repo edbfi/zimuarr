@@ -67,7 +67,7 @@ endpoint as its own task.
 
 - [x] Task 1: the database (D14) and the backup procedure
 - [x] Task 2: logging with redaction, and `handleError`
-- [ ] Task 3: shutdown
+- [x] Task 3: shutdown
 - [ ] Task 4: the health endpoint
 
 ### Checkpoint: after task 4
