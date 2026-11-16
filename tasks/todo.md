@@ -162,7 +162,7 @@ section), `AGENTS.md`.
 
 ## Checkpoint: after task 4
 
-- [ ] As in [plan.md](plan.md#checkpoint-after-task-4).
+- [x] As in [plan.md](plan.md#checkpoint-after-task-4).
 
 ## Task 5: `ORIGIN`, the security headers and the CSP
 
@@ -171,19 +171,19 @@ stage after the language; SvelteKit's `csp` option sets the nonce policy on ever
 choice 3 closes.
 
 **Acceptance criteria:**
-- [ ] `server/config/origin.test.ts` first fails, then passes: unset, and a bare origin with and
+- [x] `server/config/origin.test.ts` first fails, then passes: unset, and a bare origin with and
   without a trailing `/`, accepted; an empty value, a path (raw, before parsing), query, fragment
   or credentials refused without echoing the value; `startup.test.ts`: a bad `ORIGIN` stops
   startup before the database file is created.
-- [ ] `server/security/headers.test.ts`: the spec's headers for HTTPS through `ORIGIN`, HTTPS
+- [x] `server/security/headers.test.ts`: the spec's headers for HTTPS through `ORIGIN`, HTTPS
   through `Sec-Fetch-Site`, plain HTTP, `localhost`, `*.localhost` and loopback hosts, never
   `includeSubDomains`; and an immutable streaming response copied with its chunks still arriving
   one by one and its own `Cache-Control` and `X-Accel-Buffering` kept.
-- [ ] `setup.test.ts`: the headers on a page, `/healthz` and a 404, no HSTS over plain HTTP; the
+- [x] `setup.test.ts`: the headers on a page, `/healthz` and a 404, no HSTS over plain HTTP; the
   policy directive for directive; the page's scripts carry the nonce and the browser reports no
   CSP violation; the server refuses `ORIGIN=https://u:p@host` and `https://host/app` without
   echoing either.
-- [ ] The contract job passes, its hold cases included.
+- [x] The contract job passes, its hold cases included.
 
 **Verification:** the gates; `preview`'s headers checked by hand at `/` in both languages.
 

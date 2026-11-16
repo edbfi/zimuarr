@@ -1,6 +1,7 @@
 import { defineEnvVars, type EnvVarConfig } from "@sveltejs/kit/env";
 import type { DatabasePathEnv } from "#lib/server/config/database-path.ts";
 import type { LogDebugEnv } from "#lib/server/config/log-debug.ts";
+import type { OriginEnv } from "#lib/server/config/origin.ts";
 import type { SecretKeyVariable } from "#lib/server/config/secret-key.ts";
 
 // Optional and never throwing: SvelteKit's own validation would otherwise print its own message
@@ -27,7 +28,14 @@ const setup = {
 		schema: optional,
 		description: "Whether debug log entries are written: true or false; off if unset.",
 	},
-} satisfies Record<keyof DatabasePathEnv | keyof LogDebugEnv, EnvVarConfig<string | undefined>>;
+	ORIGIN: {
+		schema: optional,
+		description: "The address browsers use, such as https://zimuarr.example; optional.",
+	},
+} satisfies Record<
+	keyof DatabasePathEnv | keyof LogDebugEnv | keyof OriginEnv,
+	EnvVarConfig<string | undefined>
+>;
 
 // SvelteKit exposes only the variables declared here, through `$app/env/private`. The contract
 // spike's are optional too: unset reads as `undefined`, so a normal install starts without them.

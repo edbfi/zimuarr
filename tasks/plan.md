@@ -72,14 +72,14 @@ endpoint as its own task.
 
 ### Checkpoint: after task 4
 
-- [ ] `check`, `test`, `lint`, `build`, `smoke` and prek pass; CI's `checks`, `smoke`, `contract`
+- [x] `check`, `test`, `lint`, `build`, `smoke` and prek pass; CI's `checks`, `smoke`, `contract`
   and `ci-ok` pass.
-- [ ] The built server migrates a new database, logs JSON lines, refuses a bad configuration with
+- [x] The built server migrates a new database, logs JSON lines, refuses a bad configuration with
   one line, exits 0 on `SIGTERM` and `SIGHUP`, and `/healthz` reads and writes the database.
 
 ### Phase 2: the request checks
 
-- [ ] Task 5: `ORIGIN`, the security headers and the CSP
+- [x] Task 5: `ORIGIN`, the security headers and the CSP
 - [ ] Task 6: the cross-origin check
 
 ### Checkpoint: after task 6
