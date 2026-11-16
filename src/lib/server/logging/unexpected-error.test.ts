@@ -69,6 +69,19 @@ describe("logUnexpectedError", () => {
 		]);
 	});
 
+	it("never throws, and falls back to a fixed line when the error can't be logged", () => {
+		const error = {
+			get message(): string {
+				throw new Error("apikey=0123456789abcdef");
+			},
+		};
+		expect(() => logUnexpectedError({ kind: "unknown", error, url })).not.toThrow();
+		expect(lines).toHaveLength(0);
+		expect(console.error).toHaveBeenCalledWith(
+			'handleError couldn\'t log an error of kind "unknown"',
+		);
+	});
+
 	it("logs SvelteKit's own errors of 500 or more at error level", () => {
 		logUnexpectedError({ kind: "framework", error: { status: 503, message: "x" }, url });
 		expect(entries()).toEqual([expect.objectContaining({ level: "error" })]);

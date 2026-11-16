@@ -220,10 +220,14 @@ The tests add Bazarr's own credentials: its `apikey` query parameter and `X-Api-
 in `hooks.server.ts`, which logs them through the logger, so they are redacted and one JSON line
 like every other entry, never SvelteKit's default `console.error` of the stack. It logs SvelteKit's
 kind of error, the error, its status and the request's path (never its query), at `error` for an
-unknown error (SvelteKit's 500) or a status of 500 or more and at `debug` below it, so a scanner's
-404s don't flood the log. It returns nothing, so SvelteKit answers with its own message, the generic
-"Internal Error" for an unknown error, never the error's own text or stack. (obzorarr has no `handleError`; the comradarr port found the
-gap, and the owner added it here, 2026-11-16.)
+unknown error (SvelteKit's 500) or one of SvelteKit's own errors of 500 or more, and at `debug` for
+the rest, so a scanner's 404s don't flood the log. The app's own `error(…)` reaches the hook
+without its status, so it is a `debug` entry too, and the module that throws a 5xx that way logs
+its own cause. It returns nothing, so SvelteKit answers with its own message, the generic "Internal
+Error" for an unknown error, never the error's own text or stack. It never throws, since SvelteKit
+would then print the raw error: if logging fails, it writes one fixed line instead. A failed
+startup flushes its entry, for at most a second, before it throws. (obzorarr has no `handleError`;
+the comradarr port found the gap, and the owner added it here, 2026-11-16.)
 
 Console output meant for whoever runs the server, such as the bootstrap token, is never a log
 entry. It still reaches the container's output, which is why the console is trusted (below).

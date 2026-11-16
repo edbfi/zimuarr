@@ -106,6 +106,28 @@ describe("startUp", () => {
 		expect(lines[0]).not.toContain(root);
 	});
 
+	it("lets the failure's entry leave before throwing, even behind a slow reader", async () => {
+		vi.restoreAllMocks();
+		const pending: (() => void)[] = [];
+		vi.spyOn(process.stdout, "write").mockImplementation((_chunk, ...rest: unknown[]) => {
+			const done = rest.find((arg) => typeof arg === "function") as (() => void) | undefined;
+			if (done !== undefined) pending.push(done);
+			return true;
+		});
+		const path = join(root, "slow-directory");
+		await mkdir(path);
+		let settled = false;
+		const run = startUp({ ZIMUARR_SECRET_KEY: key(), ZIMUARR_DATABASE_PATH: path }).catch(() => {
+			settled = true;
+		});
+		await new Promise((resolve) => setTimeout(resolve, 100));
+		expect(pending).toHaveLength(1);
+		expect(settled).toBe(false);
+		for (const done of pending) done();
+		await run;
+		expect(settled).toBe(true);
+	});
+
 	it("refuses a ZIMUARR_LOG_DEBUG that isn't true or false, before the database opens", async () => {
 		const path = join(root, "never-created", "app.db");
 		const error = await startUp({
