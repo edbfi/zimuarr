@@ -74,7 +74,7 @@ const DOTENVS: { label: string; content: (run: Run) => Promise<string | undefine
  * by mistake takes a free port, and is killed after 10 s.
  */
 async function runServer(cwd: string, env: Record<string, string>, flags = ["--no-env-file"]) {
-	const server = Bun.spawn([process.execPath, ...flags, BUILD], {
+	const server = Bun.spawn([process.execPath, "--no-install", ...flags, BUILD], {
 		cwd,
 		env: { HOST: "127.0.0.1", PORT: "0", ...env },
 		stdout: "pipe",

@@ -17,6 +17,7 @@ import {
 	type Row,
 	type Run,
 	row,
+	STATE_DIR,
 	sourcePath,
 } from "./setup.ts";
 
@@ -28,6 +29,8 @@ const BODY_LIMIT = 512 * 1024;
 const MINUTE = 60_000;
 /** The run's master key, generated as `playwright.config.ts` does; zimuarr won't start without one. */
 const SECRET_KEY = crypto.getRandomValues(new Uint8Array(32)).toBase64();
+/** The run's own database, under the run's ignored state, so no run writes into the repo. */
+const DATABASE = path.join(STATE_DIR, `zimuarr-${Date.now()}`, "zimuarr.db");
 
 let run: Run;
 const proxies = {} as Record<Instance, FaultProxy>;
@@ -44,7 +47,8 @@ class Zimuarr {
 	private constructor(private readonly proc: Bun.Subprocess<"ignore", "pipe", "inherit">) {}
 
 	static async start(heartbeatSeconds: number): Promise<Zimuarr> {
-		const proc = Bun.spawn(["bun", "--no-env-file", "./build"], {
+		// `--no-install`: Turso's native binding must come from `node_modules`, never a download.
+		const proc = Bun.spawn(["bun", "--no-install", "--no-env-file", "./build"], {
 			cwd: REPO,
 			stdout: "pipe",
 			// A crash at start shows in the test output; zimuarr never writes a key there.
@@ -55,6 +59,7 @@ class Zimuarr {
 				HOST: run.gateway,
 				PORT: String(run.zimuarrPort),
 				ZIMUARR_SECRET_KEY: SECRET_KEY,
+				ZIMUARR_DATABASE_PATH: DATABASE,
 				ZIMUARR_CONTRACT_SPIKE_KEYS: INSTANCES.map((i) => run.lingarrKeys[i]).join(","),
 				ZIMUARR_CONTRACT_SPIKE_HEARTBEAT_SECONDS: String(heartbeatSeconds),
 			},
