@@ -277,8 +277,9 @@ Nothing stores a secret yet. Module 3, `i18n` ([`docs/SPEC-i18n.md`](docs/SPEC-i
 English and Danish messages, each request's language, the language switcher, formatting and
 subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-setup.md)), is being
 built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database, the app logs
-redacted JSON, and it stops cleanly. The other product modules come next, in the order of the
-approved capability map in `docs/SPEC.md`, each through an owner-approved `docs/SPEC-<id>.md`.
+redacted JSON, it stops cleanly, and `/healthz` reads and writes the database. The other product
+modules come next, in the order of the approved capability map in `docs/SPEC.md`, each through an
+owner-approved `docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
 and `preview` need, see the README's [Master key](README.md#master-key).
@@ -307,7 +308,7 @@ src/
   routes/
     +layout.svelte               loads app.css; marks <html data-hydrated> once mounted
     (public)/+page.svelte        `/`: placeholder page, with the language switcher
-    healthz/+server.ts           `/healthz`: public one-word status
+    healthz/+server.ts           `/healthz`: public one-word status, from the health check
     bazarr/api/translate/content/+server.ts
                                  Bazarr's Lingarr callback (the spike's stand-in, off unless its
                                  keys are set)
@@ -323,7 +324,8 @@ src/
   hooks.client.ts                the browser keeps the language the server chose for the page
   lib/                           imported as `#lib/<path>.<ext>`, e.g.
                                  `#lib/server/services/health.ts`
-    server/                      server-only: services/health.ts, services/translation/ (the
+    server/                      server-only: services/health.ts (the health check: a probe of
+                                 the database), services/translation/ (the
                                  callback: request, Bazarr's lines, the held response, the work,
                                  the stand-in); later providers/ (Bazarr, AI providers), more
                                  services/<domain>/, jobs/, http/ (SSRF-safe fetch)
@@ -335,11 +337,13 @@ src/
                                  the error a variable's check throws; error-code.ts: a system
                                  error's code, for messages that never hold a path
       db/                        client.ts: opens the database; migrate.ts: applies the bundled
-                                 migrations; settings.ts and owner.ts: their tables
+                                 migrations; settings.ts: its table and the operations to read
+                                 and write a key; owner.ts: its table
       logging/                   logger.ts: JSON entries on standard output; redact.ts: the
                                  redaction rules; unexpected-error.ts: what `handleError` logs
-      services/setup/            startup.ts: startup's steps, in order, a failure logged, and
-                                 shutdown on `SIGTERM`, `SIGINT` and `SIGHUP`
+      services/setup/            startup.ts: startup's steps, in order, a failure logged,
+                                 shutdown on `SIGTERM`, `SIGINT` and `SIGHUP`, and the database
+                                 it opened
       security/secrets/          key-text.ts: a master key's text to its 32 bytes, refusing
                                  malformed and weak keys; keyring.ts: loads the key and derives
                                  the AES key and key ID; secret.ts: the `Secret` wrapper,

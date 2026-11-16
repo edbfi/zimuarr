@@ -1,4 +1,4 @@
-import { healthResponse } from "#lib/server/services/health.ts";
+import { checkHealth, healthResponse } from "#lib/server/services/health.ts";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = () => healthResponse();
+export const GET: RequestHandler = async () => healthResponse(await checkHealth());

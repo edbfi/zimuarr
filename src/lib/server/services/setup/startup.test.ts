@@ -7,7 +7,13 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { ConfigError } from "#lib/server/config/config-error.ts";
 import { createLogger } from "#lib/server/logging/logger.ts";
 import { KeyringError } from "#lib/server/security/secrets/keyring.ts";
-import { closeServices, handleShutdown, type ShutdownTarget, startUp } from "./startup.ts";
+import {
+	closeServices,
+	currentDatabase,
+	handleShutdown,
+	type ShutdownTarget,
+	startUp,
+} from "./startup.ts";
 
 let root: string;
 
@@ -377,6 +383,15 @@ describe("startUp's shutdown", () => {
 		for (const release of held.splice(0)) release();
 		await closing;
 		expect(finished).toBe(true);
+	});
+
+	it("currentDatabase gives the database startup opened, and throws before and after it", async () => {
+		expect(() => currentDatabase()).toThrow("before startup opened it");
+		const path = join(root, "current", "app.db");
+		await startUp({ ZIMUARR_SECRET_KEY: key(), ZIMUARR_DATABASE_PATH: path }, { dev: true });
+		expect(await currentDatabase().$client.prepare("SELECT 1")).toBeDefined();
+		await closeServices();
+		expect(() => currentDatabase()).toThrow("before startup opened it");
 	});
 
 	it("closeServices closes the database startup opened, once", async () => {

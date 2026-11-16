@@ -141,14 +141,14 @@ section), `AGENTS.md`.
 `unavailable` after 3 seconds or on a failure, and a log entry on each change of state.
 
 **Acceptance criteria:**
-- [ ] `server/services/health.test.ts` first fails, then passes, against a temporary file: `200 ok`
+- [x] `server/services/health.test.ts` first fails, then passes, against a temporary file: `200 ok`
   on a working database, `503` on a read-only and a closed one, `503` within the bound from a probe
   that never answers, requests within the window sharing one probe, a new probe after it, no
   success reused past it, no second probe while a timed-out one is still pending (later requests,
   past the window, get `503` with a fake clock), and one entry per change of state.
-- [ ] `routes/healthz/server.test.ts` keeps `text/plain` and `Cache-Control: no-store`.
-- [ ] `settings.ts` gains the named operations to write and read a key.
-- [ ] `smoke.test.ts` and `setup.test.ts` still get `ok` from `/healthz`.
+- [x] `routes/healthz/server.test.ts` keeps `text/plain` and `Cache-Control: no-store`.
+- [x] `settings.ts` gains the named operations to write and read a key.
+- [x] `smoke.test.ts` and `setup.test.ts` still get `ok` from `/healthz`.
 
 **Verification:** the gates.
 
