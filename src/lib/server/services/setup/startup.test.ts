@@ -7,6 +7,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { ConfigError } from "#lib/server/config/config-error.ts";
 import { createLogger } from "#lib/server/logging/logger.ts";
 import { KeyringError } from "#lib/server/security/secrets/keyring.ts";
+import * as firstRun from "./first-run.ts";
 import {
 	closeServices,
 	currentDatabase,
@@ -40,7 +41,8 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-	// A test's startup leaves its database open; closing it keeps handles from piling up.
+	// A test's startup leaves its database open and its token timer running; both are stopped.
+	firstRun.stopFirstRun();
 	await closeServices();
 	vi.restoreAllMocks();
 });
@@ -394,6 +396,41 @@ describe("startUp's shutdown", () => {
 		for (const release of held.splice(0)) release();
 		await closing;
 		expect(finished).toBe(true);
+	});
+
+	it("prints one bootstrap token after migrating a fresh database, as step 4", async () => {
+		const path = join(root, "token", "app.db");
+		await startUp({ ZIMUARR_SECRET_KEY: key(), ZIMUARR_DATABASE_PATH: path }, { dev: true });
+		const tokens = lines.filter((line) => line.startsWith("Setup token: "));
+		expect(tokens).toHaveLength(1);
+		expect(tokens[0]).toContain("Open /setup to claim this Zimuarr.");
+		expect(firstRun.isClaimed()).toBe(false);
+	});
+
+	it("stops the token's timer on the shutdown signal", async () => {
+		const stop = vi.spyOn(firstRun, "stopFirstRun");
+		const watched = ["SIGHUP", "SIGTERM", "SIGINT", "sveltekit:shutdown"] as const;
+		const before = watched.map((event) => process.listeners(event));
+		await startUp(
+			{ ZIMUARR_SECRET_KEY: key(), ZIMUARR_DATABASE_PATH: join(root, "stop", "app.db") },
+			{ dev: false },
+		);
+		await new Promise((resolve) => setImmediate(resolve));
+		try {
+			const added = process
+				.listeners("SIGTERM")
+				.filter((listener) => !before[1]?.includes(listener));
+			expect(added).toHaveLength(1);
+			stop.mockClear();
+			added[0]?.("SIGTERM");
+			expect(stop).toHaveBeenCalledTimes(1);
+		} finally {
+			watched.forEach((event, index) => {
+				for (const listener of process.listeners(event)) {
+					if (!before[index]?.includes(listener)) process.removeListener(event, listener);
+				}
+			});
+		}
 	});
 
 	it("currentDatabase gives the database startup opened, and throws before and after it", async () => {

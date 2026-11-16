@@ -84,13 +84,13 @@ endpoint as its own task.
 
 ### Checkpoint: after task 6
 
-- [ ] Every page and `/healthz` carry the headers; pages carry the nonce CSP with no violation.
-- [ ] A cross-site POST gets the "Access denied" page, in the viewer's language; Bazarr's callback
+- [x] Every page and `/healthz` carry the headers; pages carry the nonce CSP with no violation.
+- [x] A cross-site POST gets the "Access denied" page, in the viewer's language; Bazarr's callback
   still passes, with `ORIGIN` set and unset, and the contract job passes.
 
 ### Phase 3: first run
 
-- [ ] Task 7: the bootstrap token
+- [x] Task 7: the bootstrap token
 - [ ] Task 8: the claim at `/setup`
 - [ ] Task 9: the setup gate
 
