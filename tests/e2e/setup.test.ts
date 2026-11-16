@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -242,6 +242,26 @@ test.describe("shutdown", () => {
 		});
 	}
 });
+
+/**
+ * Claims a fresh server through its form action, with the token it printed, as a browser's native
+ * form post: asking for HTML, since SvelteKit answers an action in JSON to `Accept: *\/*`.
+ */
+async function claim(server: Server) {
+	const token = /Setup token: ([a-z0-9-]{14}) /.exec(server.output())?.[1] ?? "";
+	const response = await fetch(`${server.url}/setup`, {
+		method: "POST",
+		headers: {
+			origin: server.url,
+			accept: "text/html",
+			"content-type": "application/x-www-form-urlencoded",
+		},
+		body: new URLSearchParams({ token, username: "owner", password: "violet harbour lanterns" }),
+		redirect: "manual",
+	});
+	expect(response.status, "the claim").toBe(303);
+	expect(response.headers.get("location")).toBe("/");
+}
 
 /** A GET, or a request with `init`, that doesn't follow a redirect. */
 const request = (url: string, init: RequestInit = {}) =>
@@ -537,6 +557,108 @@ test.describe("the bootstrap token", () => {
 			}
 		} finally {
 			await server.stop();
+		}
+	});
+});
+
+test.describe("the claim", () => {
+	const PASSWORD = "violet harbour lanterns";
+
+	test("a wrong token is refused, the right one claims, and /setup is then gone, also after a restart", async ({
+		page,
+	}) => {
+		const database = join(root, "data", "zimuarr.db");
+		const first = await startServer(root, { ZIMUARR_DATABASE_PATH: database });
+		// Every response's body, read in full before the check below.
+		const reads: Promise<string>[] = [];
+		page.on("response", (response) => {
+			reads.push(response.text().catch(() => ""));
+		});
+		let token = "";
+		try {
+			token = /Setup token: ([a-z0-9-]{14}) /.exec(first.output())?.[1] ?? "";
+			await page.goto(`${first.url}/setup`);
+			await page.locator("html[data-hydrated]").waitFor({ state: "attached" });
+
+			await page.locator("#token").fill("aaaa-bbbb-cccc");
+			await page.locator("#username").fill("Owner");
+			await page.locator("#password").fill(PASSWORD);
+			await page.getByRole("button", { name: "Claim and create owner" }).click();
+			await expect(page.locator("#token-error")).toHaveText(
+				"That setup token isn't valid. Use the newest one printed in the server console.",
+			);
+			await expect(page.locator("#token")).toHaveAttribute("aria-invalid", "true");
+			await expect(page.locator("#username")).toHaveValue("Owner");
+			await expect(page.locator("#token")).toHaveValue("");
+			await expect(page.locator("#password")).toHaveValue("");
+
+			await page.locator("#token").fill(token.toUpperCase().replaceAll("-", ""));
+			await page.locator("#password").fill(PASSWORD);
+			await page.getByRole("button", { name: "Claim and create owner" }).click();
+			await page.waitForURL(`${first.url}/`);
+			expect((await fetch(`${first.url}/setup`)).status).toBe(404);
+			const own = await fetch(`${first.url}/setup`, {
+				method: "POST",
+				headers: { origin: first.url, "content-type": "application/x-www-form-urlencoded" },
+				body: new URLSearchParams({ token, username: "second", password: PASSWORD }),
+			});
+			expect(own.status).toBe(404);
+		} finally {
+			await first.stop();
+		}
+
+		const bodies = await Promise.all(reads);
+		expect(
+			bodies.some((body) => body.includes("That setup token isn")),
+			"the refusal was read",
+		).toBe(true);
+		const output = first.output();
+		const entries = output.split("\n").filter((line) => line.startsWith("{"));
+		for (const secret of [token, token.replaceAll("-", ""), PASSWORD]) {
+			expect(
+				entries.some((entry) => entry.includes(secret)),
+				"a log entry holds it",
+			).toBe(false);
+			expect(
+				bodies.some((body) => body.includes(secret)),
+				"a response holds it",
+			).toBe(false);
+		}
+
+		const second = await startServer(root, { ZIMUARR_DATABASE_PATH: database });
+		try {
+			expect(second.output()).not.toContain("Setup token:");
+			expect((await fetch(`${second.url}/setup`)).status).toBe(404);
+			// The gate stays open: `/` is served, not sent to `/setup`.
+			expect((await request(`${second.url}/`)).status).toBe(200);
+		} finally {
+			await second.stop();
+		}
+	});
+
+	test("a backup copied from a stopped, claimed server starts claimed with the same key", async () => {
+		const key = crypto.getRandomValues(new Uint8Array(32)).toBase64();
+		const folder = join(root, "data");
+		const server = await startServer(root, {
+			ZIMUARR_SECRET_KEY: key,
+			ZIMUARR_DATABASE_PATH: join(folder, "zimuarr.db"),
+		});
+		await claim(server);
+		await server.stop();
+
+		// The backup procedure (SPEC-setup.md, "Backup and restore"): stop, copy the whole folder,
+		// restore it elsewhere and start with the same master key.
+		const restored = join(root, "restored");
+		await cp(folder, restored, { recursive: true });
+		const copy = await startServer(root, {
+			ZIMUARR_SECRET_KEY: key,
+			ZIMUARR_DATABASE_PATH: join(restored, "zimuarr.db"),
+		});
+		try {
+			expect(copy.output()).not.toContain("Setup token:");
+			expect((await fetch(`${copy.url}/setup`)).status).toBe(404);
+		} finally {
+			await copy.stop();
 		}
 	});
 });

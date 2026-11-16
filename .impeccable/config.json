@@ -2,6 +2,21 @@
   "telemetry": false,
   "updateCheck": false,
   "detector": {
-    "extensions": [{ "ext": ".svelte", "engine": "html" }]
+    "extensions": [
+      {
+        "ext": ".svelte",
+        "engine": "html"
+      }
+    ],
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "mono",
+        "createdAt": "2026-11-16T13:40:04.711Z",
+        "reason": "agent: the Panda token `mono` is Roboto Mono, which DESIGN.md's code and number styles name"
+      }
+    ]
   }
 }

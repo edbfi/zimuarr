@@ -9,7 +9,7 @@ related_targets: ["route:/login"]
 
 ## Status
 
-Approved by the owner with `setup`'s spec (2026-11-16), with no mockup of its own; the header keeps the text wordmark until there is a logo in Polar Control's palette. Mode: **operate**. Audience: **the person installing Zimuarr**, who can read the server console. Route: `/setup`. Module: `setup` ([docs/SPEC-setup.md](../../docs/SPEC-setup.md)).
+Built in `setup`'s task 8 (2026-11-16), code-led from this brief, approved by the owner with `setup`'s spec, with no mockup of its own; the header keeps the text wordmark until there is a logo in Polar Control's palette. Mode: **operate**. Audience: **the person installing Zimuarr**, who can read the server console. Route: `/setup`. Module: `setup` ([docs/SPEC-setup.md](../../docs/SPEC-setup.md)).
 
 ## Purpose and composition
 
@@ -43,3 +43,11 @@ Heading 'Claim this Zimuarr'. One line: 'Enter the setup token printed in the se
 ## Handoff prompt
 
 > Implement only this surface in Zimuarr's existing application. Read PRODUCT.md, DESIGN.md, docs/SPEC-setup.md and this brief first. Reuse existing Panda CSS tokens; build native accessible form controls. Keep it quiet: this is an operational screen.
+
+## Decisions
+
+Made while building it (2026-11-16), after Impeccable's finish review:
+- **The fold** is a 360×740 screen, today's usual phone; the button's bottom sits at 660px in English and 698px in Danish. Fitting 360×640 would mean cutting DESIGN.md's 24px between form groups.
+- **The token field** is set in the code face (Roboto Mono) at the body size, not the `code` style's 13px, since iOS zooms in on a smaller input.
+- **The fields** take DESIGN.md's `text-field` fill (`surface`), on the panel's `surface`, bounded by `control-border`; the mockup's darker well would need a token change first.
+- **The primary button** keeps its fill on hover: `secondary` is for information, links and focus.

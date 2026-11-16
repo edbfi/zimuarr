@@ -509,6 +509,8 @@ platform package (`@tursodatabase/database-linux-x64-gnu` or `-linux-arm64-gnu`)
 | Lint and format | `@biomejs/biome` |
 | Translation | `@inlang/paraglide-js`, `@inlang/plugin-i18next` (its i18next JSON v4 files) |
 | Database | `@tursodatabase/database`, `drizzle-orm` and `drizzle-kit` (the `rc` dist-tag, D5, D27) |
+| Fonts | `@fontsource-variable/public-sans`, `@fontsource-variable/roboto-mono`, imported in the root layout |
+| Icons | `@lucide/svelte`, imported one icon per path |
 
 Setup facts for this stack:
 - SvelteKit 3 is configured through its Vite plugin (`vite.config.ts`); there's no
@@ -600,22 +602,28 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
   with or without dashes in any case, constant-time comparison and 15-minute expiry;
   `db/owner.test.ts`, `ownerExists` and the one-row limit; `services/setup/first-run.test.ts`, the
   token printed with `/setup` (or the full address with `ORIGIN`), renewed at expiry, held back
-  while a claim is in progress, stopped by shutdown, and never printed once an owner exists;
-  `security/headers.test.ts`, the headers for HTTPS, plain HTTP and loopback hosts, and a held,
-  streaming response that keeps streaming whether its headers are set in place or on a copy;
-  `services/setup/startup.test.ts`, the steps' order, a bad `ORIGIN` refused before the database
-  opens, a failed step logged then thrown, a database path or `ZIMUARR_LOG_DEBUG` refused without
-  echoing it, and shutdown: `SIGHUP` passed on as `SIGTERM`, the cleanup's order, a failed close
-  still exiting 0, the 5-second deadline with its bounded flush, and no handlers in `dev`;
-  `config/log-debug.test.ts`; `logging/redact.test.ts`, each rule on its own and nested, Bazarr's
-  `apikey` and `X-Api-Key`, an empty allowlist and a growth check for linear time;
-  `logging/logger.test.ts`, the entry's shape, the debug filter and the flush; and
-  `logging/unexpected-error.test.ts`, what `handleError` logs; and `db/settings.test.ts`), and
-  `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
-  `messages/*.json` and on in-memory files that each break one of its rules; `format.test.ts`, which
-  formats inside the language middleware for each language and in several zones; and
-  `language-name.test.ts`, which names D20's codes in both languages and gives malformed and unknown
-  codes back as given. Component tests use happy-dom when components exist; never jsdom.
+  while a claim is in progress, stopped by shutdown, never printed once an owner exists, and read
+  back as claimed after a restart; `security/password.test.ts`, the username and password rules at
+  their limits, NFC and case, the patterns, the app's name and the username inside the password, the
+  bundled list, and an argon2id round trip; `services/setup/claim.test.ts`, the claim's success, a
+  field error leaving the token unused, wrong and expired tokens never reaching the hash, a second
+  claim, two at once, and a failed transaction printing a new token but none once stopping;
+  `routes/setup/token-format.test.ts`, the token field's dashes; `security/headers.test.ts`, the
+  headers for HTTPS, plain HTTP and loopback hosts, and a held, streaming response that keeps
+  streaming whether its headers are set in place or on a copy; `services/setup/startup.test.ts`, the
+  steps' order, a bad `ORIGIN` refused before the database opens, a failed step logged then thrown,
+  a database path or `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed
+  on as `SIGTERM`, the cleanup's order, a failed close still exiting 0, the 5-second deadline with
+  its bounded flush, and no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`,
+  each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an empty allowlist and a
+  growth check for linear time; `logging/logger.test.ts`, the entry's shape, the debug filter and
+  the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs; and
+  `db/settings.test.ts`), and `i18n`'s in `src/lib/shared/i18n/`: the message check
+  (`messages.test.ts`), which runs on `messages/*.json` and on in-memory files that each break one
+  of its rules; `format.test.ts`, which formats inside the language middleware for each language and
+  in several zones; and `language-name.test.ts`, which names D20's codes in both languages and gives
+  malformed and unknown codes back as given. Component tests use happy-dom when components exist;
+  never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
@@ -640,8 +648,11 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     policy and the viewer's language, and a same-origin POST with no `Sec-Fetch-*` headers passes,
     on `localhost` and on a plain-HTTP host name that isn't loopback (`app.test`, through Chromium's
     `--host-resolver-rules`); with `ORIGIN` set, Bazarr's callback still reaches its route; a fresh
-    server prints its bootstrap token before it listens, in no log entry or response; and `SIGTERM`
-    and `SIGHUP` each stop the built server with exit code 0.
+    server prints its bootstrap token before it listens, in no log entry or response; the claim
+    refuses a wrong token, keeping the username and clearing the token and password, claims with the
+    right one, and answers 404 at `/setup` afterwards, also after a restart; a backup copied from a
+    stopped, claimed server starts claimed with the same key; and `SIGTERM` and `SIGHUP` each stop
+    the built server with exit code 0.
   - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
@@ -686,9 +697,9 @@ Choices 1–3 were settled for the first rewrite app's skeleton and are reused h
 design doesn't call for anything different; choices 4 and 5 are zimuarr's own.
 
 1. **Fonts.** DESIGN.md wants Public Sans and Roboto Mono bundled locally, with no remote font
-   requests. The skeleton defines the font tokens with system fallbacks; the first surface adds the
-   font files (a dependency the owner approves then): `setup`'s claim page
-   ([SPEC-setup.md](SPEC-setup.md#fonts-and-icons)).
+   requests. `setup`'s claim page, the first surface, bundled them from fontsource (approved by the
+   owner with the spec, 2026-11-16), and the tokens name the families they register, with system
+   fallbacks after them ([SPEC-setup.md](SPEC-setup.md#fonts-and-icons)).
 2. **Ark UI before its first use.** The skeleton installs `@ark-ui/svelte`, so the Panda and Ark
    pairing and `check-peers` are settled early; the first `ui/` wrapper comes with the first surface
    that needs one.

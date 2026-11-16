@@ -279,9 +279,10 @@ subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-set
 built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database, the app logs
 redacted JSON, it stops cleanly, `/healthz` reads and writes the database, and every response
 carries the security headers and every page a nonce CSP, and a state-changing request from another
-site is refused. While no owner exists, startup prints a bootstrap token to the console. The other
-product modules come next, in the order of the approved capability map in `docs/SPEC.md`, each
-through an owner-approved `docs/SPEC-<id>.md`.
+site is refused. While no owner exists, startup prints a bootstrap token to the console, and
+`/setup` claims the instance with it, creating the owner. The other product modules come next, in
+the order of the approved capability map in `docs/SPEC.md`, each through an owner-approved
+`docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
 and `preview` need, see the README's [Master key](README.md#master-key).
@@ -308,13 +309,16 @@ src/
   app.css                        Panda layer order; the Vite plugin appends the generated CSS
   app.d.ts                       SvelteKit ambient types
   routes/
-    +layout.svelte               loads app.css; marks <html data-hydrated> once mounted
+    +layout.svelte               loads the bundled fonts and app.css; marks <html data-hydrated>
+                                 once mounted
+    setup/                       `/setup`: the claim, +page.svelte (the form), +page.server.ts
+                                 (its load and action), token-format.ts (the token's dashes)
     (public)/+page.svelte        `/`: placeholder page, with the language switcher
     healthz/+server.ts           `/healthz`: public one-word status, from the health check
     bazarr/api/translate/content/+server.ts
                                  Bazarr's Lingarr callback (the spike's stand-in, off unless its
                                  keys are set)
-                                 later: sign-in and setup, the operator workspace, api/ (the
+                                 later: sign-in, the operator workspace, api/ (the
                                  versioned API)
   env.ts                         the environment variables SvelteKit exposes (`$app/env/private`):
                                  `ZIMUARR_SECRET_KEY`, `ZIMUARR_SECRET_KEY_FILE`,
@@ -343,15 +347,18 @@ src/
                                  error's code, for messages that never hold a path
       db/                        client.ts: opens the database; migrate.ts: applies the bundled
                                  migrations; settings.ts: its table and the operations to read
-                                 and write a key; owner.ts: its table and whether an owner exists
+                                 and write a key; owner.ts: its table, whether an owner exists,
+                                 and creating it
       logging/                   logger.ts: JSON entries on standard output; redact.ts: the
                                  redaction rules; unexpected-error.ts: what `handleError` logs
       services/setup/            startup.ts: startup's steps, in order, a failure logged,
                                  shutdown on `SIGTERM`, `SIGINT` and `SIGHUP`, and the database
-                                 it opened; first-run.ts: first run's state and the bootstrap
-                                 token printed to the console
+                                 it opened; first-run.ts: first run's state, the step pointer and
+                                 the bootstrap token printed to the console; claim.ts: the claim
       security/                  bootstrap-token.ts: the token, drawn, shown, compared and
-                                 expired; headers.ts: the security headers for a request;
+                                 expired; password.ts and common-passwords.txt: the owner's
+                                 credential rules and hashing; headers.ts: the security headers
+                                 for a request;
                                  cross-origin.ts: the cross-origin check and the machine routes;
                                  access-denied.ts: its refusal, a page or JSON
       security/secrets/          key-text.ts: a master key's text to its 32 bytes, refusing
@@ -373,8 +380,8 @@ tests/
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
   e2e/i18n.test.ts               each viewer's language, and the switcher
   e2e/setup.test.ts              `setup` on the built server: so far, the database, logging,
-                                 shutdown, the security headers, the CSP, the cross-origin check
-                                 and the bootstrap token
+                                 shutdown, the security headers, the CSP, the cross-origin check,
+                                 the bootstrap token, the claim and the backup
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,
                                  fault-proxy.ts, select.ts (CI's choice of cases), caddy/,
