@@ -537,7 +537,7 @@ Setup facts for this stack:
 | `bun run --bun build` | production build through adapter-bun into `build/`; needs no key and never embeds one |
 | `bun run --bun preview` | runs the built server (`bun --no-install ./build`, D14; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, the Paraglide compile, Panda codegen, then `svelte-check` failing on any error or warning |
-| `bun run --bun test` | Vitest unit tests, once (no watch) |
+| `bun run --bun test` | Vitest unit tests, once (no watch), with `vite.config.test.ts`, which checks that SvelteKit's own form check and remote functions stay off |
 | `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests and `setup`'s, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
 | `bun run --bun db:generate` | Drizzle Kit generates a migration in `drizzle/` from the schema, then Biome formats it; review it before committing |
 | `bun run --bun lint` | `biome ci`, read-only; `biome.json` lists the file extensions Biome checks |
@@ -592,22 +592,25 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
   `src/lib/server/`: `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on
   a new database, a second run applying nothing, and the rows compared with Drizzle Kit's file
   migrator's; `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
-  `config/origin.test.ts`, each accepted and refused `ORIGIN`; `security/headers.test.ts`, the
-  headers for HTTPS, plain HTTP and loopback hosts, and a held, streaming response that keeps
-  streaming whether its headers are set in place or on a copy; `services/setup/startup.test.ts`, the
-  steps' order, a bad `ORIGIN` refused before the database opens, a failed step logged then thrown,
-  a database path or `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed
-  on as `SIGTERM`, the cleanup's order, a failed close still exiting 0, the 5-second deadline with
-  its bounded flush, and no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`,
-  each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an empty allowlist and a
-  growth check for linear time; `logging/logger.test.ts`, the entry's shape, the debug filter and
-  the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs; and
-  `db/settings.test.ts`), and `i18n`'s in `src/lib/shared/i18n/`: the message check
-  (`messages.test.ts`), which runs on `messages/*.json` and on in-memory files that each break one
-  of its rules; `format.test.ts`, which formats inside the language middleware for each language and
-  in several zones; and `language-name.test.ts`, which names D20's codes in both languages and gives
-  malformed and unknown codes back as given. Component tests use happy-dom when components exist;
-  never jsdom.
+  `config/origin.test.ts`, each accepted and refused `ORIGIN`; `security/cross-origin.test.ts`, the
+  check against methods, content types and `Origin`, `Sec-Fetch-Site`, `Host` and `ORIGIN` values,
+  and Bazarr's callback with neither header passing, with `ORIGIN` set and unset, on its exact
+  method and path only; `security/access-denied.test.ts`, the refusal's page and JSON in both
+  languages; `security/headers.test.ts`, the headers for HTTPS, plain HTTP and loopback hosts, and a
+  held, streaming response that keeps streaming whether its headers are set in place or on a copy;
+  `services/setup/startup.test.ts`, the steps' order, a bad `ORIGIN` refused before the database
+  opens, a failed step logged then thrown, a database path or `ZIMUARR_LOG_DEBUG` refused without
+  echoing it, and shutdown: `SIGHUP` passed on as `SIGTERM`, the cleanup's order, a failed close
+  still exiting 0, the 5-second deadline with its bounded flush, and no handlers in `dev`;
+  `config/log-debug.test.ts`; `logging/redact.test.ts`, each rule on its own and nested, Bazarr's
+  `apikey` and `X-Api-Key`, an empty allowlist and a growth check for linear time;
+  `logging/logger.test.ts`, the entry's shape, the debug filter and the flush; and
+  `logging/unexpected-error.test.ts`, what `handleError` logs; and `db/settings.test.ts`), and
+  `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
+  `messages/*.json` and on in-memory files that each break one of its rules; `format.test.ts`, which
+  formats inside the language middleware for each language and in several zones; and
+  `language-name.test.ts`, which names D20's codes in both languages and gives malformed and unknown
+  codes back as given. Component tests use happy-dom when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
@@ -628,7 +631,11 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     `/healthz`, a 404 and the callback's path carry the security headers, with no HSTS over plain
     HTTP; a page's policy matches the spec directive for directive, its scripts carry the nonce and
     the browser reports no violation; `ORIGIN` with credentials or a path stops the server without
-    being echoed; and `SIGTERM` and `SIGHUP` each stop the built server with exit code 0.
+    being echoed; a cross-site form POST gets the "Access denied" page with the headers, its own
+    policy and the viewer's language, and a same-origin POST with no `Sec-Fetch-*` headers passes,
+    on `localhost` and on a plain-HTTP host name that isn't loopback (`app.test`, through Chromium's
+    `--host-resolver-rules`); with `ORIGIN` set, Bazarr's callback still reaches its route; and
+    `SIGTERM` and `SIGHUP` each stop the built server with exit code 0.
   - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for

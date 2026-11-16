@@ -205,20 +205,20 @@ before the `ORIGIN` branches. SvelteKit's own form check goes off in the same PR
 `security/access-denied.ts`.
 
 **Acceptance criteria:**
-- [ ] `server/security/cross-origin.test.ts` first fails, then passes: obzorarr's matrix, plus the
+- [x] `server/security/cross-origin.test.ts` first fails, then passes: obzorarr's matrix, plus the
   callback's method and path with neither header passing with `ORIGIN` set and unset, the same
   request on another path or method refused, and the callback's path with a cross-site `Origin`
   refused.
-- [ ] `vite.config.test.ts` (in the `unit` project) asserts that the options `vite.config.ts`
+- [x] `vite.config.test.ts` (in the `unit` project) asserts that the options `vite.config.ts`
   exports and passes to `sveltekit()` trust every origin and leave remote functions off.
-- [ ] `server/security/access-denied.test.ts`: the page in each language with its policy, and the
+- [x] `server/security/access-denied.test.ts`: the page in each language with its policy, and the
   JSON error.
-- [ ] `setup.test.ts`: a cross-site form POST gets the 403 page with the headers, its own policy and
+- [x] `setup.test.ts`: a cross-site form POST gets the 403 page with the headers, its own policy and
   the viewer's language; a same-origin POST with no `Sec-Fetch-*` headers passes (SvelteKit's 405),
   on `localhost` and on `app.test`; with `ORIGIN` set, a POST to the callback's path with neither
   header reaches the route (`404` with the spike's keys unset).
-- [ ] C1's comment in `contract.test.ts` points to SPEC-setup.md; the contract job passes.
-- [ ] The page's text is `error_access_denied_…` messages in both languages.
+- [x] C1's comment in `contract.test.ts` points to SPEC-setup.md; the contract job passes.
+- [x] The page's text is `error_access_denied_…` messages in both languages.
 
 **Verification:** the gates.
 
