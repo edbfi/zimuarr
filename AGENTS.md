@@ -280,9 +280,9 @@ built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the databas
 redacted JSON, it stops cleanly, `/healthz` reads and writes the database, and every response
 carries the security headers and every page a nonce CSP, and a state-changing request from another
 site is refused. While no owner exists, startup prints a bootstrap token to the console, and
-`/setup` claims the instance with it, creating the owner. The other product modules come next, in
-the order of the approved capability map in `docs/SPEC.md`, each through an owner-approved
-`docs/SPEC-<id>.md`.
+`/setup` claims the instance with it, creating the owner; until then, every page sends the visitor
+to `/setup`. The other product modules come next, in the order of the approved capability map in
+`docs/SPEC.md`, each through an owner-approved `docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
 and `preview` need, see the README's [Master key](README.md#master-key).
@@ -327,7 +327,7 @@ src/
                                  settings
   hooks.server.ts                the `init` hook: runs startup, except while building; `handle`:
                                  each request's language (Paraglide's middleware), the security
-                                 headers, then the cross-origin check; and
+                                 headers, the cross-origin check, then the setup gate; and
                                  `handleError`: errors go through the logger
   hooks.client.ts                the browser keeps the language the server chose for the page
   lib/                           imported as `#lib/<path>.<ext>`, e.g.
@@ -353,8 +353,9 @@ src/
                                  redaction rules; unexpected-error.ts: what `handleError` logs
       services/setup/            startup.ts: startup's steps, in order, a failure logged,
                                  shutdown on `SIGTERM`, `SIGINT` and `SIGHUP`, and the database
-                                 it opened; first-run.ts: first run's state, the step pointer and
-                                 the bootstrap token printed to the console; claim.ts: the claim
+                                 it opened; first-run.ts: first run's state, the step pointer, the
+                                 bootstrap token printed to the console and the gate's decision;
+                                 claim.ts: the claim
       security/                  bootstrap-token.ts: the token, drawn, shown, compared and
                                  expired; password.ts and common-passwords.txt: the owner's
                                  credential rules and hashing; headers.ts: the security headers
@@ -379,9 +380,10 @@ tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
   e2e/i18n.test.ts               each viewer's language, and the switcher
-  e2e/setup.test.ts              `setup` on the built server: so far, the database, logging,
-                                 shutdown, the security headers, the CSP, the cross-origin check,
-                                 the bootstrap token, the claim and the backup
+  e2e/setup.test.ts              `setup` on the built server: the database, logging, shutdown,
+                                 the security headers, the CSP, the cross-origin check, the
+                                 bootstrap token, the claim, the backup and the setup gate
+  e2e/global-setup.ts            claims the web server's instance for the other tests
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,
                                  fault-proxy.ts, select.ts (CI's choice of cases), caddy/,

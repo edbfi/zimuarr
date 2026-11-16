@@ -608,22 +608,23 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
   bundled list, and an argon2id round trip; `services/setup/claim.test.ts`, the claim's success, a
   field error leaving the token unused, wrong and expired tokens never reaching the hash, a second
   claim, two at once, and a failed transaction printing a new token but none once stopping;
-  `routes/setup/token-format.test.ts`, the token field's dashes; `security/headers.test.ts`, the
-  headers for HTTPS, plain HTTP and loopback hosts, and a held, streaming response that keeps
-  streaming whether its headers are set in place or on a copy; `services/setup/startup.test.ts`, the
-  steps' order, a bad `ORIGIN` refused before the database opens, a failed step logged then thrown,
-  a database path or `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed
-  on as `SIGTERM`, the cleanup's order, a failed close still exiting 0, the 5-second deadline with
-  its bounded flush, and no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`,
-  each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an empty allowlist and a
-  growth check for linear time; `logging/logger.test.ts`, the entry's shape, the debug filter and
-  the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs; and
-  `db/settings.test.ts`), and `i18n`'s in `src/lib/shared/i18n/`: the message check
-  (`messages.test.ts`), which runs on `messages/*.json` and on in-memory files that each break one
-  of its rules; `format.test.ts`, which formats inside the language middleware for each language and
-  in several zones; and `language-name.test.ts`, which names D20's codes in both languages and gives
-  malformed and unknown codes back as given. Component tests use happy-dom when components exist;
-  never jsdom.
+  `routes/setup/token-format.test.ts`, the token field's dashes; the gate's decision for each path
+  in `first-run.test.ts`, the callback's and `__data.json` paths included, before and after the
+  claim and after a restart; `security/headers.test.ts`, the headers for HTTPS, plain HTTP and
+  loopback hosts, and a held, streaming response that keeps streaming whether its headers are set in
+  place or on a copy; `services/setup/startup.test.ts`, the steps' order, a bad `ORIGIN` refused
+  before the database opens, a failed step logged then thrown, a database path or
+  `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed on as `SIGTERM`, the
+  cleanup's order, a failed close still exiting 0, the 5-second deadline with its bounded flush, and
+  no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`, each rule on its own
+  and nested, Bazarr's `apikey` and `X-Api-Key`, an empty allowlist and a growth check for linear
+  time; `logging/logger.test.ts`, the entry's shape, the debug filter and the flush; and
+  `logging/unexpected-error.test.ts`, what `handleError` logs; and `db/settings.test.ts`), and
+  `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
+  `messages/*.json` and on in-memory files that each break one of its rules; `format.test.ts`, which
+  formats inside the language middleware for each language and in several zones; and
+  `language-name.test.ts`, which names D20's codes in both languages and gives malformed and unknown
+  codes back as given. Component tests use happy-dom when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
@@ -653,7 +654,13 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     right one, and answers 404 at `/setup` afterwards, also after a restart; a backup copied from a
     stopped, claimed server starts claimed with the same key; and `SIGTERM` and `SIGHUP` each stop
     the built server with exit code 0.
-  - Every run's web server gets a temporary database, removed once the server has exited.
+  - Every run's web server gets a temporary database, removed once the server has exited. It
+    counts as started once its output runs from the token line through "Listening on", which
+    captures the token; `global-setup.ts` then claims the instance through the form in a browser,
+    so the smoke and language tests run on a claimed instance.
+  - `setup.test.ts` also checks that every page sends a fresh instance to `/setup`, while
+    `/healthz` answers `ok` and Bazarr's callback answers with its own status, and that the gate's
+    redirect carries the security headers.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
   each run and a database under `tests/contract/.state/`. `bun run --bun test` and prek run only the
