@@ -481,8 +481,10 @@ test.describe("the cross-origin check", () => {
 				headers: { "content-type": "application/json", "x-api-key": "k" },
 				body: "{}",
 			});
-			// The route's own answer: off while the contract spike's keys are unset.
+			// The route's own answer, off while the contract spike's keys are unset: its plain-text
+			// 404, not SvelteKit's page for a missing route.
 			expect(callback.status).toBe(404);
+			expect(await callback.text()).toBe("Not Found");
 			// Any other path with neither header is refused.
 			const other = await request(`${server.url}/`, {
 				method: "POST",

@@ -279,8 +279,8 @@ describe.concurrent("phase 1", () => {
 		expect(exchange?.method).toBe("POST");
 		expect(exchange?.target).toBe("/bazarr/api/translate/content");
 		const headers = exchange?.requestHeaders ?? {};
-		// What sign-in's cross-origin check relies on (docs/SPEC.md, Module notes): JSON, and neither
-		// `Origin` nor `Sec-Fetch-Site`.
+		// What the cross-origin check's machine-route rule relies on (docs/SPEC-setup.md, "The
+		// cross-origin check"): JSON, and neither `Origin` nor `Sec-Fetch-Site`.
 		expect(headers["content-type"]).toBe("application/json");
 		expect(headers.origin).toBeUndefined();
 		expect(headers["sec-fetch-site"]).toBeUndefined();
