@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T21:05:37.005Z",
+  "title": "Design System: Zimuarr Polar Control",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Polar Night",
+        "canonical": "oklch(27.6% 0.044 237.4)",
+        "tonalRamp": [
+          "#070C10",
+          "#182731",
+          "#2C4556",
+          "#496578",
+          "#6A879A",
+          "#8CAABE",
+          "#B8CCDA",
+          "#E9EFF4"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Deep Water",
+        "canonical": "oklch(35.5% 0.051 235.9)",
+        "tonalRamp": [
+          "#060C10",
+          "#152732",
+          "#274658",
+          "#44667A",
+          "#65889D",
+          "#87ABC1",
+          "#B5CDDC",
+          "#E8F0F4"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Shelf Ice",
+        "canonical": "oklch(41.3% 0.054 233.8)",
+        "tonalRamp": [
+          "#050C11",
+          "#142833",
+          "#244659",
+          "#41677B",
+          "#62889E",
+          "#84ABC2",
+          "#B3CEDD",
+          "#E8F0F5"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Floe Line",
+        "canonical": "oklch(54.9% 0.051 231.2)",
+        "tonalRamp": [
+          "#050C10",
+          "#142832",
+          "#254757",
+          "#426779",
+          "#63889C",
+          "#85ABC0",
+          "#B4CEDB",
+          "#E8F0F4"
+        ]
+      },
+      "control-border": {
+        "role": "neutral",
+        "displayName": "Pack Line",
+        "canonical": "oklch(69% 0.035 229.5)",
+        "tonalRamp": [
+          "#070C0F",
+          "#1A272D",
+          "#304650",
+          "#4D6571",
+          "#6D8793",
+          "#8FAAB7",
+          "#BBCCD5",
+          "#EAEFF2"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Seafoam",
+        "canonical": "oklch(86.7% 0.055 161.7)",
+        "tonalRamp": [
+          "#060D09",
+          "#152A20",
+          "#274B39",
+          "#446B57",
+          "#658D78",
+          "#87B09A",
+          "#B5D1C2",
+          "#E8F1EC"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Ice Blue",
+        "canonical": "oklch(81.7% 0.069 226.6)",
+        "tonalRamp": [
+          "#030D12",
+          "#092935",
+          "#10495C",
+          "#306980",
+          "#538BA2",
+          "#75AEC7",
+          "#ABD0E0",
+          "#E5F1F6"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Snow",
+        "canonical": "oklch(97.2% 0.009 232.4)",
+        "tonalRamp": [
+          "#0A0B0C",
+          "#222627",
+          "#3E4346",
+          "#5C6266",
+          "#7D8387",
+          "#A0A6AA",
+          "#C5CACC",
+          "#EDEFEF"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Frost",
+        "canonical": "oklch(83.7% 0.028 236.2)",
+        "tonalRamp": [
+          "#080C0E",
+          "#1D262C",
+          "#35444E",
+          "#52646F",
+          "#738591",
+          "#95A8B5",
+          "#BECBD4",
+          "#EBEFF2"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Verified Seafoam",
+        "canonical": "oklch(86.7% 0.055 161.7)",
+        "tonalRamp": [
+          "#060D09",
+          "#152A20",
+          "#274B39",
+          "#446B57",
+          "#658D78",
+          "#87B09A",
+          "#B5D1C2",
+          "#E8F1EC"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Amber Light",
+        "canonical": "oklch(86% 0.1 84.2)",
+        "tonalRamp": [
+          "#110A01",
+          "#312201",
+          "#553E03",
+          "#7C5B03",
+          "#9E7D33",
+          "#C3A057",
+          "#DDC698",
+          "#F5EEE0"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Coral Flag",
+        "canonical": "oklch(82.7% 0.098 12.3)",
+        "tonalRamp": [
+          "#150608",
+          "#3D171D",
+          "#6A2A34",
+          "#904852",
+          "#B56972",
+          "#DB8B94",
+          "#F0B9BE",
+          "#FBE9EB"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Expressive welcome moments only."
+      },
+      "h1": {
+        "displayName": "H1",
+        "purpose": "A page's title."
+      },
+      "h2": {
+        "displayName": "H2",
+        "purpose": "Section titles."
+      },
+      "h3": {
+        "displayName": "H3",
+        "purpose": "Panel titles; the text wordmark."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose and field text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels and small controls."
+      },
+      "table": {
+        "displayName": "Table",
+        "purpose": "Table cells."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Helpers and field errors."
+      },
+      "number": {
+        "displayName": "Number",
+        "purpose": "Operational figures, tabular."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Codes and identifiers in running text."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "press",
+        "value": "100ms",
+        "purpose": "Press feedback."
+      },
+      {
+        "name": "feedback",
+        "value": "160ms",
+        "purpose": "Status changes, such as a field's border."
+      },
+      {
+        "name": "panel",
+        "value": "200ms",
+        "purpose": "Sheet transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "tablet",
+        "value": "768px"
+      },
+      {
+        "name": "desktop",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "A flat Deep Water panel with a 1px Floe Line border; no shadow.",
+      "html": "<section class=\"ds-panel\"><h2 class=\"ds-panel-title\">Claim this Zimuarr</h2><p class=\"ds-panel-intro\">Enter the setup token printed in the server console, then create the owner account.</p></section>",
+      "css": ".ds-panel { background: #1F4053; color: #F0F7FB; border: 1px solid #52778A; border-radius: 12px; padding: 32px; max-width: 480px; font-family: \"Public Sans Variable\", system-ui, sans-serif; } .ds-panel-title { margin: 0; font: 600 32px/1.2 \"Public Sans Variable\", system-ui, sans-serif; letter-spacing: -0.02em; } .ds-panel-intro { margin: 8px 0 0; color: #B9CDDA; font: 400 16px/1.6 \"Public Sans Variable\", system-ui, sans-serif; }"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "primary-button",
+      "description": "The one solid Seafoam action of a task area; it keeps its fill on hover.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Claim and create owner</button>",
+      "css": ".ds-btn-primary { min-height: 44px; padding: 0 24px; background: #B4DFC8; color: #102B3B; border: none; border-radius: 8px; font: 600 16px/1.4 \"Public Sans Variable\", system-ui, sans-serif; cursor: pointer; transition: background-color 100ms, color 100ms; } .ds-btn-primary:focus-visible { outline: 2px solid #93CDE6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary Button, pending",
+      "kind": "button",
+      "refersTo": "primary-button-disabled",
+      "description": "While the work runs: Shelf Ice, Frost text, a verb, and no second press.",
+      "html": "<button class=\"ds-btn-pending\" type=\"button\" disabled>Claiming…</button>",
+      "css": ".ds-btn-pending { min-height: 44px; padding: 0 24px; background: #2B5064; color: #B9CDDA; border: none; border-radius: 8px; font: 600 16px/1.4 \"Public Sans Variable\", system-ui, sans-serif; cursor: progress; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "A labelled Polar Night well with a Pack Line border; the error variant adds Coral Flag.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-username\">Username</label><input class=\"ds-input\" id=\"ds-username\" value=\"owner\"></div><div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-bad\">Username</label><input class=\"ds-input\" id=\"ds-bad\" aria-invalid=\"true\" aria-describedby=\"ds-bad-error\"><p class=\"ds-field-error\" id=\"ds-bad-error\">Enter a username.</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; padding: 24px; background: #1F4053; font-family: \"Public Sans Variable\", system-ui, sans-serif; } .ds-field-label { color: #F0F7FB; font: 600 14px/1.4 \"Public Sans Variable\", system-ui, sans-serif; } .ds-input { min-height: 44px; padding: 0 12px; background: #102B3B; color: #F0F7FB; caret-color: #B4DFC8; border: 1px solid #86A0AD; border-radius: 8px; font: 400 16px/1.6 \"Public Sans Variable\", system-ui, sans-serif; transition: border-color 160ms; } .ds-input:hover { border-color: #B9CDDA; } .ds-input:focus-visible { outline: 2px solid #93CDE6; outline-offset: 2px; } .ds-input[aria-invalid=true] { border-color: #FFACB5; } .ds-field-help { margin: 0; color: #B9CDDA; font: 400 12px/1.5 \"Public Sans Variable\", system-ui, sans-serif; } .ds-field-error { margin: 0; color: #FFACB5; font: 600 12px/1.5 \"Public Sans Variable\", system-ui, sans-serif; }"
+    },
+    {
+      "name": "Code Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "A field that echoes a code: the mono face at body size, never below 16px.",
+      "html": "<div class=\"ds-code-wrap\"><input class=\"ds-code-input\" aria-label=\"Setup token\" aria-describedby=\"ds-code-help\" value=\"k7mq-2fxa-p9wd\" spellcheck=\"false\"><p class=\"ds-code-help\" id=\"ds-code-help\">Shown as <code>xxxx-xxxx-xxxx</code>. A new one is printed every 15 minutes.</p></div>",
+      "css": ".ds-code-wrap { display: flex; flex-direction: column; gap: 8px; padding: 24px; background: #1F4053; } .ds-code-help { margin: 0; color: #B9CDDA; font: 400 12px/1.5 \"Public Sans Variable\", system-ui, sans-serif; } .ds-code-help code { font-family: \"Roboto Mono Variable\", monospace; } .ds-code-input { min-height: 44px; padding: 0 12px; background: #102B3B; color: #F0F7FB; caret-color: #B4DFC8; border: 1px solid #86A0AD; border-radius: 8px; font: 400 16px/1.6 \"Public Sans Variable\", system-ui, sans-serif; transition: border-color 160ms; font-family: \"Roboto Mono Variable\", monospace; font-variant-numeric: tabular-nums; } .ds-code-input:hover { border-color: #B9CDDA; } .ds-code-input:focus-visible { outline: 2px solid #93CDE6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Password Field with Reveal",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "One bordered group: the field and a labelled Show/Hide button; the ring goes round the group.",
+      "html": "<div class=\"ds-secret-wrap\"><div class=\"ds-secret\"><input class=\"ds-secret-input\" type=\"password\" aria-label=\"Password\" value=\"violet harbour\"><button class=\"ds-secret-toggle\" type=\"button\" aria-label=\"Show password\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>Show</button></div></div>",
+      "css": ".ds-secret-wrap { padding: 24px; background: #1F4053; } .ds-secret { display: flex; align-items: stretch; background: #102B3B; border: 1px solid #86A0AD; border-radius: 8px; transition: border-color 160ms; } .ds-secret:hover { border-color: #B9CDDA; } .ds-secret:has(input:focus-visible) { outline: 2px solid #93CDE6; outline-offset: 2px; } .ds-secret-input { flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; background: transparent; color: #F0F7FB; caret-color: #B4DFC8; border: none; border-radius: 8px; font: 400 16px/1.6 \"Public Sans Variable\", system-ui, sans-serif; } .ds-secret-input:focus-visible { outline: none; } .ds-secret-toggle { display: flex; align-items: center; gap: 4px; padding: 0 12px; background: transparent; color: #B9CDDA; border: none; border-radius: 8px; font: 600 14px/1.4 \"Public Sans Variable\", system-ui, sans-serif; cursor: pointer; transition: color 100ms; } .ds-secret-toggle:hover { color: #F0F7FB; } .ds-secret-toggle:focus-visible { outline: 2px solid #93CDE6; outline-offset: -4px; }"
+    },
+    {
+      "name": "Segmented Choice",
+      "kind": "nav",
+      "refersTo": "segmented-choice",
+      "description": "The language switcher: a labelled group of buttons; the current one is Shelf Ice.",
+      "html": "<fieldset class=\"ds-segmented\" aria-label=\"Language\"><button class=\"ds-segment\" type=\"button\" aria-current=\"true\">English</button><button class=\"ds-segment\" type=\"button\" lang=\"da\">Dansk</button></fieldset>",
+      "css": ".ds-segmented { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; border: none; } .ds-segment { min-height: 44px; padding: 0 12px; background: transparent; color: #B9CDDA; border: none; border-radius: 8px; font: 600 14px/1.4 \"Public Sans Variable\", system-ui, sans-serif; cursor: pointer; } .ds-segment:hover { color: #F0F7FB; } .ds-segment[aria-current=true] { background: #2B5064; color: #F0F7FB; cursor: default; } .ds-segment:focus-visible { outline: 2px solid #93CDE6; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Polar Control",
+    "overview": "A control room at the edge of the ice: deep polar blue, seafoam for the actions that move work forward, ice blue for information and focus. Zimuarr is a dense desktop tool with clear subtitle classifications and budget rulers. Typography is clean, panels are flat, and there is no decorative photography or cinematic gradient. It is dark-first: dark is the only colour mode.\n\nThe tokens live in [`panda.config.ts`](panda.config.ts), and components use them only through Panda, with `strictTokens` refusing raw values. This file describes how they are used. The frontmatter mirrors the Panda config; when the two disagree, the config wins and this file is refreshed. The claim page at `/setup` is the first built surface. The guidance for components not built yet (navigation, tables, dialogs, badges, toasts) is the direction their surfaces build to.\n\n[Product context](PRODUCT.md) and the [surface briefs](.impeccable/surfaces/) define behaviour. The mockups in [docs/design](docs/design/) guide composition and visual character; each brief records the raster corrections for its board's incidental text. Generated raster pixels are visual guidance: they never override named tokens or product requirements.",
+    "keyCharacteristics": [
+      "Flat `surface` panels on the `background` page, separated by 1px borders, not shadows.",
+      "One solid seafoam action per task area; ice blue only for information, links and focus.",
+      "Fields recessed into the page colour, bounded by a brighter control border.",
+      "Public Sans for everything read, Roboto Mono for codes and operational numbers.",
+      "Quiet operational screens; motion only as feedback."
+    ],
+    "rules": [
+      {
+        "name": "The Ice-Blue Signal Rule",
+        "body": "`secondary` marks information, links and keyboard focus. A primary button keeps its Seafoam fill on hover rather than turning ice blue.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Colour Alone Rule",
+        "body": "A state is never told by colour alone: errors, statuses and badges always carry a word, and badges an icon too.",
+        "section": "colors"
+      },
+      {
+        "name": "The 16px Field Rule",
+        "body": "Text inside a field is never smaller than body size (16px), since iOS zooms in on smaller input text. A field that echoes a code, such as the setup token, uses the mono face at body size, not the 13px `code` style.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Panel Rule",
+        "body": "No repeated card drop shadows and no glowing status dots: a panel is a `surface` fill with a 1px `border`.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Recessed Field Rule",
+        "body": "A field is a `background` well inside its `surface` panel, so its fill and its `control-border` both mark it out; no field shares its panel's fill.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** use only the Panda tokens; `strictTokens` refuses raw values, and DESIGN.md is refreshed from the config, never the other way round.",
+      "**Do** keep welcome and experience screens expressive and operational screens quiet.",
+      "**Do** treat permissions, status transitions and budget arithmetic as behaviour the server supplies.",
+      "**Do** use the [demo fixtures](tests/fixtures/demo-fixtures.json) for stable visual tests, then substitute real server data.",
+      "**Do** follow each surface brief's raster corrections instead of copying a board's accidental labels or extra actions.",
+      "**Do** build on Panda CSS and Ark UI, without adding a competing component library."
+    ],
+    "donts": [
+      "**Don't** blend the edbfi apps into one theme: this palette and type hierarchy are zimuarr's, on every route.",
+      "**Don't** set field text below 16px.",
+      "**Don't** add drop shadows to panels or cards, or glows to status dots.",
+      "**Don't** put imagery behind data, text fields or tables."
+    ]
+  }
+}

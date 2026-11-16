@@ -319,10 +319,9 @@ No release is cut between `setup` and `sign-in`.
 ## Fonts and icons
 
 (zimuarr) The claim page, the first surface, bundles DESIGN.md's typefaces from fontsource, so no
-page requests a remote font, and the Panda tokens name the families they register. The token field
-uses the code face (Roboto Mono) at the body size rather than the `code` style's 13px, since iOS
-zooms in on a smaller input. Lucide gives DESIGN.md's single 20px line family, its eye icon first.
-The visible name stays the text "Zimuarr" (ground-floor choice 4).
+page requests a remote font, and the Panda tokens name the families they register. Lucide gives
+DESIGN.md's single 20px line family, its eye icon first. The visible name stays the text "Zimuarr"
+(ground-floor choice 4).
 
 ## Boundaries
 

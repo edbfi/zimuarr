@@ -51,7 +51,7 @@ The claim is a guarantee, not more AI features: a translation is either provably
 
 ## Confirmed visual direction
 
-Polar Control. Deep polar blue, seafoam primary actions, ice-blue informational accents. Dense desktop tool with clear subtitle classifications and budget rulers. Clean typography, flat panels, no decorative photography or cinematic gradients. The selected direction is confirmed; these expanded layouts and exact token values are a proposed design seed for review.
+Polar Control. Deep polar blue, seafoam primary actions, ice-blue informational accents. Dense desktop tool with clear subtitle classifications and budget rulers. Clean typography, flat panels, no decorative photography or cinematic gradients. The selected direction is confirmed. Its tokens are in `panda.config.ts`, which DESIGN.md describes; the expanded layouts in the surface briefs stay proposals until each surface is built.
 
 ## Evidence on Hand
 
@@ -61,19 +61,18 @@ What exists:
 - **Contract tests:** `tests/contract/`, C1–C12 against a real, unmodified Bazarr 1.6.2, directly and through Caddy and nginx ([docs/SPEC-contract-spike.md](docs/SPEC-contract-spike.md)). Correlation by path and fingerprint, two episodes of one series at once and the held callback are proven (D20, D25).
 - **Research:** [docs/research/bazarr.md](docs/research/bazarr.md), how the previous plan found Bazarr to behave, not re-verified: the mirror, language codes and failures.
 - **Design mockups:** ten generated raster boards in `docs/design/screens/` (`01-entry-and-onboarding.webp` to `10-states-and-components.webp`), plus the selected direction reference `docs/design/references/polar-control.webp`. They guide composition only; their text, numbers, icons and incidental actions are illustrative (see each brief's raster corrections).
-- **Seed tokens:** `panda.config.ts`, a proposed design seed that matches DESIGN.md.
-- **Surface briefs:** nine proposed route briefs in `.impeccable/surfaces/` (login, Bazarr setup, dashboard, inventory item, policy, quarantine case, system, provider settings, budgets).
+- **Design tokens:** `panda.config.ts`, which DESIGN.md describes.
+- **Surface briefs:** one per route in `.impeccable/surfaces/`: the built first-run claim (`/setup`) and nine proposed ones (login, Bazarr setup, dashboard, inventory item, policy, quarantine case, system, provider settings, budgets).
 - **Demo data:** [tests/fixtures/demo-fixtures.json](tests/fixtures/demo-fixtures.json), a fictional historical snapshot (2025-10-15) with classification counts, budget figures, a quarantine case and the fictional provider "Demo Translate" with fictional prices.
 - **License:** [README's grant](README.md#license). The web UI links to the corresponding source from the first release.
 
 What does not exist, and must not be invented:
 
-- No product feature, deployment, container image or validated product behaviour yet: only the ground floor, the Bazarr contract spike, `secrets` and `i18n` (`docs/SPEC.md`).
+- No product feature, deployment, container image or validated product behaviour yet: only the ground floor, the Bazarr contract spike, `secrets`, `i18n` and `setup` (`docs/SPEC.md`).
 - No users, customers, testimonials, case studies, press, adoption or usage figures, benchmarks or performance measurements.
 - No real provider names, models or prices: every provider, price and figure in the fixtures and mockups is fictional.
 - No real integration logos or marks for Bazarr, Sonarr, Radarr or any provider in the repo. Do not reproduce generated connector logos.
 - No screenshots of a real interface, and no pricing, hosted offering or support terms for Zimuarr itself.
-- No backup and restore procedure yet (D15).
 - No evidence from the previous version: the `legacy-old/v1` branch is behaviour reference only, and no code is brought over.
 
 ## Product Principles
