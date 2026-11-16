@@ -592,10 +592,13 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
   `src/lib/server/`: `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on
   a new database, a second run applying nothing, and the rows compared with Drizzle Kit's file
   migrator's; `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
-  `services/setup/startup.test.ts`, the steps' order, a failed step logged then thrown, a database
-  path or `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed on as
-  `SIGTERM`, the cleanup's order, a failed close still exiting 0, the 5-second deadline with its
-  bounded flush, and no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`,
+  `config/origin.test.ts`, each accepted and refused `ORIGIN`; `security/headers.test.ts`, the
+  headers for HTTPS, plain HTTP and loopback hosts, and a held, streaming response that keeps
+  streaming whether its headers are set in place or on a copy; `services/setup/startup.test.ts`, the
+  steps' order, a bad `ORIGIN` refused before the database opens, a failed step logged then thrown,
+  a database path or `ZIMUARR_LOG_DEBUG` refused without echoing it, and shutdown: `SIGHUP` passed
+  on as `SIGTERM`, the cleanup's order, a failed close still exiting 0, the 5-second deadline with
+  its bounded flush, and no handlers in `dev`; `config/log-debug.test.ts`; `logging/redact.test.ts`,
   each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an empty allowlist and a
   growth check for linear time; `logging/logger.test.ts`, the entry's shape, the debug filter and
   the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs; and
@@ -621,8 +624,11 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     nothing on a second start, one defaults to `data/zimuarr.db`, and a database folder that can't
     be created or a path that isn't a database stops the server with one line that names the
     variable and never the path; a bad `ZIMUARR_LOG_DEBUG` is one JSON log entry that never holds
-    the value; with debug on, a 404 is logged through `handleError`, without its query; and
-    `SIGTERM` and `SIGHUP` each stop the built server with exit code 0.
+    the value; with debug on, a 404 is logged through `handleError`, without its query; a page,
+    `/healthz`, a 404 and the callback's path carry the security headers, with no HSTS over plain
+    HTTP; a page's policy matches the spec directive for directive, its scripts carry the nonce and
+    the browser reports no violation; `ORIGIN` with credentials or a path stops the server without
+    being echoed; and `SIGTERM` and `SIGHUP` each stop the built server with exit code 0.
   - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
@@ -674,9 +680,10 @@ design doesn't call for anything different; choices 4 and 5 are zimuarr's own.
    pairing and `check-peers` are settled early; the first `ui/` wrapper comes with the first surface
    that needs one.
 3. **Security headers and CSP.** zimuarr needs authentication on its interface and API, and a
-   first-run setup that closes after use (D17). Security headers and a CSP
-   ([SPEC-setup.md](SPEC-setup.md#security-headers-and-csp)) belong to the first module that
-   serves real pages (`setup`, whose claim page comes before `sign-in`), not the skeleton.
+   first-run setup that closes after use (D17). `setup` added the security headers on every
+   response through `handle` and the nonce CSP on every page
+   ([SPEC-setup.md](SPEC-setup.md#security-headers-and-csp)), as the first module that serves real
+   pages, not the skeleton.
 4. **No logo yet.** zimuarr has no logo or icon file, so the skeleton has no `static/` folder and no
    favicon; the visible name is the text "Zimuarr". A logo joins when the owner provides one.
 5. **Health.** `/healthz` answers `ok` while the database can be read and written, and `503`

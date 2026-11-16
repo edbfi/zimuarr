@@ -242,3 +242,120 @@ test.describe("shutdown", () => {
 		});
 	}
 });
+
+/** A GET, or a request with `init`, that doesn't follow a redirect. */
+const request = (url: string, init: RequestInit = {}) =>
+	fetch(url, { ...init, redirect: "manual" });
+
+test.describe("security headers and the CSP", () => {
+	const ALWAYS = {
+		"x-frame-options": "DENY",
+		"x-content-type-options": "nosniff",
+		"referrer-policy": "same-origin",
+		"permissions-policy": "camera=(), microphone=(), geolocation=()",
+	};
+
+	test("every response that passes through handle carries them, and no HSTS over plain HTTP", async () => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+		});
+		try {
+			const statuses: Record<string, number> = {};
+			const responses: [string, Response][] = [
+				["/", await request(`${server.url}/`)],
+				["/healthz", await request(`${server.url}/healthz`)],
+				["a 404", await request(`${server.url}/no-such-page`)],
+				// Bazarr's callback, off while the contract spike's keys are unset.
+				[
+					"the callback",
+					await request(`${server.url}/bazarr/api/translate/content`, {
+						method: "POST",
+						headers: { "content-type": "application/json", "x-api-key": "k" },
+						body: "{}",
+					}),
+				],
+			];
+			for (const [what, response] of responses) {
+				for (const [name, value] of Object.entries(ALWAYS)) {
+					expect(response.headers.get(name), `${name} on ${what}`).toBe(value);
+				}
+				expect(response.headers.get("strict-transport-security"), what).toBeNull();
+				statuses[what] = response.status;
+			}
+			expect(statuses).toEqual({ "/": 200, "/healthz": 200, "a 404": 404, "the callback": 404 });
+		} finally {
+			await server.stop();
+		}
+	});
+
+	test("a page's scripts carry its policy's nonce, and the browser reports no violation", async ({
+		page,
+	}) => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+		});
+		try {
+			const response = await fetch(`${server.url}/`);
+			const policy = response.headers.get("content-security-policy") ?? "";
+			const html = await response.text();
+			const nonce = /'nonce-([^']+)'/.exec(policy)?.[1];
+			expect(nonce).toBeDefined();
+			// The spec's policy, directive for directive, with the nonce only on scripts.
+			const directives = Object.fromEntries(
+				policy.split(";").map((directive) => {
+					const [name = "", ...sources] = directive.trim().split(/\s+/);
+					return [name, sources.sort()];
+				}),
+			);
+			expect(directives).toEqual({
+				"default-src": ["'self'"],
+				"script-src": [`'nonce-${nonce}'`, "'self'"].sort(),
+				"style-src": ["'self'", "'unsafe-inline'"],
+				"img-src": ["'self'", "data:"],
+				"font-src": ["'self'"],
+				"connect-src": ["'self'"],
+				"frame-ancestors": ["'none'"],
+				"frame-src": ["'none'"],
+				"object-src": ["'none'"],
+				"base-uri": ["'self'"],
+				"form-action": ["'self'"],
+			});
+			const scripts = [...html.matchAll(/<script\b[^>]*>/g)].map((match) => match[0]);
+			expect(scripts.length).toBeGreaterThan(0);
+			for (const script of scripts) expect(script).toContain(`nonce="${nonce}"`);
+
+			const violations: string[] = [];
+			page.on("console", (message) => {
+				if (/Content Security Policy/i.test(message.text())) violations.push(message.text());
+			});
+			await page.addInitScript(() => {
+				document.addEventListener("securitypolicyviolation", (event) => {
+					console.error(`Content Security Policy violation: ${event.violatedDirective}`);
+				});
+			});
+			const visit = await page.goto(`${server.url}/`);
+			await expect(page.locator("html[data-hydrated]")).toBeAttached();
+			expect(violations).toEqual([]);
+			// Chromium sends Sec-Fetch-Site to this loopback address over plain HTTP, so this checks
+			// the loopback exemption: no HSTS.
+			expect(visit?.headers()["strict-transport-security"]).toBeUndefined();
+		} finally {
+			await server.stop();
+		}
+	});
+
+	for (const [value, message] of [
+		["https://u:p@zimuarr.example", "ORIGIN must not hold credentials"],
+		["https://zimuarr.example/app", "ORIGIN must not have a path"],
+	] as const) {
+		test(`the built server refuses ORIGIN=${value}, without echoing it`, async () => {
+			const { exitCode, output } = await runToExit(root, { ORIGIN: value });
+			expect(output.includes(value), "output holds the value").toBe(false);
+			expect(output.includes("u:p@"), "output holds the credentials").toBe(false);
+			expect(exitCode).toBe(1);
+			expect(output).not.toContain("Listening on");
+			const lines = output.split("\n").filter((line) => line.startsWith("ConfigError: "));
+			expect(lines).toEqual([`ConfigError: ${message}`]);
+		});
+	}
+});
