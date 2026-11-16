@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { connect } from "@tursodatabase/database";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConfigError } from "#lib/server/config/config-error.ts";
 import { KeyringError } from "#lib/server/security/secrets/keyring.ts";
 import { startUp } from "./startup.ts";
@@ -15,6 +15,24 @@ beforeAll(async () => {
 
 afterAll(async () => {
 	await rm(root, { recursive: true, force: true });
+});
+
+/** What startup wrote to standard output during the current test. */
+let lines: string[];
+
+beforeEach(() => {
+	lines = [];
+	vi.spyOn(process.stdout, "write").mockImplementation((chunk, ...rest: unknown[]) => {
+		lines.push(String(chunk));
+		// `flushLogs` waits for each entry's write callback, so the mock calls it.
+		const done = rest.find((arg) => typeof arg === "function") as (() => void) | undefined;
+		done?.();
+		return true;
+	});
+});
+
+afterEach(() => {
+	vi.restoreAllMocks();
 });
 
 const key = () => crypto.getRandomValues(new Uint8Array(32)).toBase64();
@@ -71,6 +89,33 @@ describe("startUp", () => {
 		expect(error.message).toBe(
 			"ZIMUARR_DATABASE_PATH names a file that can't be opened as a database (I/O error (open): is a directory)",
 		);
+	});
+
+	it("logs a failed step as one error entry before throwing it", async () => {
+		const path = join(root, "logged-directory");
+		await mkdir(path);
+		await startUp({ ZIMUARR_SECRET_KEY: key(), ZIMUARR_DATABASE_PATH: path }).catch(() => {});
+		expect(lines).toHaveLength(1);
+		const entry = JSON.parse(lines[0] ?? "");
+		expect(entry).toMatchObject({
+			level: "error",
+			source: "startup",
+			message: "startup failed",
+			metadata: { error: { name: "ConfigError" } },
+		});
+		expect(lines[0]).not.toContain(root);
+	});
+
+	it("refuses a ZIMUARR_LOG_DEBUG that isn't true or false, before the database opens", async () => {
+		const path = join(root, "never-created", "app.db");
+		const error = await startUp({
+			ZIMUARR_SECRET_KEY: key(),
+			ZIMUARR_DATABASE_PATH: path,
+			ZIMUARR_LOG_DEBUG: "yes",
+		}).catch((caught: unknown) => caught);
+		expect(error).toBeInstanceOf(ConfigError);
+		expect((error as ConfigError).variable).toBe("ZIMUARR_LOG_DEBUG");
+		await expect(stat(join(root, "never-created"))).rejects.toThrow();
 	});
 
 	it("refuses a file that isn't a database, without echoing the path", async () => {

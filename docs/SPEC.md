@@ -131,8 +131,8 @@ layout:
 
 ### Open decisions each module closes
 
-- `setup`: D14 (Turso and Drizzle versions), the logging library half of D13, and D15's backup
-  and restore procedure, with the database file and the `secrets` key restored together
+- `setup`: D15's backup and restore procedure (D14 and D13's logging half are closed), with the
+  database file and the `secrets` key restored together
   ([SPEC-setup.md](SPEC-setup.md#backup-and-restore)). `verification` checks that a restore
   followed by a full mirror rebuild gives the same classifications.
 - `sign-in`: how long an owner session lasts.
@@ -590,8 +590,12 @@ export const GET: RequestHandler = () => healthResponse();
   `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on a new database, a
   second run applying nothing, and the rows compared with Drizzle Kit's file migrator's;
   `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
-  `services/setup/startup.test.ts`, the steps' order and a database path refused without echoing
-  it), and `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
+  `services/setup/startup.test.ts`, the steps' order, a failed step logged then thrown, and a
+  database path or `ZIMUARR_LOG_DEBUG` refused without echoing it; `config/log-debug.test.ts`;
+  `logging/redact.test.ts`, each rule on its own and nested, Bazarr's `apikey` and `X-Api-Key`, an
+  empty allowlist and a growth check for linear time; `logging/logger.test.ts`, the entry's shape,
+  the debug filter and the flush; and `logging/unexpected-error.test.ts`, what `handleError` logs),
+  and `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
   `messages/*.json` and on in-memory files that each break one of its rules; `format.test.ts`, which
   formats inside the language middleware for each language and in several zones; and
   `language-name.test.ts`, which names D20's codes in both languages and gives malformed and unknown
@@ -611,7 +615,8 @@ export const GET: RequestHandler = () => healthResponse();
   - `setup.test.ts` starts its own built servers: one migrates a new database file and applies
     nothing on a second start, one defaults to `data/zimuarr.db`, and a database folder that can't
     be created or a path that isn't a database stops the server with one line that names the
-    variable and never the path.
+    variable and never the path; a bad `ZIMUARR_LOG_DEBUG` is one JSON log entry that never holds
+    the value; and with debug on, a 404 is logged through `handleError`, without its query.
   - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for

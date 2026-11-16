@@ -276,9 +276,9 @@ tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-
 Nothing stores a secret yet. Module 3, `i18n` ([`docs/SPEC-i18n.md`](docs/SPEC-i18n.md)), is built:
 English and Danish messages, each request's language, the language switcher, formatting and
 subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-setup.md)), is being
-built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database. The other product
-modules come next, in the order of the approved capability map in `docs/SPEC.md`, each through an
-owner-approved `docs/SPEC-<id>.md`.
+built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database, and the app logs
+redacted JSON. The other product modules come next, in the order of the approved capability map in
+`docs/SPEC.md`, each through an owner-approved `docs/SPEC-<id>.md`.
 
 **Commands:** the table in [docs/SPEC.md](docs/SPEC.md#commands); for the master key that `dev`
 and `preview` need, see the README's [Master key](README.md#master-key).
@@ -314,27 +314,31 @@ src/
                                  later: sign-in and setup, the operator workspace, api/ (the
                                  versioned API)
   env.ts                         the environment variables SvelteKit exposes (`$app/env/private`):
-                                 `ZIMUARR_SECRET_KEY`, `ZIMUARR_SECRET_KEY_FILE` and
-                                 `ZIMUARR_DATABASE_PATH` (private, read at runtime, optional) and
-                                 the contract spike's settings
-  hooks.server.ts                the `init` hook: runs startup, except while building; and
-                                 `handle`: each request's language (Paraglide's middleware)
+                                 `ZIMUARR_SECRET_KEY`, `ZIMUARR_SECRET_KEY_FILE`,
+                                 `ZIMUARR_DATABASE_PATH` and `ZIMUARR_LOG_DEBUG` (private, read at
+                                 runtime, optional) and the contract spike's settings
+  hooks.server.ts                the `init` hook: runs startup, except while building; `handle`:
+                                 each request's language (Paraglide's middleware); and
+                                 `handleError`: errors go through the logger
   hooks.client.ts                the browser keeps the language the server chose for the page
   lib/                           imported as `#lib/<path>.<ext>`, e.g.
                                  `#lib/server/services/health.ts`
     server/                      server-only: services/health.ts, services/translation/ (the
                                  callback: request, Bazarr's lines, the held response, the work,
                                  the stand-in); later providers/ (Bazarr, AI providers), more
-                                 services/<domain>/, jobs/, http/ (SSRF-safe fetch), logging/
+                                 services/<domain>/, jobs/, http/ (SSRF-safe fetch)
       config/                    contract-spike.ts: the spike's settings; secret-key.ts: the
                                  master key's text from `ZIMUARR_SECRET_KEY` or the file
                                  `ZIMUARR_SECRET_KEY_FILE` names, with no key logic;
-                                 database-path.ts: the database file's path; config-error.ts:
+                                 database-path.ts: the database file's path; log-debug.ts:
+                                 `ZIMUARR_LOG_DEBUG`; config-error.ts:
                                  the error a variable's check throws; error-code.ts: a system
                                  error's code, for messages that never hold a path
       db/                        client.ts: opens the database; migrate.ts: applies the bundled
                                  migrations; settings.ts and owner.ts: their tables
-      services/setup/            startup.ts: startup's steps, in order
+      logging/                   logger.ts: JSON entries on standard output; redact.ts: the
+                                 redaction rules; unexpected-error.ts: what `handleError` logs
+      services/setup/            startup.ts: startup's steps, in order, a failure logged
       security/secrets/          key-text.ts: a master key's text to its 32 bytes, refusing
                                  malformed and weak keys; keyring.ts: loads the key and derives
                                  the AES key and key ID; secret.ts: the `Secret` wrapper,
@@ -353,7 +357,7 @@ tests/
   e2e/smoke.test.ts              Playwright smoke against the built server
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
   e2e/i18n.test.ts               each viewer's language, and the switcher
-  e2e/setup.test.ts              `setup` on the built server: so far, the database
+  e2e/setup.test.ts              `setup` on the built server: so far, the database and logging
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,
                                  fault-proxy.ts, select.ts (CI's choice of cases), caddy/,
