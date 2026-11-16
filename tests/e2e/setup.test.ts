@@ -564,6 +564,8 @@ test.describe("the setup gate", () => {
 			});
 			expect(callback.status).toBe(404);
 			expect(await callback.text()).toBe("Not Found");
+			// Its path is open whatever the method: a GET gets the route's own 405, not the gate's 303.
+			expect((await request(`${server.url}/bazarr/api/translate/content`)).status).toBe(405);
 
 			await page.goto(`${server.url}/`);
 			await expect(page).toHaveURL(`${server.url}/setup`);
