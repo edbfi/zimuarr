@@ -638,6 +638,15 @@ test.describe("the claim", () => {
 			token = /Setup token: ([a-z0-9-]{14}) /.exec(first.output())?.[1] ?? "";
 			await page.goto(`${first.url}/setup`);
 			await page.locator("html[data-hydrated]").waitFor({ state: "attached" });
+			// The fields sit in a `background` well inside the `surface` panel (DESIGN.md, "Inputs").
+			await expect(page.locator("main")).toHaveCSS("background-color", "rgb(31, 64, 83)");
+			for (const well of [
+				page.locator("#token"),
+				page.locator("#username"),
+				page.locator("#password").locator(".."),
+			]) {
+				await expect(well).toHaveCSS("background-color", "rgb(16, 43, 59)");
+			}
 
 			await page.locator("#token").fill("aaaa-bbbb-cccc");
 			await page.locator("#username").fill("Owner");
