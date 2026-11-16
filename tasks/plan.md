@@ -44,8 +44,9 @@ endpoint as its own task.
   migration; each operation in `db/owner.ts` and `db/settings.ts` lands with the task that first
   calls it (task 4's health row is the first `settings` write), so nothing merges unused.
 - **The migrator** is Drizzle's record migrator for Turso
-  (`drizzle-orm/tursodatabase/wasm-migrator`), fed by `import.meta.glob("/drizzle/*/migration.sql", { query: "?raw" })` with the folder names as
-  keys, as in obzorarr. Task 1 compares both migrators' rows, as obzorarr's test does.
+  (`drizzle-orm/tursodatabase/wasm-migrator`), fed by `import.meta.glob("/drizzle/*/migration.sql",
+  { query: "?raw" })` with the folder names as keys, as in obzorarr. Task 1 compares both migrators'
+  rows, as obzorarr's test does.
 - **The handle-built refusal page is unstyled.** Its fixed policy allows no stylesheet or font, so
   the page sets only `color-scheme: dark` and holds no raw values (D10), until `sign-in` builds the
   styled error pages.

@@ -25,6 +25,8 @@ first migration; no operations yet. The README gives the backup procedure.
   match Drizzle Kit's file migrator's but for the empty `hash`.
 - [ ] `server/db/client.test.ts` holds D5's rollback-isolation check, which fails on
   `drizzle-orm@1.0.0-rc.4`.
+- [ ] `server/services/setup/startup.test.ts` first fails, then passes: the key, the configuration
+  and the database run in that order, and a failing step leaves no database opened or created.
 - [ ] `@tursodatabase/database`, `drizzle-orm` and `drizzle-kit` (`rc`) are exact-pinned dev
   dependencies at their newest releases (D27); `db:generate` runs Drizzle Kit, then
   `bun --bun biome format --write drizzle`; the first migration is generated, reviewed and
@@ -35,7 +37,8 @@ first migration; no operations yet. The README gives the backup procedure.
   file, starts, serves `/healthz`, and starts again on the same file applying nothing; it refuses
   an unwritable database folder without echoing the path. `playwright.config.ts` gives each run a
   temporary database, created and removed only in the runner process, and starts the server with
-  `bun --no-install --no-env-file ./build`.
+  `bun --no-install --no-env-file ./build`; `tests/e2e/secret-key.test.ts` starts its servers with
+  `--no-install` too, its other flags unchanged.
 - [ ] `tests/contract/contract.test.ts` gives its server a database under `tests/contract/.state/`
   and `--no-install`; the contract job passes.
 - [ ] D14's validation passes with its evidence in the PR body: migrations, `check`, the built
@@ -51,12 +54,12 @@ first migration; no operations yet. The README gives the backup procedure.
 `src/hooks.server.ts`, `server/config/database-path.ts` (+ test), `server/config/config-error.ts`,
 `server/config/error-code.ts`, `server/config/secret-key.ts`, `server/db/client.ts` (+ test),
 `server/db/migrate.ts` (+ test), `server/db/settings.ts`, `server/db/owner.ts`,
-`server/services/setup/startup.ts`, `tests/e2e/setup.test.ts`, `playwright.config.ts`,
-`tests/contract/contract.test.ts`, `README.md` (`ZIMUARR_DATABASE_PATH`, backups and restore,
-running the build with `--no-install`), `docs/SPEC.md` (the status line, the tech-stack table, the
-`db:generate` and `smoke` Commands rows, the testing section, and "`bun ./build` needs no
-`node_modules`"), `docs/decisions.md` (D14 to Decided with the validated pair; D15 drops the backup
-procedure), `AGENTS.md`.
+`server/services/setup/startup.ts` (+ test), `tests/e2e/setup.test.ts`, `playwright.config.ts`,
+`tests/e2e/secret-key.test.ts`, `tests/contract/contract.test.ts`, `README.md`
+(`ZIMUARR_DATABASE_PATH`, backups and restore, running the build with `--no-install`),
+`docs/SPEC.md` (the status line, the tech-stack table, the `db:generate` and `smoke` Commands rows,
+the testing section, and "`bun ./build` needs no `node_modules`"), `docs/decisions.md` (D14 to
+Decided with the validated pair; D15 drops the backup procedure), `AGENTS.md`.
 
 **Size:** L. One coherent unit: D14's validation needs the client, the migrator and startup together
 in the built server.
@@ -75,26 +78,30 @@ logged, then thrown, and `handleError` logs unexpected errors through it.
 - [ ] `server/logging/logger.test.ts`: the entry's shape, one line per entry, debug dropped unless
   enabled, and the flush through a slow pipe.
 - [ ] `server/config/log-debug.test.ts`: `true`, `false`, empty as unset, and anything else refused
-  with one line that doesn't echo the value, checked before the database is opened.
-- [ ] `handleError` in `src/hooks.server.ts` logs through the logger: a test with a token in the
-  error's message and in the URL's query finds one redacted JSON entry with the path but no query,
-  at `error` for a 500 and `debug` for a 404, and the generic message returned.
-- [ ] A startup failure is one log entry and the thrown error; the built server still exits
-  non-zero before it listens (`setup.test.ts`, `secret-key.test.ts`).
+  with one line that doesn't echo the value; `startup.test.ts`: it is checked before the database
+  is opened.
+- [ ] `setup.test.ts`: the built server with a bad `ZIMUARR_LOG_DEBUG` exits non-zero before
+  "Listening on", printing one JSON entry that names the variable and never holds the value.
+- [ ] `server/logging/unexpected-error.ts`, which `handleError` in `src/hooks.server.ts` only calls,
+  logs through the logger: its test, with a token in the error's message and in the URL's query,
+  finds one redacted JSON entry with the path but no query, at `error` for a 500 and `debug` for a
+  404, and the generic message returned.
+- [ ] A startup failure is one log entry and the thrown error (`startup.test.ts`); the built server
+  still exits non-zero before it listens (`setup.test.ts`, `secret-key.test.ts`).
 - [ ] The contract harness tells log entries from the stand-in's event lines; the contract job
   passes.
 - [ ] No logging library.
 
-**Verification:** the gates; the built server with a bad `ZIMUARR_LOG_DEBUG` prints one JSON line.
+**Verification:** the gates.
 
 **Dependencies:** task 1.
 
 **Files:** `server/logging/logger.ts` (+ test), `server/logging/redact.ts` (+ test),
-`server/config/log-debug.ts` (+ test), `src/env.ts`, `src/hooks.server.ts`, the `handleError`
-test's home, `server/services/setup/startup.ts`, `tests/e2e/secret-key.test.ts` if the error's
-format changes, `tests/contract/contract.test.ts`, `README.md` (logs, `ZIMUARR_LOG_DEBUG`),
-`docs/decisions.md` (D13's logging half to D11, the job half stays open), `docs/SPEC.md` (the
-testing section), `AGENTS.md`.
+`server/config/log-debug.ts` (+ test), `server/logging/unexpected-error.ts` (+ test), `src/env.ts`,
+`src/hooks.server.ts`, `server/services/setup/startup.ts` (+ test), `tests/e2e/setup.test.ts`,
+`tests/e2e/secret-key.test.ts` if the error's format changes, `tests/contract/contract.test.ts`,
+`README.md` (logs, `ZIMUARR_LOG_DEBUG`), `docs/decisions.md` (D13's logging half to D11, the job
+half stays open), `docs/SPEC.md` (the testing section), `AGENTS.md`.
 
 **Size:** M.
 
@@ -136,14 +143,15 @@ section), `AGENTS.md`.
 - [ ] `server/services/health.test.ts` first fails, then passes, against a temporary file: `200 ok`
   on a working database, `503` on a read-only and a closed one, `503` within the bound from a probe
   that never answers, requests within the window sharing one probe, a new probe after it, no
-  success reused past it, and one entry per change of state.
+  success reused past it, no second probe while a timed-out one is still pending (later requests,
+  past the window, get `503` with a fake clock), and one entry per change of state.
 - [ ] `routes/healthz/server.test.ts` keeps `text/plain` and `Cache-Control: no-store`.
 - [ ] `settings.ts` gains the named operations to write and read a key.
 - [ ] `smoke.test.ts` and `setup.test.ts` still get `ok` from `/healthz`.
 
 **Verification:** the gates.
 
-**Dependencies:** task 3.
+**Dependencies:** tasks 1 and 2 (it follows task 3 only because one PR runs at a time).
 
 **Files:** `server/services/health.ts` (+ test), `src/routes/healthz/+server.ts` (+ test),
 `server/db/settings.ts` (+ test), `docs/SPEC.md` (ground-floor choice 5, the testing section),
@@ -164,7 +172,8 @@ choice 3 closes.
 **Acceptance criteria:**
 - [ ] `server/config/origin.test.ts` first fails, then passes: unset, and a bare origin with and
   without a trailing `/`, accepted; an empty value, a path (raw, before parsing), query, fragment
-  or credentials refused without echoing the value, before the database file is created.
+  or credentials refused without echoing the value; `startup.test.ts`: a bad `ORIGIN` stops
+  startup before the database file is created.
 - [ ] `server/security/headers.test.ts`: the spec's headers for HTTPS through `ORIGIN`, HTTPS
   through `Sec-Fetch-Site`, plain HTTP, `localhost`, `*.localhost` and loopback hosts, never
   `includeSubDomains`; and an immutable streaming response copied with its chunks still arriving
@@ -180,7 +189,7 @@ choice 3 closes.
 **Dependencies:** task 4.
 
 **Files:** `server/config/origin.ts` (+ test), `server/security/headers.ts` (+ test), `src/env.ts`,
-`src/hooks.server.ts`, `server/services/setup/startup.ts`, `vite.config.ts`,
+`src/hooks.server.ts`, `server/services/setup/startup.ts` (+ test), `vite.config.ts`,
 `tests/e2e/setup.test.ts`, `README.md` (`ORIGIN`), `docs/SPEC.md` (ground-floor choice 3, the
 testing section), `AGENTS.md`.
 
@@ -273,7 +282,8 @@ and Lucide join here. No gate yet.
 - [ ] `setup.test.ts`: a wrong token refused with the spec's message, the username kept and the
   token and password cleared; the right one, in upper case without dashes, claims and lands on
   `/`; `/setup` and its action then answer 404, also after a restart; a copy of the stopped,
-  claimed server's folder, started elsewhere with the same key, is claimed too (the backup test);
+  claimed server's folder, started elsewhere with the same key, prints no token and answers 404 at
+  `/setup` (the backup test);
   neither the token nor the password in a response or a log entry.
 - [ ] `@fontsource-variable/public-sans`, `@fontsource-variable/roboto-mono` and `@lucide/svelte`
   are exact-pinned dev dependencies; the root layout imports the fonts and `panda.config.ts` names
@@ -308,7 +318,8 @@ global setup claims the instance, so the smoke and language tests run on a claim
 
 **Acceptance criteria:**
 - [ ] `first-run.test.ts` gains the gate's decision for each path, the callback's path with any
-  method included, before and after the claim and after a restart.
+  method and SvelteKit's `__data.json` paths (`/__data.json`, `/x/__data.json`) included, before
+  and after the claim and after a restart.
 - [ ] `setup.test.ts`: every page sends a fresh instance to `/setup`, while `/healthz` answers `ok`
   and the callback's path answers with its own status; the gate's redirect carries the headers;
   after a restart on a claimed file, `/` is served without a redirect. The earlier tests that
