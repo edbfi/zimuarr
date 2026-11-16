@@ -15,6 +15,7 @@ describe("GET /healthz", () => {
 		const response = await get();
 		expect(response.status).toBe(200);
 		expect(await response.text()).toBe("ok");
+		expect(response.headers.get("content-type")).toBe("text/plain; charset=utf-8");
 		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
@@ -24,5 +25,6 @@ describe("GET /healthz", () => {
 		expect(response.status).toBe(503);
 		expect(await response.text()).toBe("unavailable");
 		expect(response.headers.get("content-type")).toBe("text/plain; charset=utf-8");
+		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 });

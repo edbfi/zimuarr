@@ -6,7 +6,7 @@ import { currentDatabase } from "./setup/startup.ts";
 const log = createLogger("health");
 
 /** The settings key the probe writes; nothing else reads it. */
-const HEALTH_KEY = "health.checked_at";
+export const HEALTH_KEY = "health.checked_at";
 
 /**
  * Writes the health row, commits it and reads it back. A read alone, or a write that is rolled
@@ -58,10 +58,13 @@ export function createHealthCheck({
 		const at = Date.now();
 		hung = true;
 		let timer: ReturnType<typeof setTimeout> | undefined;
-		const outcome = probe().then(
-			() => ({ healthy: true, error: undefined as unknown }),
-			(error: unknown) => ({ healthy: false, error }),
-		);
+		// A probe that throws before it returns a promise fails like any other, so `hung` is cleared.
+		const outcome = Promise.resolve()
+			.then(probe)
+			.then(
+				() => ({ healthy: true, error: undefined as unknown }),
+				(error: unknown) => ({ healthy: false, error }),
+			);
 		void outcome.finally(() => {
 			hung = false;
 		});

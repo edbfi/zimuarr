@@ -558,10 +558,10 @@ Biome's defaults with the shared `biome.json` (tabs, double quotes, 100 columns)
 `#lib/…` imports. File names and layout follow [Code structure](../AGENTS.md#code-structure).
 
 ```ts
-import { healthResponse } from "#lib/server/services/health.ts";
+import { checkHealth, healthResponse } from "#lib/server/services/health.ts";
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = () => healthResponse();
+export const GET: RequestHandler = async () => healthResponse(await checkHealth());
 ```
 
 ## Design tokens
@@ -584,11 +584,11 @@ export const GET: RequestHandler = () => healthResponse();
 
 - **Unit (Vitest's `unit` project, `node` environment):** next to their source: the `/healthz`
   handler (`ok` or `503 unavailable` from the health check, `cache-control: no-store`) and
-  `services/health.test.ts` (the probe against a real and a closed database, one probe per 5-second
-  window, `503` after 3 seconds, no second probe while one hangs, and one log entry per change of
-  state), the callback's modules, the contract job's case selection and the `secrets` module
-  (`config/secret-key.test.ts`, and `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts` and
-  `secret.test.ts` in `security/secrets/`, under `src/lib/server/`), `setup`'s (under
+  `services/health.test.ts` (the probe against a real, a read-only and a closed database, one probe
+  per 5-second window, `503` after 3 seconds, no second probe while one hangs, and one log entry per
+  change of state), the callback's modules, the contract job's case selection and the `secrets`
+  module (`config/secret-key.test.ts`, and `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts`
+  and `secret.test.ts` in `security/secrets/`, under `src/lib/server/`), `setup`'s (under
   `src/lib/server/`: `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on
   a new database, a second run applying nothing, and the rows compared with Drizzle Kit's file
   migrator's; `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and

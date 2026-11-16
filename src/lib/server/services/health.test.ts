@@ -1,11 +1,13 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { connect } from "@tursodatabase/database";
+import { drizzle } from "drizzle-orm/tursodatabase/database";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Database, openDatabase } from "#lib/server/db/client.ts";
 import { migrateDatabase } from "#lib/server/db/migrate.ts";
 import { readSetting } from "#lib/server/db/settings.ts";
-import { createHealthCheck, healthResponse, probeDatabase } from "./health.ts";
+import { createHealthCheck, HEALTH_KEY, healthResponse, probeDatabase } from "./health.ts";
 
 let root: string;
 
@@ -49,6 +51,21 @@ describe("probeDatabase", () => {
 		try {
 			await probeDatabase(db, new Date(1_700_000_000_000));
 			expect(await readSetting(db, "health.checked_at")).toBe("2023-11-14T22:13:20.000Z");
+		} finally {
+			await db.$client.close();
+		}
+	});
+
+	it("fails on a database it can read but not write", async () => {
+		const path = join(root, "read-only.db");
+		const writable = await newDatabase("read-only.db");
+		await writable.$client.close();
+		const db = drizzle({ client: await connect(path, { readonly: true }) });
+		try {
+			expect(await readSetting(db, HEALTH_KEY)).toBeUndefined();
+			await expect(probeDatabase(db, new Date())).rejects.toThrow();
+			const check = createHealthCheck({ probe: () => probeDatabase(db, new Date()) });
+			expect(await check()).toBe(false);
 		} finally {
 			await db.$client.close();
 		}
@@ -157,6 +174,21 @@ describe("createHealthCheck", () => {
 		await vi.advanceTimersByTimeAsync(3000);
 		expect(await first).toBe(false);
 		release();
+		await vi.advanceTimersByTimeAsync(5000);
+		expect(await check()).toBe(true);
+		expect(probe).toHaveBeenCalledTimes(2);
+	});
+
+	it("is unhealthy, and probes again later, when the probe throws before it returns a promise", async () => {
+		vi.useFakeTimers();
+		let open = false;
+		const probe = vi.fn((): Promise<void> => {
+			if (!open) throw new Error("the database is used before startup opened it");
+			return Promise.resolve();
+		});
+		const check = createHealthCheck({ probe });
+		expect(await check()).toBe(false);
+		open = true;
 		await vi.advanceTimersByTimeAsync(5000);
 		expect(await check()).toBe(true);
 		expect(probe).toHaveBeenCalledTimes(2);
