@@ -36,10 +36,11 @@ export default defineConfig({
 
 		tokens: {
 			fonts: {
-				// System fallbacks until the first surface bundles the font files locally.
-				display: { value: '"Public Sans", system-ui, sans-serif' },
-				body: { value: '"Public Sans", system-ui, sans-serif' },
-				mono: { value: '"Roboto Mono", monospace' },
+				// The family names the fontsource packages register (src/routes/+layout.svelte), with
+				// system fallbacks after them.
+				display: { value: '"Public Sans Variable", system-ui, sans-serif' },
+				body: { value: '"Public Sans Variable", system-ui, sans-serif' },
+				mono: { value: '"Roboto Mono Variable", monospace' },
 			},
 			fontSizes: {
 				display: { value: "56px" },

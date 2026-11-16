@@ -271,29 +271,29 @@ owner and moves the step pointer. It completes first run and sends the browser t
 and Lucide join here. No gate yet.
 
 **Acceptance criteria:**
-- [ ] `server/security/password.test.ts` first fails, then passes: the rules at their limits, NFC
+- [x] `server/security/password.test.ts` first fails, then passes: the rules at their limits, NFC
   and case, the patterns (obzorarr #337 and #342's cases), `zimuarr` and the username inside the
   password, the bundled list, and an argon2id round trip.
-- [ ] `security/common-passwords.txt` is obzorarr's file, unchanged; `password.ts` names its source
+- [x] `security/common-passwords.txt` is obzorarr's file, unchanged; `password.ts` names its source
   and how to rebuild it.
-- [ ] `server/services/setup/claim.test.ts`, against a temporary file: success; a field error
+- [x] `server/services/setup/claim.test.ts`, against a temporary file: success; a field error
   leaving the token unused; a wrong and an expired token never reaching the hash; a second claim;
   two at once leaving one owner; a failed transaction printing a new token, but none once stopping.
-- [ ] `first-run.test.ts`: a restart on a claimed database starts complete and prints nothing.
-- [ ] `setup.test.ts`: a wrong token refused with the spec's message, the username kept and the
+- [x] `first-run.test.ts`: a restart on a claimed database starts complete and prints nothing.
+- [x] `setup.test.ts`: a wrong token refused with the spec's message, the username kept and the
   token and password cleared; the right one, in upper case without dashes, claims and lands on
   `/`; `/setup` and its action then answer 404, also after a restart; a copy of the stopped,
   claimed server's folder, started elsewhere with the same key, prints no token and answers 404 at
   `/setup` (the backup test);
   neither the token nor the password in a response or a log entry.
-- [ ] `@fontsource-variable/public-sans`, `@fontsource-variable/roboto-mono` and `@lucide/svelte`
+- [x] `@fontsource-variable/public-sans`, `@fontsource-variable/roboto-mono` and `@lucide/svelte`
   are exact-pinned dev dependencies; the root layout imports the fonts and `panda.config.ts` names
   the families; the token field uses the `code` style.
-- [ ] The page follows `route-setup.md` through `/impeccable`, with the language switcher and the
+- [x] The page follows `route-setup.md` through `/impeccable`, with the language switcher and the
   text wordmark; every string is a `setup_…` message in both languages. Checked at 360, 390, 768
   and 1440 px, 200% zoom, the keyboard and reduced motion, in every state the brief names, in
   English and Danish, with captures in the PR body.
-- [ ] `routes/setup/token-format.test.ts`: the dashes, the caret and Backspace across a dash.
+- [x] `routes/setup/token-format.test.ts`: the dashes, the caret and Backspace across a dash.
 
 **Verification:** the gates; a claim by hand in `preview` over plain HTTP on a LAN address.
 

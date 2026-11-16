@@ -686,9 +686,10 @@ restart. Hydration is validated: the e2e smoke test waits for the hydrated app i
 the built server, with no console errors. So is browser interaction with a real component: the
 `i18n` e2e test presses the language switcher in Chromium against the built server.
 A crash test doesn't prove recovery from power loss or storage faults. The Turso backup and restore
-procedure is defined ([SPEC-setup.md](SPEC-setup.md#backup-and-restore)), with the database folder
-and the master key restored together; its restore test lands with `setup`'s claim. Each closes with
-the work that first depends on it.
+procedure is defined and tested ([SPEC-setup.md](SPEC-setup.md#backup-and-restore)): a stopped,
+claimed server's folder, copied and started elsewhere with the same master key, starts claimed. A
+restore with another key is tested once a secret is stored (`two-factor`). Each closes with the work
+that first depends on it.
 
 ### D16. One process
 

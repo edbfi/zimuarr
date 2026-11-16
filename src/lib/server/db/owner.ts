@@ -19,3 +19,14 @@ export async function ownerExists(db: Executor): Promise<boolean> {
 	const rows = await db.select({ id: owner.id }).from(owner).limit(1);
 	return rows.length > 0;
 }
+
+/**
+ * Creates the owner under the fixed id, so it fails when an owner exists already; the claim runs
+ * it inside its transaction.
+ */
+export async function insertOwner(
+	db: Executor,
+	values: { username: string; passwordHash: string; createdAt: Date },
+): Promise<void> {
+	await db.insert(owner).values({ id: 1, ...values });
+}
