@@ -15,33 +15,33 @@ D14's validation. Startup moves into `server/services/setup/startup.ts`: the key
 first migration; no operations yet. The README gives the backup procedure.
 
 **Acceptance criteria:**
-- [ ] `server/config/database-path.test.ts` first fails, then passes: the default against the
+- [x] `server/config/database-path.test.ts` first fails, then passes: the default against the
   working directory, an empty variable counting as unset, a folder that is created, and a folder
   that can't be created or written refused with one line naming the variable and never echoing the
   path, with a regular file as the parent, so it holds as root. `config/error-code.ts` holds the
   system-error helper `config/secret-key.ts` already has, and `config/config-error.ts` the error.
-- [ ] `server/db/migrate.test.ts` first fails, then passes, against a temporary file: the bundled
+- [x] `server/db/migrate.test.ts` first fails, then passes, against a temporary file: the bundled
   migrations apply to a new database, both tables exist, a second run applies nothing, and the rows
   match Drizzle Kit's file migrator's but for the empty `hash`.
-- [ ] `server/db/client.test.ts` holds D5's rollback-isolation check, which fails on
+- [x] `server/db/client.test.ts` holds D5's rollback-isolation check, which fails on
   `drizzle-orm@1.0.0-rc.4`.
-- [ ] `server/services/setup/startup.test.ts` first fails, then passes: the key, the configuration
+- [x] `server/services/setup/startup.test.ts` first fails, then passes: the key, the configuration
   and the database run in that order, and a failing step leaves no database opened or created.
-- [ ] `@tursodatabase/database`, `drizzle-orm` and `drizzle-kit` (`rc`) are exact-pinned dev
+- [x] `@tursodatabase/database`, `drizzle-orm` and `drizzle-kit` (`rc`) are exact-pinned dev
   dependencies at their newest releases (D27); `db:generate` runs Drizzle Kit, then
   `bun --bun biome format --write drizzle`; the first migration is generated, reviewed and
   committed; `drizzle.config.ts` lists `db/settings.ts` and `db/owner.ts`.
-- [ ] `settings` (key, value, update time) and `owner` (a fixed id, username, password hash,
+- [x] `settings` (key, value, update time) and `owner` (a fixed id, username, password hash,
   creation time; one row at most) match the spec.
-- [ ] `tests/e2e/setup.test.ts` first fails, then passes: the built server, on a new temporary
+- [x] `tests/e2e/setup.test.ts` first fails, then passes: the built server, on a new temporary
   file, starts, serves `/healthz`, and starts again on the same file applying nothing; it refuses
   an unwritable database folder without echoing the path. `playwright.config.ts` gives each run a
   temporary database, created and removed only in the runner process, and starts the server with
   `bun --no-install --no-env-file ./build`; `tests/e2e/secret-key.test.ts` starts its servers with
   `--no-install` too, its other flags unchanged.
-- [ ] `tests/contract/contract.test.ts` gives its server a database under `tests/contract/.state/`
+- [x] `tests/contract/contract.test.ts` gives its server a database under `tests/contract/.state/`
   and `--no-install`; the contract job passes.
-- [ ] D14's validation passes with its evidence in the PR body: migrations, `check`, the built
+- [x] D14's validation passes with its evidence in the PR body: migrations, `check`, the built
   server through the native binding on Linux arm64 (this machine) and x64 (CI's `smoke`), with only
   `build/` and the platform package in a folder, rollback isolation, and all of it with failing
   `node`, `npm` and `npx` on `PATH`.

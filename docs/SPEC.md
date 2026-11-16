@@ -4,7 +4,8 @@
 (2026-10-22) and built. The capability map below is approved; `contract-spike` is built
 ([SPEC-contract-spike.md](SPEC-contract-spike.md)), and so are `secrets`
 ([SPEC-secrets.md](SPEC-secrets.md)) and `i18n` ([SPEC-i18n.md](SPEC-i18n.md)); `setup` is specified
-in [SPEC-setup.md](SPEC-setup.md), approved by the owner (2026-11-16).
+in [SPEC-setup.md](SPEC-setup.md), approved by the owner (2026-11-16), and being built
+([tasks/plan.md](../tasks/plan.md)).
 
 ## Objective
 
@@ -487,8 +488,11 @@ Decision numbers in these blocks are zimuarr's; each app cites its own.
 
 The stack decisions are in [decisions.md](decisions.md) (D1–D11, D27). Versions are exact pins in
 `package.json` (Bun from its `packageManager` field) and `bun.lock`; Dependabot moves them to the
-newest stable release (D27). Every package is a dev dependency, so adapter-bun bundles it and
-`bun ./build` needs no `node_modules`.
+newest stable release (D27). Every package is a dev dependency, so adapter-bun bundles it, and
+`bun ./build` needs no `node_modules` but one: Turso's native binding can't be bundled, so its
+platform package (`@tursodatabase/database-linux-x64-gnu` or `-linux-arm64-gnu`) ships beside
+`build/`, and the built server starts with `bun --no-install` so a missing one isn't downloaded
+(D14).
 
 | Part | Package |
 |---|---|
@@ -504,6 +508,7 @@ newest stable release (D27). Every package is a dev dependency, so adapter-bun b
 | e2e | `@playwright/test` (Chromium) |
 | Lint and format | `@biomejs/biome` |
 | Translation | `@inlang/paraglide-js`, `@inlang/plugin-i18next` (its i18next JSON v4 files) |
+| Database | `@tursodatabase/database`, `drizzle-orm` and `drizzle-kit` (the `rc` dist-tag, D5, D27) |
 
 Setup facts for this stack:
 - SvelteKit 3 is configured through its Vite plugin (`vite.config.ts`); there's no
@@ -530,10 +535,11 @@ Setup facts for this stack:
 | `bun ci` | frozen install; `prepare` runs `svelte-kit sync`, the Paraglide compile and Panda codegen |
 | `bun run --bun dev` | Vite dev server; needs a key in `.env` or the environment, and without one every request fails with the key error |
 | `bun run --bun build` | production build through adapter-bun into `build/`; needs no key and never embeds one |
-| `bun run --bun preview` | runs the built server (`bun ./build`; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
+| `bun run --bun preview` | runs the built server (`bun --no-install ./build`, D14; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, the Paraglide compile, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch) |
-| `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests and the startup tests, with a key it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
+| `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests and `setup`'s, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
+| `bun run --bun db:generate` | Drizzle Kit generates a migration in `drizzle/` from the schema, then Biome formats it; review it before committing |
 | `bun run --bun lint` | `biome ci`, read-only; `biome.json` lists the file extensions Biome checks |
 | `bun run --bun contract:up` | starts the throwaway Bazarrs, Sonarr, Radarr, Caddy and nginx under a project of its own and provisions them (needs Docker) |
 | `bun run --bun contract` | builds zimuarr, starts it with a key it generates and runs every contract case but C5 |
@@ -580,12 +586,16 @@ export const GET: RequestHandler = () => healthResponse();
   handler (status 200, body `ok`, `cache-control: no-store`), the callback's modules, the contract
   job's case selection and the `secrets` module (`config/secret-key.test.ts`, and
   `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts` and `secret.test.ts` in
-  `security/secrets/`, under `src/lib/server/`), and `i18n`'s in `src/lib/shared/i18n/`: the
-  message check (`messages.test.ts`), which runs on `messages/*.json` and on in-memory files that
-  each break one of its rules; `format.test.ts`, which formats inside the language middleware for
-  each language and in several zones; and `language-name.test.ts`, which names D20's codes in both
-  languages and gives malformed and unknown codes back as given. Component tests use happy-dom
-  when components exist; never jsdom.
+  `security/secrets/`, under `src/lib/server/`), `setup`'s (under `src/lib/server/`:
+  `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on a new database, a
+  second run applying nothing, and the rows compared with Drizzle Kit's file migrator's;
+  `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
+  `services/setup/startup.test.ts`, the steps' order and a database path refused without echoing
+  it), and `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
+  `messages/*.json` and on in-memory files that each break one of its rules; `format.test.ts`, which
+  formats inside the language middleware for each language and in several zones; and
+  `language-name.test.ts`, which names D20's codes in both languages and gives malformed and unknown
+  codes back as given. Component tests use happy-dom when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
@@ -598,9 +608,15 @@ export const GET: RequestHandler = () => healthResponse();
     and that a browser whose header and `navigator.languages` disagree gets the server's choice,
     with no cookie written, even when it presses the current language; none logs a console error.
   - `secret-key.test.ts` checks that the built server refuses to start without a valid key.
+  - `setup.test.ts` starts its own built servers: one migrates a new database file and applies
+    nothing on a second start, one defaults to `data/zimuarr.db`, and a database folder that can't
+    be created or a path that isn't a database stops the server with one line that names the
+    variable and never the path.
+  - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
-  each run. `bun run --bun test` and prek run only the `unit` project.
+  each run and a database under `tests/contract/.state/`. `bun run --bun test` and prek run only the
+  `unit` project.
 - prek runs the unit tests (`tests` hook); CI's `smoke` job builds with no key and runs `smoke`.
 
 ## CI and repo tooling

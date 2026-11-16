@@ -55,8 +55,8 @@ The database is embedded Turso (`@tursodatabase/database`) through Drizzle
 Kit generates SQL migrations, which are reviewed and committed. Migrations run before the app
 accepts requests or starts jobs, with one migration owner per database.
 
-Drizzle must be the plain `1.0.0-rc.5` or a later `rc`-tagged or stable release (D27; validation
-open in D14) that keeps its Turso transaction fix (Drizzle
+Drizzle must be the plain `1.0.0-rc.5` or a later `rc`-tagged or stable release (D27; validated
+in D14) that keeps its Turso transaction fix (Drizzle
 [`25abe07`](https://github.com/drizzle-team/drizzle-orm/commit/25abe0785e09cb562d999c9b6b8d92d85e3e7053),
 using the API from [Turso #7898](https://github.com/tursodatabase/turso/pull/7898)). Never
 `1.0.0-rc.4`: it can roll back unrelated writes that share the connection, and upgrading Turso alone
@@ -118,6 +118,31 @@ Logs are structured, one entry per line, written to standard output, and never c
 library is open (D13).
 
 Why: the container runtime collects stdout; structured lines can be filtered without parsing prose.
+
+### D14. The Turso and Drizzle pair
+
+`@tursodatabase/database` 0.8.3 with `drizzle-orm` and `drizzle-kit` 1.0.0-rc.5 passed D5's
+validation in `setup`, on Linux arm64 and x64 with no `node`, `npm` or `npx` on `PATH`, as they had
+in obzorarr. `package.json` holds the current versions, and the tests below rerun on every update:
+- **Migrations:** Drizzle Kit generates them into `drizzle/`. The built server applies them from
+  its own bundle (Vite imports each `migration.sql` as text) through Drizzle's record migrator for
+  Turso, `drizzle-orm/tursodatabase/wasm-migrator`, and a second start applies nothing. It records
+  each migration's folder name and time as Drizzle Kit's file migrator does, but leaves the `hash`
+  empty; Drizzle reads the hash only to upgrade a migrations table from before 1.0, which no
+  zimuarr database has. `db/migrate.test.ts` compares the two on every run.
+- **Type checking** passes with the schema, client and migrator.
+- **The production build** opens the database through Turso's native binding. The binding can't
+  be bundled, because Turso's loader finds it with a runtime `require`, so the platform's package
+  (`@tursodatabase/database-linux-x64-gnu` or `-linux-arm64-gnu`) ships beside `build/`. Without
+  any `node_modules`, Bun would quietly download the package when the server starts, so the built
+  server is started with `--no-install`, which stops it with "Cannot find native binding" instead.
+- **Rollback isolation:** a transaction that rolls back leaves a concurrent write on the same
+  connection in place (`db/client.test.ts`, which fails on `1.0.0-rc.4`).
+
+Why: the plain release candidate carries the Turso transaction fix D5 needs, and every check D5
+named passed with it. Shipping one platform package is the fallback for a binding that can't be
+bundled; bundling it would mean copying a native file into wherever the bundler places Turso's
+loader, which breaks silently when the chunks move.
 
 ### D17. Shared opening modules and owner sign-in, in the same shape in every app
 
@@ -649,13 +674,6 @@ generated client.
 The logging library (D11) and the concrete job lifecycle implementation (D7) aren't chosen. Close
 before the first background job lands.
 
-### D14. Turso and Drizzle versions
-
-The exact Drizzle ORM and Drizzle Kit pair for Turso is still to be validated in the app: migrations,
-type checking, production builds and rollback isolation (D5). Only a focused rollback-isolation check
-has passed (Drizzle `1.0.0-rc.5-5935859` with Turso `0.8.3`); the plain `1.0.0-rc.5` carries the
-same fix, and the validation uses it. Closes with the first database module.
-
 ### D15. Runtime validation gaps
 
 Not yet validated for this stack: production containers, realistic load, and job recovery after a
@@ -663,8 +681,9 @@ restart. Hydration is validated: the e2e smoke test waits for the hydrated app i
 the built server, with no console errors. So is browser interaction with a real component: the
 `i18n` e2e test presses the language switcher in Chromium against the built server.
 A crash test doesn't prove recovery from power loss or storage faults. The Turso backup and restore
-procedure is still to be defined and tested; the database file and the secrets must be restored
-together. Each closes with the work that first depends on it.
+procedure is defined ([SPEC-setup.md](SPEC-setup.md#backup-and-restore)), with the database folder
+and the master key restored together; its restore test lands with `setup`'s claim. Each closes with
+the work that first depends on it.
 
 ### D16. One process
 
