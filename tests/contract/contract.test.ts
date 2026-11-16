@@ -77,8 +77,11 @@ class Zimuarr {
 				pending = lines.pop() ?? "";
 				for (const line of lines) {
 					if (line.startsWith("Listening on")) listening();
-					if (line.startsWith("{"))
-						server.events.push({ ...(JSON.parse(line) as CallbackEvent), seenAt: Date.now() });
+					if (!line.startsWith("{")) continue;
+					const parsed = JSON.parse(line) as CallbackEvent | { level: string; source: string };
+					// zimuarr's log entries share standard output with the stand-in's event lines.
+					if ("level" in parsed && "source" in parsed) continue;
+					server.events.push({ ...parsed, seenAt: Date.now() });
 				}
 			}
 		})();

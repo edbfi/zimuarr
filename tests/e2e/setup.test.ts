@@ -175,3 +175,49 @@ test.describe("the database", () => {
 		]);
 	});
 });
+
+test.describe("logging", () => {
+	test("a failed startup is one JSON log entry, and the bad value is never echoed", async () => {
+		const value = "verbose-please";
+		const { exitCode, output } = await runToExit(root, { ZIMUARR_LOG_DEBUG: value });
+
+		expect(output.includes(value), "output holds the value").toBe(false);
+		expect(exitCode).toBe(1);
+		expect(output).not.toContain("Listening on");
+		const entries = output
+			.split("\n")
+			.filter((line) => line.startsWith("{"))
+			.map((line) => JSON.parse(line));
+		expect(entries).toHaveLength(1);
+		expect(entries[0]).toMatchObject({
+			level: "error",
+			source: "startup",
+			message: "startup failed",
+			metadata: {
+				error: { name: "ConfigError", message: "ZIMUARR_LOG_DEBUG must be true or false" },
+			},
+		});
+	});
+
+	test("handleError logs a request's error through the logger, with the path but not the query", async () => {
+		const server = await startServer(root, { ZIMUARR_LOG_DEBUG: "true" });
+		const response = await fetch(`${server.url}/no-such-page?token=abcd-efgh-ijkl`);
+		expect(response.status).toBe(404);
+		await server.stop();
+
+		const output = server.output();
+		expect(output.includes("abcd-efgh-ijkl"), "output holds the query").toBe(false);
+		const entries = output
+			.split("\n")
+			.filter((line) => line.startsWith("{"))
+			.map((line) => JSON.parse(line))
+			.filter((entry) => entry.message === "unexpected error");
+		expect(entries).toEqual([
+			expect.objectContaining({
+				level: "debug",
+				source: "request",
+				metadata: expect.objectContaining({ status: 404, path: "/no-such-page" }),
+			}),
+		]);
+	});
+});

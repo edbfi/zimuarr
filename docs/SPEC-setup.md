@@ -117,6 +117,8 @@ while building:
 
 A failure in steps 1–4 is logged and thrown from `init`: the built server exits non-zero before it
 listens, and the dev server stays up with every request failing, as the key error already does.
+(zimuarr) The failure's entry is flushed first, for at most a second, so it isn't lost behind a
+slow reader.
 
 **Shutdown.** adapter-bun 1.0.1 already drains open requests for `SHUTDOWN_TIMEOUT`, then closes
 the rest, exits at once on a second signal, and emits `sveltekit:shutdown` without waiting for its
@@ -218,11 +220,15 @@ The tests add Bazarr's own credentials: its `apikey` query parameter and `X-Api-
 
 **Unexpected errors** in a page load, form action or endpoint reach SvelteKit's `handleError` hook
 in `hooks.server.ts`, which logs them through the logger, so they are redacted and one JSON line
-like every other entry, never SvelteKit's default `console.error` of the stack. It logs the error,
-the status and the request's path (never its query), at `error` for a status of 500 or more and at
-`debug` below it, so a scanner's 404s don't flood the log. It returns SvelteKit's generic message,
-never the error's own text or stack. (obzorarr has no `handleError`; the comradarr port found the
-gap, and the owner added it here, 2026-11-16.)
+like every other entry, never SvelteKit's default `console.error` of the stack. It logs SvelteKit's
+kind of error, the error, its status and the request's path (never its query), at `error` for an
+unknown error (SvelteKit's 500) or one of SvelteKit's own errors of 500 or more, and at `debug` for
+the rest, so a scanner's 404s don't flood the log. The app's own `error(…)` reaches the hook
+without its status, so it is a `debug` entry too, and the module that throws a 5xx that way logs
+its own cause. It returns nothing, so SvelteKit answers with its own message, the generic "Internal
+Error" for an unknown error, never the error's own text or stack. It never throws, since SvelteKit
+would then print the raw error: if logging fails, it writes one fixed line instead. (obzorarr has no `handleError`;
+the comradarr port found the gap, and the owner added it here, 2026-11-16.)
 
 Console output meant for whoever runs the server, such as the bootstrap token, is never a log
 entry. It still reaches the container's output, which is why the console is trusted (below).
@@ -501,7 +507,7 @@ src/lib/server/db/settings.ts               the settings table and its operation
 src/lib/server/db/owner.ts                  the owner table and its operations
 src/lib/server/logging/logger.ts            levels, entries, standard output, flushing
 src/lib/server/logging/redact.ts            the redaction rules
-src/lib/server/logging/unexpected-error.ts  what handleError logs and returns
+src/lib/server/logging/unexpected-error.ts  what handleError logs
 src/lib/server/security/access-denied.ts    the cross-origin refusal: the page or JSON
 src/lib/server/security/bootstrap-token.ts  the token: drawing, formatting, comparing, expiry
 src/lib/server/security/cross-origin.ts     the cross-origin check and the machine routes
@@ -544,8 +550,8 @@ and backups, the address browsers use, first run, logs, and stopping and the ser
     the growth check;
   - the logger's entry shape, the debug filter and the flush through a slow pipe;
   - `handleError`: an error holding a token in its message and a URL with a token in its query
-    logs one redacted JSON entry, at `error` for a 500 and `debug` for a 404, and returns only the
-    generic message;
+    logs one redacted JSON entry, at `error` for an unknown error and `debug` for a 404, and
+    returns nothing, so SvelteKit's own message stands;
   - the headers for HTTPS, plain HTTP, loopback and `ORIGIN`, and a copied response whose body
     still streams;
   - the cross-origin check against a matrix of methods, content types and `Origin`,

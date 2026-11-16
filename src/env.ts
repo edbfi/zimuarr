@@ -1,5 +1,6 @@
 import { defineEnvVars, type EnvVarConfig } from "@sveltejs/kit/env";
 import type { DatabasePathEnv } from "#lib/server/config/database-path.ts";
+import type { LogDebugEnv } from "#lib/server/config/log-debug.ts";
 import type { SecretKeyVariable } from "#lib/server/config/secret-key.ts";
 
 // Optional and never throwing: SvelteKit's own validation would otherwise print its own message
@@ -22,7 +23,11 @@ const setup = {
 		schema: optional,
 		description: "The database file's path; data/zimuarr.db in the working directory if unset.",
 	},
-} satisfies Record<keyof DatabasePathEnv, EnvVarConfig<string | undefined>>;
+	ZIMUARR_LOG_DEBUG: {
+		schema: optional,
+		description: "Whether debug log entries are written: true or false; off if unset.",
+	},
+} satisfies Record<keyof DatabasePathEnv | keyof LogDebugEnv, EnvVarConfig<string | undefined>>;
 
 // SvelteKit exposes only the variables declared here, through `$app/env/private`. The contract
 // spike's are optional too: unset reads as `undefined`, so a normal install starts without them.

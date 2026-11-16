@@ -66,7 +66,7 @@ endpoint as its own task.
 ### Phase 1: the foundations
 
 - [x] Task 1: the database (D14) and the backup procedure
-- [ ] Task 2: logging with redaction, and `handleError`
+- [x] Task 2: logging with redaction, and `handleError`
 - [ ] Task 3: shutdown
 - [ ] Task 4: the health endpoint
 

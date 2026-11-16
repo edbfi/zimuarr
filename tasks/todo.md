@@ -71,26 +71,27 @@ redacted before it is written, with debug behind `ZIMUARR_LOG_DEBUG`. A failed s
 logged, then thrown, and `handleError` logs unexpected errors through it.
 
 **Acceptance criteria:**
-- [ ] `server/logging/redact.test.ts` first fails, then passes: obzorarr's cases at `b59b909`
+- [x] `server/logging/redact.test.ts` first fails, then passes: obzorarr's cases at `b59b909`
   (every rule on its own and nested, encoded nested values, errors and their causes, the growth
   check for linear time) without the Plex allowlist cases, plus Bazarr's `apikey` query parameter
   and `X-Api-Key` header. The allowlist is empty.
-- [ ] `server/logging/logger.test.ts`: the entry's shape, one line per entry, debug dropped unless
+- [x] `server/logging/logger.test.ts`: the entry's shape, one line per entry, debug dropped unless
   enabled, and the flush through a slow pipe.
-- [ ] `server/config/log-debug.test.ts`: `true`, `false`, empty as unset, and anything else refused
+- [x] `server/config/log-debug.test.ts`: `true`, `false`, empty as unset, and anything else refused
   with one line that doesn't echo the value; `startup.test.ts`: it is checked before the database
   is opened.
-- [ ] `setup.test.ts`: the built server with a bad `ZIMUARR_LOG_DEBUG` exits non-zero before
+- [x] `setup.test.ts`: the built server with a bad `ZIMUARR_LOG_DEBUG` exits non-zero before
   "Listening on", printing one JSON entry that names the variable and never holds the value.
-- [ ] `server/logging/unexpected-error.ts`, which `handleError` in `src/hooks.server.ts` only calls,
+- [x] `server/logging/unexpected-error.ts`, which `handleError` in `src/hooks.server.ts` only calls,
   logs through the logger: its test, with a token in the error's message and in the URL's query,
-  finds one redacted JSON entry with the path but no query, at `error` for a 500 and `debug` for a
-  404, and the generic message returned.
-- [ ] A startup failure is one log entry and the thrown error (`startup.test.ts`); the built server
+  finds one redacted JSON entry with the path but no query, at `error` for an unknown error and
+  `debug` for a 404, and nothing returned, so SvelteKit's generic message stands; `setup.test.ts`
+  finds the built server's 404 logged that way.
+- [x] A startup failure is one log entry and the thrown error (`startup.test.ts`); the built server
   still exits non-zero before it listens (`setup.test.ts`, `secret-key.test.ts`).
-- [ ] The contract harness tells log entries from the stand-in's event lines; the contract job
+- [x] The contract harness tells log entries from the stand-in's event lines; the contract job
   passes.
-- [ ] No logging library.
+- [x] No logging library.
 
 **Verification:** the gates.
 
