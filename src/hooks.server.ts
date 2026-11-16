@@ -6,6 +6,8 @@ import {
 } from "@sveltejs/kit/hooks";
 import { paraglideMiddleware } from "#lib/paraglide/server.js";
 import { logUnexpectedError } from "#lib/server/logging/unexpected-error.ts";
+import { accessDenied } from "#lib/server/security/access-denied.ts";
+import { crossOriginAllowed } from "#lib/server/security/cross-origin.ts";
 import { securityHeaders, withSecurityHeaders } from "#lib/server/security/headers.ts";
 import { currentOrigin, startUp } from "#lib/server/services/setup/startup.ts";
 import { building, dev } from "$app/env";
@@ -32,7 +34,25 @@ const language: Handle = ({ event, resolve }) =>
 const headers: Handle = async ({ event, resolve }) =>
 	withSecurityHeaders(await resolve(event), securityHeaders(event.request, currentOrigin()));
 
-export const handle = sequence(language, headers);
+/**
+ * The cross-origin check on every state-changing request, which replaces SvelteKit's own form
+ * check; a refusal is returned, never thrown, so it keeps the language and the headers. Bazarr's
+ * callback, with neither browser header, goes on to its own key check (SPEC-setup.md).
+ */
+const crossOrigin: Handle = ({ event, resolve }) =>
+	crossOriginAllowed(
+		{
+			method: event.request.method,
+			path: event.url.pathname,
+			headers: event.request.headers,
+			isSubRequest: event.isSubRequest,
+		},
+		currentOrigin(),
+	)
+		? resolve(event)
+		: accessDenied(event.request);
+
+export const handle = sequence(language, headers, crossOrigin);
 
 /**
  * Every error a load, action or endpoint throws goes through the logger, redacted, instead of

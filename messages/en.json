@@ -1,5 +1,7 @@
 {
 	"placeholder_title": "{{name}} is being rebuilt.",
 	"placeholder_status": "Sign-in, the first Bazarr connection and the operator dashboard are on their way back. No translations run yet.",
-	"language_switcher_label": "Language"
+	"language_switcher_label": "Language",
+	"error_access_denied_title": "Access denied",
+	"error_access_denied_description": "The request was refused because it didn't come from this site."
 }

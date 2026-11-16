@@ -111,7 +111,9 @@ binding for your platform, as `bun ci` installs it:
 
 ## The address browsers use
 
-`ORIGIN` is optional. It tells Zimuarr the address browsers use, as a bare origin with no path:
+Zimuarr asks each browser where a form or other change came from, and refuses one sent from
+another site with "Access denied". So it needs no address of its own: `ORIGIN` is optional, and
+tells Zimuarr the address browsers use, as a bare origin with no path:
 
 | Variable | Holds | Default |
 | --- | --- | --- |
@@ -120,7 +122,14 @@ binding for your platform, as `bun ci` installs it:
 Zimuarr won't start if `ORIGIN` is empty or holds a path, a query, a fragment or credentials; leave
 it out instead. Over HTTPS, when `ORIGIN` is `https`, or, with `ORIGIN` unset, when the browser's
 request shows HTTPS, pages ask browsers to keep using HTTPS. `ORIGIN` is never the address Bazarr calls Zimuarr at; that is set per Bazarr
-instance.
+instance, and Bazarr's calls aren't refused, since they come from no browser and carry their key.
+
+**When Zimuarr refuses its own forms with "Access denied":** behind a reverse proxy that rewrites
+the `Host` header, Zimuarr can't match the browser's address to the one it was asked for. Set
+`ORIGIN` to the address browsers use, or have the proxy pass the browser's `Host` on: in nginx,
+`proxy_set_header Host $http_host;` (not `$host`, which drops a port that isn't the default). Over
+plain HTTP this affects every browser; over HTTPS only older ones (Safari before 16.4, Firefox
+before 90, Chrome before 76), since current browsers say where a request came from themselves.
 
 ## Logs
 

@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { expect, test } from "@playwright/test";
+import { chromium, expect, type Page, test } from "@playwright/test";
 import { connect } from "@tursodatabase/database";
 
 // `setup` on the built server (docs/SPEC.md, "Testing strategy"). Each test starts its own server,
@@ -358,4 +358,142 @@ test.describe("security headers and the CSP", () => {
 			expect(lines).toEqual([`ConfigError: ${message}`]);
 		});
 	}
+});
+
+test.describe("the cross-origin check", () => {
+	const REFUSAL_POLICY =
+		"default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+
+	/** Serves a page as `http://evil.test/` that posts a form to `target` as soon as it loads. */
+	async function postFromAnotherSite(page: Page, target: string) {
+		await page.route("http://evil.test/", (route) =>
+			route.fulfill({
+				contentType: "text/html",
+				body: `<form method="post" action="${target}"><input name="a" value="1"></form>
+					<script>document.forms[0].submit()</script>`,
+			}),
+		);
+		const answer = page.waitForResponse((response) => response.url() === target);
+		await page.goto("http://evil.test/");
+		return answer;
+	}
+
+	test("a cross-site form POST gets the Access denied page, with the headers, its own policy and the viewer's language", async ({
+		browser,
+	}) => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+		});
+		const context = await browser.newContext({ locale: "da-DK" });
+		try {
+			const page = await context.newPage();
+			const response = await postFromAnotherSite(page, `${server.url}/`);
+			expect(response.status()).toBe(403);
+			const headers = response.headers();
+			expect(headers["content-security-policy"]).toBe(REFUSAL_POLICY);
+			expect(headers["x-frame-options"]).toBe("DENY");
+			expect(headers["referrer-policy"]).toBe("same-origin");
+			await expect(page.locator("html")).toHaveAttribute("lang", "da");
+			await expect(page.locator("h1")).toHaveText("Adgang nægtet");
+			await expect(page).toHaveTitle("Adgang nægtet");
+		} finally {
+			await context.close();
+			await server.stop();
+		}
+	});
+
+	test("on localhost, a same-origin POST without Sec-Fetch headers passes, and a JSON caller from another site gets JSON", async () => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+		});
+		try {
+			const url = server.url.replace("127.0.0.1", "localhost");
+			const post = () =>
+				request(`${url}/`, {
+					method: "POST",
+					headers: { origin: url, "content-type": "application/x-www-form-urlencoded" },
+					body: "a=1",
+				});
+			// Past the check, SvelteKit answers that `/` has no form actions.
+			expect((await post()).status).toBe(405);
+
+			const other = await fetch(`${url}/`, {
+				method: "POST",
+				headers: { origin: "http://evil.test", accept: "application/json" },
+				body: "{}",
+			});
+			expect(other.status).toBe(403);
+			expect(await other.json()).toEqual({
+				message: "The request was refused because it didn't come from this site.",
+			});
+			expect(other.headers.get("x-frame-options")).toBe("DENY");
+		} finally {
+			await server.stop();
+		}
+	});
+
+	test("on a plain-HTTP host name that isn't loopback, the app's own form passes and another site's is refused", async () => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+		});
+		// Chromium sends no Sec-Fetch headers to app.test over plain HTTP, so the check compares
+		// Origin with Host there.
+		const browser = await chromium.launch({
+			args: ["--host-resolver-rules=MAP app.test 127.0.0.1"],
+		});
+		try {
+			const page = await browser.newPage();
+			const appUrl = server.url.replace("127.0.0.1", "app.test");
+			await page.goto(`${appUrl}/`);
+			const own = page.waitForResponse(
+				(response) => response.url() === `${appUrl}/` && response.request().method() === "POST",
+			);
+			await page.evaluate(() => {
+				const form = document.createElement("form");
+				form.method = "post";
+				form.action = "/";
+				document.body.append(form);
+				form.submit();
+			});
+			const ownResponse = await own;
+			// `headerValue` reads what Chromium sent; `headers()` leaves out the Sec-Fetch headers.
+			expect(await ownResponse.request().headerValue("sec-fetch-site")).toBeNull();
+			expect(ownResponse.status()).toBe(405);
+
+			const other = await postFromAnotherSite(page, `${appUrl}/`);
+			expect(await other.request().headerValue("sec-fetch-site")).toBeNull();
+			expect(other.status()).toBe(403);
+		} finally {
+			await browser.close();
+			await server.stop();
+		}
+	});
+
+	test("with ORIGIN set, Bazarr's callback, with neither browser header, still reaches its route", async () => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+			ORIGIN: "https://zimuarr.example",
+		});
+		try {
+			// As Bazarr sends it (D20, C1): JSON, its key, and no Origin or Sec-Fetch-Site.
+			const callback = await request(`${server.url}/bazarr/api/translate/content`, {
+				method: "POST",
+				headers: { "content-type": "application/json", "x-api-key": "k" },
+				body: "{}",
+			});
+			// The route's own answer, off while the contract spike's keys are unset: its plain-text
+			// 404, not SvelteKit's page for a missing route.
+			expect(callback.status).toBe(404);
+			expect(await callback.text()).toBe("Not Found");
+			// Any other path with neither header is refused.
+			const other = await request(`${server.url}/`, {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: "{}",
+			});
+			expect(other.status).toBe(403);
+		} finally {
+			await server.stop();
+		}
+	});
 });

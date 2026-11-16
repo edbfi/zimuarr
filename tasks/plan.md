@@ -80,7 +80,7 @@ endpoint as its own task.
 ### Phase 2: the request checks
 
 - [x] Task 5: `ORIGIN`, the security headers and the CSP
-- [ ] Task 6: the cross-origin check
+- [x] Task 6: the cross-origin check
 
 ### Checkpoint: after task 6
 
