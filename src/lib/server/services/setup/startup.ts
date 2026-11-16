@@ -31,7 +31,17 @@ export async function startUp(env: StartupEnv): Promise<void> {
 		log.error("startup failed", { error });
 		// The built server exits once this throws, so the entry that explains why leaves first, even
 		// behind a slow reader; a stuck one can't hold startup up for long.
-		await Promise.race([flushLogs(), new Promise((done) => setTimeout(done, FAILURE_FLUSH_MS))]);
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		try {
+			await Promise.race([
+				flushLogs(),
+				new Promise((done) => {
+					timer = setTimeout(done, FAILURE_FLUSH_MS);
+				}),
+			]);
+		} finally {
+			clearTimeout(timer);
+		}
 		throw error;
 	}
 }

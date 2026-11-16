@@ -117,6 +117,8 @@ while building:
 
 A failure in steps 1–4 is logged and thrown from `init`: the built server exits non-zero before it
 listens, and the dev server stays up with every request failing, as the key error already does.
+(zimuarr) The failure's entry is flushed first, for at most a second, so it isn't lost behind a
+slow reader.
 
 **Shutdown.** adapter-bun 1.0.1 already drains open requests for `SHUTDOWN_TIMEOUT`, then closes
 the rest, exits at once on a second signal, and emits `sveltekit:shutdown` without waiting for its
@@ -225,8 +227,7 @@ the rest, so a scanner's 404s don't flood the log. The app's own `error(…)` re
 without its status, so it is a `debug` entry too, and the module that throws a 5xx that way logs
 its own cause. It returns nothing, so SvelteKit answers with its own message, the generic "Internal
 Error" for an unknown error, never the error's own text or stack. It never throws, since SvelteKit
-would then print the raw error: if logging fails, it writes one fixed line instead. A failed
-startup flushes its entry, for at most a second, before it throws. (obzorarr has no `handleError`;
+would then print the raw error: if logging fails, it writes one fixed line instead. (obzorarr has no `handleError`;
 the comradarr port found the gap, and the owner added it here, 2026-11-16.)
 
 Console output meant for whoever runs the server, such as the bootstrap token, is never a log
