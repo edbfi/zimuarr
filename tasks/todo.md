@@ -318,18 +318,18 @@ except `/setup`, `/healthz` and the machine routes' paths gets a 303 to `/setup`
 global setup claims the instance, so the smoke and language tests run on a claimed instance.
 
 **Acceptance criteria:**
-- [ ] `first-run.test.ts` gains the gate's decision for each path, the callback's path with any
+- [x] `first-run.test.ts` gains the gate's decision for each path, the callback's path with any
   method and SvelteKit's `__data.json` paths (`/__data.json`, `/x/__data.json`) included, before
   and after the claim and after a restart.
-- [ ] `setup.test.ts`: every page sends a fresh instance to `/setup`, while `/healthz` answers `ok`
+- [x] `setup.test.ts`: every page sends a fresh instance to `/setup`, while `/healthz` answers `ok`
   and the callback's path answers with its own status; the gate's redirect carries the headers;
   after a restart on a claimed file, `/` is served without a redirect. The earlier tests that
   expect a 404 or a same-origin POST's 405 claim their own servers first.
-- [ ] `playwright.config.ts`: the `wait.stdout` pattern runs from the token line through
+- [x] `playwright.config.ts`: the `wait.stdout` pattern runs from the token line through
   "Listening on" and replaces the `url` check; `tests/e2e/global-setup.ts` claims through the form;
   `smoke.test.ts` and `i18n.test.ts` pass unchanged.
-- [ ] The contract job passes against an unclaimed server.
-- [ ] The README's first run: the token in the console, `/setup`, the password rules, and who can
+- [x] The contract job passes against an unclaimed server.
+- [x] The README's first run: the token in the console, `/setup`, the password rules, and who can
   claim.
 
 **Verification:** the gates; success criterion 2 by hand: a fresh built server prints a token, sends

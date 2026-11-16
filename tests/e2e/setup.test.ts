@@ -201,6 +201,8 @@ test.describe("logging", () => {
 
 	test("handleError logs a request's error through the logger, with the path but not the query", async () => {
 		const server = await startServer(root, { ZIMUARR_LOG_DEBUG: "true" });
+		// A 404 page, which only a claimed instance serves.
+		await claim(server);
 		const response = await fetch(`${server.url}/no-such-page?token=abcd-efgh-ijkl`);
 		expect(response.status).toBe(404);
 		await server.stop();
@@ -275,16 +277,17 @@ test.describe("security headers and the CSP", () => {
 		"permissions-policy": "camera=(), microphone=(), geolocation=()",
 	};
 
-	test("every response that passes through handle carries them, and no HSTS over plain HTTP", async () => {
+	test("every response that passes through handle carries them, the gate's redirect too, and no HSTS over plain HTTP", async () => {
 		const server = await startServer(root, {
 			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
 		});
 		try {
 			const statuses: Record<string, number> = {};
+			// Unclaimed, `/` is the gate's redirect.
 			const responses: [string, Response][] = [
+				["/setup", await request(`${server.url}/setup`)],
 				["/", await request(`${server.url}/`)],
 				["/healthz", await request(`${server.url}/healthz`)],
-				["a 404", await request(`${server.url}/no-such-page`)],
 				// Bazarr's callback, off while the contract spike's keys are unset.
 				[
 					"the callback",
@@ -295,6 +298,8 @@ test.describe("security headers and the CSP", () => {
 					}),
 				],
 			];
+			await claim(server);
+			responses.push(["a 404", await request(`${server.url}/no-such-page`)]);
 			for (const [what, response] of responses) {
 				for (const [name, value] of Object.entries(ALWAYS)) {
 					expect(response.headers.get(name), `${name} on ${what}`).toBe(value);
@@ -302,7 +307,13 @@ test.describe("security headers and the CSP", () => {
 				expect(response.headers.get("strict-transport-security"), what).toBeNull();
 				statuses[what] = response.status;
 			}
-			expect(statuses).toEqual({ "/": 200, "/healthz": 200, "a 404": 404, "the callback": 404 });
+			expect(statuses).toEqual({
+				"/setup": 200,
+				"/": 303,
+				"/healthz": 200,
+				"the callback": 404,
+				"a 404": 404,
+			});
 		} finally {
 			await server.stop();
 		}
@@ -434,7 +445,12 @@ test.describe("the cross-origin check", () => {
 					headers: { origin: url, "content-type": "application/x-www-form-urlencoded" },
 					body: "a=1",
 				});
-			// Past the check, SvelteKit answers that `/` has no form actions.
+			// Past the check, an unclaimed instance's gate sends it to `/setup`.
+			const unclaimed = await post();
+			expect(unclaimed.status).toBe(303);
+			expect(unclaimed.headers.get("location")).toBe("/setup");
+			await claim(server);
+			// Once claimed, SvelteKit answers that `/` has no form actions.
 			expect((await post()).status).toBe(405);
 
 			const other = await fetch(`${url}/`, {
@@ -456,6 +472,7 @@ test.describe("the cross-origin check", () => {
 		const server = await startServer(root, {
 			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
 		});
+		await claim(server);
 		// Chromium sends no Sec-Fetch headers to app.test over plain HTTP, so the check compares
 		// Origin with Host there.
 		const browser = await chromium.launch({
@@ -518,6 +535,46 @@ test.describe("the cross-origin check", () => {
 	});
 });
 
+test.describe("the setup gate", () => {
+	test("every page sends a fresh instance to /setup, while /healthz and the callback answer for themselves", async ({
+		page,
+	}) => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+		});
+		try {
+			for (const path of ["/", "/no-such-page", "/healthz/more", "/setup/more"]) {
+				const response = await request(`${server.url}${path}`);
+				expect(response.status, path).toBe(303);
+				expect(response.headers.get("location"), path).toBe("/setup");
+			}
+			const post = await request(`${server.url}/`, {
+				method: "POST",
+				headers: { origin: server.url, "content-type": "application/x-www-form-urlencoded" },
+				body: "a=1",
+			});
+			expect(post.status).toBe(303);
+			expect((await request(`${server.url}/setup`)).status).toBe(200);
+			expect(await (await request(`${server.url}/healthz`)).text()).toBe("ok");
+			// Bazarr's callback answers with its own status, here the spike's plain-text 404.
+			const callback = await request(`${server.url}/bazarr/api/translate/content`, {
+				method: "POST",
+				headers: { "content-type": "application/json", "x-api-key": "k" },
+				body: "{}",
+			});
+			expect(callback.status).toBe(404);
+			expect(await callback.text()).toBe("Not Found");
+			// Its path is open whatever the method: a GET gets the route's own 405, not the gate's 303.
+			expect((await request(`${server.url}/bazarr/api/translate/content`)).status).toBe(405);
+
+			await page.goto(`${server.url}/`);
+			await expect(page).toHaveURL(`${server.url}/setup`);
+		} finally {
+			await server.stop();
+		}
+	});
+});
+
 test.describe("the bootstrap token", () => {
 	test("a fresh built server prints it before it listens, in no log entry or response", async () => {
 		const server = await startServer(root, {
@@ -541,7 +598,9 @@ test.describe("the bootstrap token", () => {
 			// Neither form of the token, with or without its dashes, appears anywhere else.
 			const forms = [token ?? "", (token ?? "").replaceAll("-", "")];
 			const entries = output.split("\n").filter((text) => text.startsWith("{"));
-			expect(entries.length, "the 404 was logged at debug").toBeGreaterThan(0);
+			expect(entries.length, "the server logged entries, its shutdown's at least").toBeGreaterThan(
+				0,
+			);
 			for (const form of forms) {
 				expect(
 					entries.some((entry) => entry.includes(form)),

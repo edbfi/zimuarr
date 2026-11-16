@@ -9,6 +9,7 @@ import {
 	TOKEN_LIFETIME_MS,
 	tokenMatches,
 } from "#lib/server/security/bootstrap-token.ts";
+import { MACHINE_ROUTES } from "#lib/server/security/cross-origin.ts";
 
 /**
  * The settings key of first run's step pointer. The claim is the only step until `two-factor`
@@ -76,6 +77,25 @@ export function isClaimed(): boolean {
 /** Whether first run is complete, after which its steps answer "not found". */
 export function isFirstRunComplete(): boolean {
 	return complete;
+}
+
+/** The claim, first run's only step until `two-factor` adds the next. */
+const CURRENT_STEP = "/setup";
+
+/**
+ * Paths the gate lets through before first run is complete, besides the current step: `/healthz`
+ * and the cross-origin check's machine routes, whatever the method, so Bazarr's callback answers
+ * with its own status (SPEC-setup.md, "First run").
+ */
+const ALWAYS_OPEN = new Set(["/healthz", ...MACHINE_ROUTES.map((route) => route.path)]);
+
+/**
+ * The setup gate's decision for a request's path: until first run is complete, every path but the
+ * current step and the open ones is sent to that step; once it is complete, none is.
+ */
+export function firstRunRedirect(path: string): string | undefined {
+	if (complete || path === CURRENT_STEP || ALWAYS_OPEN.has(path)) return undefined;
+	return CURRENT_STEP;
 }
 
 /**

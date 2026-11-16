@@ -9,8 +9,10 @@ import { writeSetting } from "#lib/server/db/settings.ts";
 import {
 	FIRST_RUN_COMPLETE,
 	FIRST_RUN_STEP_KEY,
+	firstRunRedirect,
 	isClaimed,
 	isFirstRunComplete,
+	markClaimed,
 	startFirstRun,
 	stopFirstRun,
 	withClaimInProgress,
@@ -138,6 +140,44 @@ describe("first run's bootstrap token", () => {
 	});
 });
 
+describe("the setup gate", () => {
+	const PATHS = [
+		"/",
+		"/no-such-page",
+		"/setup",
+		"/setup/more",
+		"/healthz",
+		"/healthz/more",
+		// SvelteKit strips `__data.json` before `handle`, but the gate decides on what it is given.
+		"/__data.json",
+		"/x/__data.json",
+		// Bazarr's callback: a machine route, let through whatever the method (SPEC-setup.md).
+		"/bazarr/api/translate/content",
+		"/bazarr/api/translate/content/",
+		"/bazarr/api/translate",
+	];
+
+	it("sends every path but /setup, /healthz and the callback's to /setup until the claim, then none", async () => {
+		await startFirstRun({ db: await newDatabase(), origin: undefined, print: () => {} });
+		expect(Object.fromEntries(PATHS.map((path) => [path, firstRunRedirect(path)]))).toEqual({
+			"/": "/setup",
+			"/no-such-page": "/setup",
+			"/setup": undefined,
+			"/setup/more": "/setup",
+			"/healthz": undefined,
+			"/healthz/more": "/setup",
+			"/__data.json": "/setup",
+			"/x/__data.json": "/setup",
+			"/bazarr/api/translate/content": undefined,
+			"/bazarr/api/translate/content/": "/setup",
+			"/bazarr/api/translate": "/setup",
+		});
+
+		markClaimed();
+		for (const path of PATHS) expect(firstRunRedirect(path), path).toBeUndefined();
+	});
+});
+
 describe("first run after a restart", () => {
 	it("starts complete on a database an earlier process claimed, and prints nothing", async () => {
 		// First a fresh instance, so the flags start false and must be read back from the database.
@@ -154,6 +194,7 @@ describe("first run after a restart", () => {
 		await startFirstRun({ db, origin: undefined, print: (line) => printed.push(line) });
 		expect(isClaimed()).toBe(true);
 		expect(isFirstRunComplete()).toBe(true);
+		expect(firstRunRedirect("/")).toBeUndefined();
 		expect(printed).toEqual([]);
 	});
 });
