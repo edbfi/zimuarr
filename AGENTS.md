@@ -271,13 +271,12 @@ rewritten from scratch; the previous version is on the `legacy-old/v1` branch, f
 **Status:** the ground floor is built: a SvelteKit app on Bun with Panda tokens, `/healthz`, unit
 tests, one e2e smoke and the Bun web CI ([`docs/SPEC.md`](docs/SPEC.md)). Module 1,
 `contract-spike`, is built: Bazarr's callback answered by a stand-in translator and the contract
-tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-spike.md)).
-Module 2, `secrets` ([`docs/SPEC-secrets.md`](docs/SPEC-secrets.md)), is built and ready for
-consumers. Nothing stores a secret yet. Module 3, `i18n`
-([`docs/SPEC-i18n.md`](docs/SPEC-i18n.md)), is built: English and Danish messages, each request's
-language, the language switcher, formatting and subtitle-language names. Module 4, `setup`
-([`docs/SPEC-setup.md`](docs/SPEC-setup.md)), is being built ([`tasks/plan.md`](tasks/plan.md)):
-startup opens and migrates the database. The other product
+tests against a real Bazarr ([`docs/SPEC-contract-spike.md`](docs/SPEC-contract-spike.md)). Module
+2, `secrets` ([`docs/SPEC-secrets.md`](docs/SPEC-secrets.md)), is built and ready for consumers.
+Nothing stores a secret yet. Module 3, `i18n` ([`docs/SPEC-i18n.md`](docs/SPEC-i18n.md)), is built:
+English and Danish messages, each request's language, the language switcher, formatting and
+subtitle-language names. Module 4, `setup` ([`docs/SPEC-setup.md`](docs/SPEC-setup.md)), is being
+built ([`tasks/plan.md`](tasks/plan.md)): startup opens and migrates the database. The other product
 modules come next, in the order of the approved capability map in `docs/SPEC.md`, each through an
 owner-approved `docs/SPEC-<id>.md`.
 

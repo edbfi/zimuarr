@@ -535,7 +535,7 @@ Setup facts for this stack:
 | `bun ci` | frozen install; `prepare` runs `svelte-kit sync`, the Paraglide compile and Panda codegen |
 | `bun run --bun dev` | Vite dev server; needs a key in `.env` or the environment, and without one every request fails with the key error |
 | `bun run --bun build` | production build through adapter-bun into `build/`; needs no key and never embeds one |
-| `bun run --bun preview` | runs the built server (`bun ./build`; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
+| `bun run --bun preview` | runs the built server (`bun --no-install ./build`, so a missing Turso binding stops it, D14; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, the Paraglide compile, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch) |
 | `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests and `setup`'s, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
@@ -587,16 +587,15 @@ export const GET: RequestHandler = () => healthResponse();
   job's case selection and the `secrets` module (`config/secret-key.test.ts`, and
   `key-text.test.ts`, `keyring.test.ts`, `cipher.test.ts` and `secret.test.ts` in
   `security/secrets/`, under `src/lib/server/`), `setup`'s (under `src/lib/server/`:
-  `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on a new database,
-  a second run applying nothing, and the rows compared with Drizzle Kit's file migrator's;
+  `config/database-path.test.ts`; `db/migrate.test.ts`, the bundled migrations on a new database, a
+  second run applying nothing, and the rows compared with Drizzle Kit's file migrator's;
   `db/client.test.ts`, D5's rollback isolation, which fails on Drizzle `1.0.0-rc.4`; and
   `services/setup/startup.test.ts`, the steps' order and a database path refused without echoing
-  it), and `i18n`'s in `src/lib/shared/i18n/`: the
-  message check (`messages.test.ts`), which runs on `messages/*.json` and on in-memory files that
-  each break one of its rules; `format.test.ts`, which formats inside the language middleware for
-  each language and in several zones; and `language-name.test.ts`, which names D20's codes in both
-  languages and gives malformed and unknown codes back as given. Component tests use happy-dom
-  when components exist; never jsdom.
+  it), and `i18n`'s in `src/lib/shared/i18n/`: the message check (`messages.test.ts`), which runs on
+  `messages/*.json` and on in-memory files that each break one of its rules; `format.test.ts`, which
+  formats inside the language middleware for each language and in several zones; and
+  `language-name.test.ts`, which names D20's codes in both languages and gives malformed and unknown
+  codes back as given. Component tests use happy-dom when components exist; never jsdom.
 - **e2e (Playwright, Chromium, under Bun):** against the built adapter-bun server, with a master key
   Playwright generates for each run, so CI needs no stored secret.
   - `smoke.test.ts` checks that `/` returns 200, shows the placeholder heading, hydrates (it waits
@@ -616,7 +615,8 @@ export const GET: RequestHandler = () => healthResponse();
   - Every run's web server gets a temporary database, removed once the server has exited.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
-  each run and a database under `tests/contract/.state/`. `bun run --bun test` and prek run only the `unit` project.
+  each run and a database under `tests/contract/.state/`. `bun run --bun test` and prek run only the
+  `unit` project.
 - prek runs the unit tests (`tests` hook); CI's `smoke` job builds with no key and runs `smoke`.
 
 ## CI and repo tooling

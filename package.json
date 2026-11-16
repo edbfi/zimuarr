@@ -9,7 +9,7 @@
 		"prepare": "bun --bun svelte-kit sync && bun --bun paraglide-js compile && bun --bun panda codegen",
 		"dev": "bun --bun vite dev",
 		"build": "bun --bun vite build",
-		"preview": "bun ./build",
+		"preview": "bun --no-install ./build",
 		"check": "bun --bun svelte-kit sync && bun --bun paraglide-js compile && bun --bun panda codegen && bun --bun svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
 		"test": "bun --bun vitest run --project unit",
 		"smoke": "bun --bun playwright test",
