@@ -6,7 +6,7 @@ import { currentDatabase } from "./setup/startup.ts";
 const log = createLogger("health");
 
 /** The settings key the probe writes; nothing else reads it. */
-export const HEALTH_KEY = "health.checked_at";
+const HEALTH_KEY = "health.checked_at";
 
 /**
  * Writes the health row, commits it and reads it back. A read alone, or a write that is rolled

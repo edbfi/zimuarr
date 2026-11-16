@@ -7,7 +7,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { type Database, openDatabase } from "#lib/server/db/client.ts";
 import { migrateDatabase } from "#lib/server/db/migrate.ts";
 import { readSetting } from "#lib/server/db/settings.ts";
-import { createHealthCheck, HEALTH_KEY, healthResponse, probeDatabase } from "./health.ts";
+import { createHealthCheck, healthResponse, probeDatabase } from "./health.ts";
 
 let root: string;
 
@@ -62,8 +62,8 @@ describe("probeDatabase", () => {
 		await writable.$client.close();
 		const db = drizzle({ client: await connect(path, { readonly: true }) });
 		try {
-			expect(await readSetting(db, HEALTH_KEY)).toBeUndefined();
-			await expect(probeDatabase(db, new Date())).rejects.toThrow();
+			expect(await readSetting(db, "health.checked_at")).toBeUndefined();
+			await expect(probeDatabase(db, new Date())).rejects.toThrow(/readonly/);
 			const check = createHealthCheck({ probe: () => probeDatabase(db, new Date()) });
 			expect(await check()).toBe(false);
 		} finally {
