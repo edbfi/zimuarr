@@ -11,6 +11,7 @@ import { type Database, openDatabase } from "#lib/server/db/client.ts";
 import { migrateDatabase } from "#lib/server/db/migrate.ts";
 import { configureLogging, createLogger, flushLogs } from "#lib/server/logging/logger.ts";
 import { loadKeyring } from "#lib/server/security/secrets/keyring.ts";
+import { startFirstRun, stopFirstRun } from "./first-run.ts";
 
 /** Every variable startup reads. */
 export type StartupEnv = SecretKeyEnv & DatabasePathEnv & LogDebugEnv & OriginEnv;
@@ -68,7 +69,9 @@ export async function startUp(env: StartupEnv, options: { dev: boolean }): Promi
 	// adapter-bun registers its own `SIGTERM` and `SIGINT` handlers synchronously once `init`
 	// resolves. The app's come on the next turn of the event loop, so a signal never reaches only
 	// the app's handlers, which would swallow it; until then, Bun's default ends the process.
-	if (!options.dev) setImmediate(() => handleShutdown(process, closeServices));
+	if (!options.dev) {
+		setImmediate(() => handleShutdown(process, closeServices, { stopWork: stopFirstRun }));
+	}
 }
 
 /** The browser's address from `ORIGIN`, which startup checked, or undefined when it is unset. */
@@ -163,6 +166,8 @@ async function runSteps(env: StartupEnv): Promise<void> {
 	});
 	await migrateDatabase(db);
 	database = db;
+	// 4. Each module's startup work: `setup` prints the bootstrap token while unclaimed.
+	await startFirstRun({ db, origin });
 }
 
 /**

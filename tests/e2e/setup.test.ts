@@ -497,3 +497,44 @@ test.describe("the cross-origin check", () => {
 		}
 	});
 });
+
+test.describe("the bootstrap token", () => {
+	test("a fresh built server prints it before it listens, in no log entry or response", async () => {
+		const server = await startServer(root, {
+			ZIMUARR_DATABASE_PATH: join(root, "data", "zimuarr.db"),
+			// Debug entries too, so no entry anywhere can hold the token unseen.
+			ZIMUARR_LOG_DEBUG: "true",
+		});
+		try {
+			const read = async (path: string) => (await fetch(`${server.url}${path}`)).text();
+			const pages = await Promise.all(["/", "/healthz", "/no-such-page"].map(read));
+			const output = server.output();
+			const line = output.split("\n").find((text) => text.startsWith("Setup token: ")) ?? "";
+			const token = /Setup token: ([a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}) /.exec(line)?.[1];
+			expect(token).toBeDefined();
+			expect(line).toContain(" /setup ");
+			expect(line).toContain("claim this Zimuarr.");
+			expect(output.indexOf("Setup token: ")).toBeLessThan(output.indexOf("Listening on"));
+
+			// Neither form of the token, with or without its dashes, appears anywhere else.
+			const forms = [token ?? "", (token ?? "").replaceAll("-", "")];
+			const entries = output.split("\n").filter((text) => text.startsWith("{"));
+			expect(entries.length, "the 404 was logged at debug").toBeGreaterThan(0);
+			for (const form of forms) {
+				expect(
+					entries.some((entry) => entry.includes(form)),
+					"a log entry holds it",
+				).toBe(false);
+				expect(
+					pages.some((page) => page.includes(form)),
+					"a response holds it",
+				).toBe(false);
+				expect(output.split(form).length - 1, "printed more than once").toBe(
+					form === forms[0] ? 1 : 0,
+				);
+			}
+		} finally {
+			await server.stop();
+		}
+	});
+});
