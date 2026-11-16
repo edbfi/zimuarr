@@ -94,7 +94,7 @@ filled with a name can't inject markup.
 - subtitle-language names, which come from `Intl.DisplayNames`
   ([Subtitle-language names](#subtitle-language-names));
 - the Bazarr callback's answers, which Bazarr reads, its `{ "error": … }` strings included.
-  Answers meant for people, such as the cross-origin check's refusals, stay messages (`sign-in`);
+  Answers meant for people, such as the cross-origin check's refusals, stay messages (`setup`);
 - log entries and console output, which are for operators and stay in English;
 - the switcher's language names (below).
 
@@ -159,7 +159,7 @@ of a `handle` stage, `error(403)` included, leaves the middleware. SvelteKit the
 fallback page in English, without `<html lang>` or `Vary`.
 A response returned from inside the chain is still in the request's language and gets `Vary`, but it
 skips `transformPageChunk`, so a refusal page that a stage builds sets its own `<html lang>`. This
-binds `setup`'s gate and `sign-in`'s refusals, the cross-origin check's included.
+binds `setup`'s gate and cross-origin check, and `sign-in`'s refusals.
 
 **In the browser,** `src/hooks.client.ts` reads the page's `<html lang>` once, when the app starts,
 and makes Paraglide's `getLocale()` return it, or English if it isn't `en` or `da`. The server's

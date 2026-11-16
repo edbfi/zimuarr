@@ -2,7 +2,8 @@
 
 **Status:** proposed for the owner's approval. Module 4 of the capability map
 ([docs/SPEC.md](SPEC.md)); it closes D14, the logging half of D13, D15's backup and restore
-procedure, ground-floor choices 1, 3 and 5's first half.
+procedure, and ground-floor choices 1, 3 and 5 (the health endpoint's job-runner half comes with
+the first job, D13).
 
 **Ported from obzorarr,** the reference app for `setup`
 ([Shared groundwork](../AGENTS.md#shared-groundwork)): its spec as approved
@@ -77,8 +78,9 @@ and messages, which may echo a malformed value; the app adds no code for them, a
 them:
 - `SHUTDOWN_TIMEOUT` (default 30 s): the drain time. The container's stop timeout must exceed it
   plus the app's 5-second cleanup; the README says so, and the image's Compose templates set
-  `stop_grace_period` (Docker's default is 10 seconds). (zimuarr: D25 already asks `translation`
-  to document a grace period of at least the drain window; this is the same rule.)
+  `stop_grace_period` (Docker's default is 10 seconds). (zimuarr: this is stricter than the
+  grace period of at least the drain window that D25 asks `translation` to document, so the README
+  gives this one, and `translation`'s note cites it.)
 - `CONNECTION_IDLE_TIMEOUT` (default 10 s, at most 255 s): the idle timeout. The adapter already
   exempts event streams. (zimuarr) Bazarr's held callback isn't an event stream: its keep-alive
   space must come more often than this timeout (D25), so the README says not to set it below the
@@ -174,12 +176,13 @@ instead of being downloaded. SPEC.md's "`bun ./build` needs no `node_modules`" c
 - **Tested:** an e2e test claims a server, stops it, copies its folder to another path, starts a
   new server on the copy with the same key and finds it claimed: no token printed, and `/setup`
   answers 404. The test with another key joins with the first stored secret (`two-factor`'s, which
-  comes before `bazarr-instances`), and `verification` checks that a restore followed by a full
-  mirror rebuild gives the same classifications (SPEC.md).
+  comes before `bazarr-instances`), and `verification` adds its own restore check
+  ([SPEC.md](SPEC.md#open-decisions-each-module-closes)).
 
 The README's Backups paragraph gives the procedure. An online backup, which needs no stop, is left
-out: a stop costs a held callback at most (Bazarr retries the job later), and embedded Turso's
-online backup isn't validated.
+out, because embedded Turso's online backup isn't validated. Its cost: a stop fails the Bazarr
+jobs whose callbacks are held at the time, since Bazarr's three attempts are over within seconds
+(D20); what a restart recovers is `translation`'s.
 
 ## Logging
 
@@ -241,6 +244,16 @@ protocol header says otherwise, so it would refuse the claim over plain HTTP.
   - An `Origin` header, whenever it is present, must be one bare `http` or `https` origin;
     `null`, a malformed value, several values, credentials or anything after the host are
     refused, before the URL parser could repair them. This applies on every branch below.
+  - A request with neither `Origin` nor `Sec-Fetch-Site` doesn't come from a browser. Whether or not
+    `ORIGIN` is set, it passes only on an explicit list of machine routes, each with the credentials
+    the app's approved docs require for it, and is refused everywhere else. (zimuarr) The list is
+    Bazarr's callback, `POST /bazarr/api/translate/content` (D20), and `api-keys` adds the
+    versioned JSON API. The check doesn't check their keys: such a request goes on to the route's
+    own key check, so the callback still answers a missing or wrong `X-Api-Key` with `401` (D25).
+    This rule comes before the two below: in obzorarr, which has no machine routes, the `ORIGIN`
+    branch refuses such a request on its own, and a copy that kept that order would refuse every
+    callback once `ORIGIN` is set. `sign-in` adds that a request there carrying only a session
+    cookie gets a 403, once a session cookie exists.
   - With `ORIGIN` set, a present `Origin` must equal `ORIGIN`, compared as parsed origins. Without
     `Origin`, `Sec-Fetch-Site` must be `same-origin` or `none`.
   - With `ORIGIN` unset, a present `Sec-Fetch-Site` passes only as `same-origin` or `none`
@@ -248,13 +261,6 @@ protocol header says otherwise, so it would refuse the claim over plain HTTP.
     `Host` header, with default ports normalised. Browsers send `Sec-Fetch-Site` only to HTTPS,
     `localhost` and loopback addresses, so over plain HTTP outside loopback every browser gets
     this comparison.
-  - A request with neither `Origin` nor `Sec-Fetch-Site` doesn't come from a browser. It passes only
-    on an explicit list of machine routes, each with the credentials the app's approved docs require
-    for it. (zimuarr) The list is Bazarr's callback, `POST /bazarr/api/translate/content` (D20), and
-    `api-keys` adds the versioned JSON API. The check doesn't check their keys: such a request goes
-    on to the route's own key check, so the callback still answers a missing or wrong `X-Api-Key`
-    with `401` (D25). `sign-in` adds that a request there carrying only a session cookie gets a 403,
-    once a session cookie exists.
   - A refusal is a 403 with the app's own "Access denied" page, or a JSON error (`{ message }`) for
     a caller that asks for JSON and not for a page, with the security headers and in the viewer's
     language. Until `sign-in` builds the error pages, the page is the title and its one-line
@@ -354,8 +360,9 @@ The first module with a background job adds "or its job runner has stopped" (D7)
 ## First run
 
 **The setup gate** is the last `setup` stage in `handle`. Until first run is complete, every request
-gets a 303 to the current first-run step, except that step, `/healthz`, (zimuarr: the cross-origin
-check's machine routes,) and the responses produced before `handle`. Sign-in and first run's own
+gets a 303 to the current first-run step, except that step, `/healthz`, (zimuarr: the paths of the
+cross-origin check's machine routes, whatever the method,) and the responses produced before
+`handle`. Sign-in and first run's own
 helpers join the exceptions when their modules add them. It reads first run's state from memory,
 which startup loads and the claim updates (one process, D16). SvelteKit removes the `__data.json`
 suffix before `handle` and follows a redirect from it in client-side navigation, so that is gated
@@ -509,15 +516,15 @@ tests/e2e/global-setup.ts                   claims the instance for the other te
 `config/secret-key.ts` moves its system-error helper into `config/error-code.ts`. `security/` holds
 `cross-origin.ts` through `password.ts` as files; the folder already exists for `secrets`.
 
-The build also changes `package.json` (the packages above, `db:generate`, and `preview` with
-`--no-install`), `vite.config.ts` (the exported options, the form check off and the CSP, and
-`vite.config.test.ts` in the `unit` project), `playwright.config.ts` (a temporary database per run,
-the token captured from the server's output, the global setup, `--no-install`),
-`tests/contract/contract.test.ts` (a database per run under `tests/contract/.state/`,
-`--no-install`, and log entries told apart from the stand-in's events), `panda.config.ts` (the font
-families), `messages/` (the claim page's text and the refusal's) and the README (the variables, the
-database and backups, the address browsers use, first run, logs, and stopping and the server's
-limits). `.gitignore` already ignores `/data/` and `*.db*`.
+The build also changes `package.json` (the packages above and `db:generate`), `vite.config.ts` (the
+exported options, the form check off and the CSP, and `vite.config.test.ts` in the `unit` project),
+`playwright.config.ts` (a temporary database per run, the token captured from the server's output,
+the global setup, `--no-install`), `tests/contract/contract.test.ts` (a database per run under
+`tests/contract/.state/`, C1's comment pointing here for the cross-origin check, `--no-install`, and
+log entries told apart from the stand-in's events), `panda.config.ts` (the font families),
+`messages/` (the claim page's text and the refusal's) and the README (the variables, the database
+and backups, the address browsers use, first run, logs, and stopping and the server's limits).
+`.gitignore` already ignores `/data/` and `*.db*`.
 
 ## Testing strategy
 
@@ -529,8 +536,8 @@ limits). `.gitignore` already ignores `/data/` and `*.db*`.
   - the headers for HTTPS, plain HTTP, loopback and `ORIGIN`, and a copied response whose body
     still streams;
   - the cross-origin check against a matrix of methods, content types and `Origin`,
-    `Sec-Fetch-Site`, `Host` and `ORIGIN` values, the callback's path with neither header, and the
-    config test for SvelteKit's options;
+    `Sec-Fetch-Site`, `Host` and `ORIGIN` values, the callback's path with neither header with
+    `ORIGIN` set and unset, and the config test for SvelteKit's options;
   - the refusal's page and JSON in both languages;
   - the health answer with a working, a read-only and a closed database, a probe that never
     answers (503 within the bound), and probes shared within the window and not past it;
@@ -547,11 +554,14 @@ limits). `.gitignore` already ignores `/data/` and `*.db*`.
   temporary database. Its `wait.stdout` pattern runs from the token line through adapter-bun's
   "Listening on" and replaces the `url` check, because Playwright races the two and the URL could
   win before the token is captured. The global setup claims the instance through the form in a
-  browser, so the smoke and language tests run on a claimed instance as before. `setup.test.ts`
+  browser, so the smoke and language tests run on a claimed instance as before. The temporary
+  database is removed once the server process has exited, which is after the global teardown.
+  `setup.test.ts`
   starts its own fresh servers and checks that:
   - a new database is migrated, and a second start applies nothing;
   - every page sends a fresh instance to `/setup`, while `/healthz` answers `ok` and the callback's
-    path answers `401` without a key;
+    path answers with its own status, not the gate's 303 (`404` while the contract spike's keys
+    are unset), also with `ORIGIN` set and neither `Origin` nor `Sec-Fetch-Site` sent;
   - a wrong token is refused, the right one claims, and `/setup` then answers 404, also after a
     restart;
   - a backup copied from a stopped, claimed server starts claimed with the same key;
@@ -562,7 +572,6 @@ limits). `.gitignore` already ignores `/data/` and `*.db*`.
     over plain HTTP;
   - the page's scripts carry the CSP nonce, the refusal page carries its own policy, and the
     browser reports no CSP violation;
-  - `/healthz` answers `503` once the database can't be written;
   - the server refuses to start with an `ORIGIN` holding credentials or a path, with a bad
     `ZIMUARR_LOG_DEBUG`, or with an unwritable database folder, without echoing the value;
   - `SIGHUP` and `SIGTERM` each shut it down with exit code 0;
@@ -577,7 +586,7 @@ limits). `.gitignore` already ignores `/data/` and `*.db*`.
 
 The ground floor's ([docs/SPEC.md](SPEC.md#commands)), plus `bun run --bun db:generate` (Drizzle
 Kit generates a migration from the schema, then Biome formats it). `smoke` also runs
-`setup.test.ts`, and `preview` starts the built server with `--no-install`.
+`setup.test.ts`.
 
 ## Boundaries
 
