@@ -60,6 +60,8 @@ never appear.
   them.
 
 **Placeholders** are `{{name}}`.
+- **No other braces:** the plugin shows a brace outside a placeholder as written, so `{name}` stays
+  `{name}` on the page and `{{{name}}}` renders as `undefined}`.
 - A count or quantity is written `{{name, number}}`, which Paraglide formats with
   `Intl.NumberFormat` in the message's language ("1,234 subtitles", "1.234 undertekster"). A bare
   `{{count}}` would print "1234".
@@ -105,9 +107,9 @@ hook and in CI. It finds every problem in `messages/*.json` against the rules ab
 each of the project's languages and no other; each file one JSON object of flat, non-empty string
 values; names, `_ordinal_` and one key or plural forms; the same messages in every language; the
 same placeholders, names and formats in every form; `number` as the only format; exactly the plural
-forms `Intl.PluralRules` gives each language, each with `{{count, number}}`; and no tags. Its
-in-memory sample messages are obzorarr's, kept verbatim so the shared check stays comparable with
-the reference.
+forms `Intl.PluralRules` gives each language, each with `{{count, number}}`; no brace outside a
+placeholder; and no tags. Its in-memory sample messages are obzorarr's, kept verbatim so the shared
+check stays comparable with the reference.
 
 ## The toolchain
 
