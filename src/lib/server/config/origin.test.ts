@@ -25,7 +25,7 @@ describe("readOrigin", () => {
 	});
 
 	// adapter-bun refuses an empty ORIGIN before `init`, so ORIGIN is exempt from the rule that
-	// an empty variable counts as unset (SPEC-setup.md, "ORIGIN").
+	// an empty variable counts as unset (SPEC-setup.md, "`ORIGIN`").
 	it("refuses an empty value", () => {
 		expect(failure("").message).toBe(
 			"ORIGIN is empty; leave it out or set it to an http or https origin",
