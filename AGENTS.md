@@ -357,7 +357,8 @@ src/
                                  the bootstrap token printed to the console; claim.ts: the claim
       security/                  bootstrap-token.ts: the token, drawn, shown, compared and
                                  expired; password.ts and common-passwords.txt: the owner's
-                                 credential rules and hashing; headers.ts: the security headers for a request;
+                                 credential rules and hashing; headers.ts: the security headers
+                                 for a request;
                                  cross-origin.ts: the cross-origin check and the machine routes;
                                  access-denied.ts: its refusal, a page or JSON
       security/secrets/          key-text.ts: a master key's text to its 32 bytes, refusing
@@ -379,7 +380,7 @@ tests/
   e2e/secret-key.test.ts         the built server refuses to start without a valid key
   e2e/i18n.test.ts               each viewer's language, and the switcher
   e2e/setup.test.ts              `setup` on the built server: so far, the database, logging,
-                                 shutdown, the security headers, the CSP, the cross-origin check
+                                 shutdown, the security headers, the CSP, the cross-origin check,
                                  the bootstrap token, the claim and the backup
   contract/                      the Bazarr contract tests: compose.yaml (the pinned images,
                                  Bazarr's tested release among them), setup.ts, bazarr.ts,

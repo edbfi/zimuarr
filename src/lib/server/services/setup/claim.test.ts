@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { type Database, openDatabase } from "#lib/server/db/client.ts";
 import { migrateDatabase } from "#lib/server/db/migrate.ts";
 import { insertOwner, owner } from "#lib/server/db/owner.ts";
+import * as settings from "#lib/server/db/settings.ts";
 import { readSetting } from "#lib/server/db/settings.ts";
 import { verifyPassword } from "#lib/server/security/password.ts";
 import { claimInstance } from "./claim.ts";
@@ -178,5 +179,21 @@ describe("claimInstance", () => {
 		expect(printed).toHaveLength(2);
 		expect(token()).not.toBe(used);
 		expect(await readSetting(db, FIRST_RUN_STEP_KEY)).toBeUndefined();
+	});
+
+	it("rolls the owner back when the step pointer's write fails in the same transaction", async () => {
+		const { db, printed, token } = await freshInstance();
+		vi.spyOn(settings, "writeSetting").mockRejectedValueOnce(new Error("disk full"));
+		vi.spyOn(process.stdout, "write").mockImplementation((_chunk, ...rest: unknown[]) => {
+			const done = rest.find((arg) => typeof arg === "function") as (() => void) | undefined;
+			done?.();
+			return true;
+		});
+		expect(
+			await claimInstance(db, { token: token(), username: "owner", password: PASSWORD }),
+		).toEqual({ status: "failed" });
+		expect(await db.select().from(owner)).toEqual([]);
+		expect(isClaimed()).toBe(false);
+		expect(printed).toHaveLength(2);
 	});
 });

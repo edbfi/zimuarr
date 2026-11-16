@@ -332,7 +332,7 @@ const control = css({
 				{/if}
 			</div>
 
-			{#if form?.failed}
+			{#if form?.failed && !submitting}
 				<p class={error} role="alert">{m.setup_failed({ name })}</p>
 			{/if}
 
