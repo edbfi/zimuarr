@@ -80,7 +80,7 @@ them:
   plus the app's 5-second cleanup; the README says so, and the image's Compose templates set
   `stop_grace_period` (Docker's default is 10 seconds). (zimuarr: this is stricter than the
   grace period of at least the drain window that D25 asks `translation` to document, so the README
-  gives this one, and `translation`'s note cites it.)
+  gives this one, and `translation` cites it when it documents its grace period.)
 - `CONNECTION_IDLE_TIMEOUT` (default 10 s, at most 255 s): the idle timeout. The adapter already
   exempts event streams. (zimuarr) Bazarr's held callback isn't an event stream: its keep-alive
   space must come more often than this timeout (D25), so the README says not to set it below the
@@ -180,9 +180,9 @@ instead of being downloaded. SPEC.md's "`bun ./build` needs no `node_modules`" c
   ([SPEC.md](SPEC.md#open-decisions-each-module-closes)).
 
 The README's Backups paragraph gives the procedure. An online backup, which needs no stop, is left
-out, because embedded Turso's online backup isn't validated. Its cost: a stop fails the Bazarr
-jobs whose callbacks are held at the time, since Bazarr's three attempts are over within seconds
-(D20); what a restart recovers is `translation`'s.
+out, because embedded Turso's online backup isn't validated. Its cost: a callback still held when
+the drain window ends fails its Bazarr job, since Bazarr's three attempts are over within seconds
+while zimuarr is stopped (D20); what a restart recovers is `translation`'s.
 
 ## Logging
 
