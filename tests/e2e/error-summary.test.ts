@@ -201,10 +201,17 @@ test.describe("with JavaScript", () => {
 				await expect(summary).toBeFocused();
 				await expect(page).toHaveTitle("Fejl: Tag Zimuarr i brug");
 				await expect(summary.getByRole("link")).toHaveCount(2);
+				// Neither the page nor the panel overflows: a word escaping the panel into the page's
+				// gutter wouldn't scroll the page.
 				const overflow = () =>
-					page.evaluate(
-						() => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-					);
+					page.evaluate(() => {
+						const main = document.querySelector("main");
+						return (
+							document.documentElement.scrollWidth -
+							document.documentElement.clientWidth +
+							(main ? main.scrollWidth - main.clientWidth : 1)
+						);
+					});
 				expect(await overflow()).toBe(0);
 
 				// The token's refusal starts with a long word, "Opsætningskoden", that must wrap too.
