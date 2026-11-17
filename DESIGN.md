@@ -309,9 +309,9 @@ element. A control inside a bordered group moves the ring to the group, or inset
 After a failed submit, the first thing in the form (D28):
 - **Box:** Deep Water with an even 2px Coral Flag border, 8px corners and 16px padding; no
   coloured stripe on one side.
-- **Content:** the heading in the H3 style, then the problems in Coral Flag, semibold at body size. A field's
-  problem is an underlined link to its field, Coral Flag rather than Ice Blue, as the pattern's
-  links are; a page-level problem is text.
+- **Content:** the heading in the H3 style, then the problems in Coral Flag, semibold at body
+  size. A field's problem is an underlined link to its field, Coral Flag rather than Ice Blue, as
+  the pattern's links are; a page-level problem is text.
 - **Focus:** script moves focus here after each failure, so its ring (the global one) is drawn on
   `:focus`, not only `:focus-visible`. A linked field keeps 32px above it when scrolled to, so its
   label stays in view.

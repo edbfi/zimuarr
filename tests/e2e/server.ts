@@ -2,9 +2,9 @@ import { fileURLToPath } from "node:url";
 
 // The built server, started for one test: a generated key, a free port and only the given
 // environment. setup.test.ts and error-summary.test.ts start their own.
-export const BUILD = fileURLToPath(new URL("../../build", import.meta.url));
+const BUILD = fileURLToPath(new URL("../../build", import.meta.url));
 
-export const randomKey = () => crypto.getRandomValues(new Uint8Array(32)).toBase64();
+const randomKey = () => crypto.getRandomValues(new Uint8Array(32)).toBase64();
 
 /** A built server that started: its address, everything it printed so far, and how to stop it. */
 export type Server = {
