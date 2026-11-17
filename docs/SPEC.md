@@ -633,8 +633,11 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
   - `i18n.test.ts` checks that a Danish browser gets `/` in Danish, with `<html lang="da">` and
     `Vary: Cookie, Accept-Language`; that the language switcher reloads it in English, writes the
     `PARAGLIDE_LOCALE` cookie (path `/`, `SameSite=Lax`, not `Secure` over plain HTTP) and keeps it;
-    and that a browser whose header and `navigator.languages` disagree gets the server's choice,
-    with no cookie written, even when it presses the current language; none logs a console error.
+    that a browser whose header and `navigator.languages` disagree gets the server's choice, with no
+    cookie written, even when it presses the current language, and none of these logs a console
+    error; that without JavaScript the switcher is hidden, keeping its place, and Tab never reaches
+    its buttons; and that with the scripts held back it is hidden too, then appears in the same
+    place once the page hydrates.
   - `secret-key.test.ts` checks that the built server refuses to start without a valid key.
   - `setup.test.ts` starts its own built servers: one migrates a new database file and applies
     nothing on a second start, one defaults to `data/zimuarr.db`, and a database folder that can't
