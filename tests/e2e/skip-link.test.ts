@@ -4,9 +4,9 @@ import { join } from "node:path";
 import { expect, type Page, test } from "@playwright/test";
 import { type Server, startServer } from "./server.ts";
 
-// The one-task pages start with a skip link to their main content, shown only while it has focus
-// (ported from obzorarr's skip-link.test.ts). The claim stands for them, on a fresh server of its
-// own, since `/setup` is gone once the instance is claimed.
+// The claim page starts with a skip link to its main content, shown only while it has focus
+// (ported from obzorarr's skip-link.test.ts). Each test runs on a fresh server of its own, since
+// `/setup` is gone once the instance is claimed.
 
 let root: string;
 let server: Server;
@@ -65,7 +65,8 @@ test.describe("without JavaScript", () => {
 });
 
 test.describe("in Danish", () => {
-	test.use({ locale: "da-DK" });
+	// On a phone, where the longer Danish label is most likely to leave the viewport.
+	test.use({ locale: "da-DK", viewport: { width: 360, height: 800 } });
 
 	test("the skip link is named in Danish", async ({ page }) => {
 		await page.goto(`${server.url}/setup`);
