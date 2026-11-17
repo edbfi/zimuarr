@@ -539,7 +539,7 @@ Setup facts for this stack:
 | `bun run --bun preview` | runs the built server (`bun --no-install ./build`, D14; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, the Paraglide compile, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch), with `vite.config.test.ts`, which checks that SvelteKit's own form check and remote functions stay off |
-| `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests and `setup`'s, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
+| `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests, `setup`'s and the error summary's, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
 | `bun run --bun db:generate` | Drizzle Kit generates a migration in `drizzle/` from the schema, then Biome formats it; review it before committing |
 | `bun run --bun lint` | `biome ci`, read-only; `biome.json` lists the file extensions Biome checks |
 | `bun run --bun contract:up` | starts the throwaway Bazarrs, Sonarr, Radarr, Caddy and nginx under a project of its own and provisions them (needs Docker) |
@@ -649,10 +649,11 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     on `localhost` and on a plain-HTTP host name that isn't loopback (`app.test`, through Chromium's
     `--host-resolver-rules`); with `ORIGIN` set, Bazarr's callback still reaches its route; a fresh
     server prints its bootstrap token before it listens, in no log entry or response; the claim
-    refuses a wrong token, keeping the username and clearing the token and password, claims with the
-    right one, and answers 404 at `/setup` afterwards, also after a restart; a backup copied from a
-    stopped, claimed server starts claimed with the same key; and `SIGTERM` and `SIGHUP` each stop
-    the built server with exit code 0.
+    refuses a wrong token, keeping the username, clearing the token and password and focusing the
+    error summary, whose link goes to the token, claims with the right one, and answers 404 at
+    `/setup` afterwards, also after a restart; a backup copied from a stopped, claimed server starts
+    claimed with the same key; and `SIGTERM` and `SIGHUP` each stop the built server with exit code
+    0.
   - Every run's web server gets a temporary database, removed once the server has exited. It
     counts as started once its output runs from the token line through "Listening on", which
     captures the token; `global-setup.ts` then claims the instance through the form in a browser,
@@ -660,6 +661,14 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
   - `setup.test.ts` also checks that every page sends a fresh instance to `/setup`, while
     `/healthz` answers `ok` and Bazarr's callback answers with its own status, and that the gate's
     redirect carries the security headers.
+  - `error-summary.test.ts` checks the failed claims (D28), each on a fresh server: without
+    JavaScript, a first visit has no summary and nothing focused, and a refusal titles the page
+    "Error: …" and lists the problems, a field's as a link that Tab and Enter follow into the field;
+    with JavaScript, the summary takes focus after a failure and an identical repeat and stays, with
+    its title, while the next claim is sent, a link puts focus in its field, editing a field keeps
+    the summary and title, a server failure marks no field, and it fits in Danish at 360px and at
+    200% zoom; and a claim before a late script loads posts natively, and hydration then takes no
+    focus.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
   each run and a database under `tests/contract/.state/`. `bun run --bun test` and prek run only the
