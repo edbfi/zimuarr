@@ -670,8 +670,8 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     with JavaScript, the summary takes focus after a failure and an identical repeat and stays, with
     its title, while the next claim is sent, a link puts focus in its field, editing a field keeps
     the summary and title, a server failure marks no field, and it fits in Danish at 360px and at
-    200% zoom; and a claim before a late script loads posts natively, and hydration then takes no
-    focus.
+    200% zoom, a wrong token's refusal, which starts with a long word, included; and a claim before
+    a late script loads posts natively, and hydration then takes no focus.
   - `skip-link.test.ts` checks, on the claim page, that the first Tab shows "Skip to main
     content", which takes no room until then and then shows in full inside the viewport, and that
     following it moves focus to the main content, whose next Tab reaches the first field, without
