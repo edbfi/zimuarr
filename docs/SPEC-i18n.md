@@ -209,9 +209,10 @@ language, styled only with tokens. The owner chose buttons over a `<select>` for
   has hydrated, keeping its place so nothing moves when it appears; the browser's preferred
   languages still apply.
 - **Where it shows:** at the top of the placeholder `/`, on its own row before the heading, so a
-  viewer who can't read the current language finds it first. zimuarr has no brief for `/`, so no
-  brief has it yet: each shell places it when that shell is built (row 3's "the language switcher
-  in each shell"), and that shell's brief gains it then. It needs no brief of its own.
+  viewer who can't read the current language finds it first once the page has script. zimuarr has no
+  brief for `/`, so no brief has it yet: each shell places it when that shell is built (row 3's "the
+  language switcher in each shell"), and that shell's brief gains it then. It needs no brief of its
+  own.
 
 ## Formatting
 
