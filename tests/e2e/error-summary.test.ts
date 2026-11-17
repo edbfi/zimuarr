@@ -94,6 +94,8 @@ test.describe("with JavaScript", () => {
 		const summary = summaryOf(page);
 		await expect(summary).toBeFocused();
 		await expect(page).toHaveTitle("Error: Claim this Zimuarr");
+		// On a page of one form, the summary's heading is the level below the page's `h1`.
+		await expect(summary.getByRole("heading", { level: 2 })).toHaveText("There is a problem");
 		await expect(summary.getByRole("link")).toHaveText(["Use at least 15 characters."]);
 		// The field keeps its message as its description.
 		await expect(page.locator("#password")).toHaveAttribute("aria-invalid", "true");
