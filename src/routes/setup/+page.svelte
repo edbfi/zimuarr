@@ -156,6 +156,35 @@ const control = css({
 	<title>{problems.length > 0 ? m.error_page_title({ title }) : title}</title>
 </svelte:head>
 
+<!-- A skip link, the first thing in the page, shown only while it has focus. It links to a
+fragment, so it works without JavaScript; `main` takes focus from it. -->
+<a
+	href="#main-content"
+	class={css({
+		srOnly: true,
+		// `srOnly: false` would reset the padding after it, so each hiding property is undone here.
+		_focus: {
+			width: "auto",
+			height: "auto",
+			margin: "[0]",
+			overflow: "visible",
+			clip: "auto",
+			whiteSpace: "normal",
+			position: "absolute",
+			insetBlockStart: "md",
+			insetInlineStart: "md",
+			paddingInline: "md",
+			paddingBlock: "sm",
+			bg: "primary",
+			color: "background",
+			textStyle: "label",
+			borderRadius: "control",
+		},
+	})}
+>
+	{m.skip_to_main()}
+</a>
+
 <div
 	class={css({
 		maxWidth: "formMax",
@@ -179,7 +208,11 @@ const control = css({
 	</header>
 
 	<main
+		id="main-content"
+		tabindex="-1"
 		class={css({
+			// It takes focus only from the skip link, which needs no ring of its own around the panel.
+			_focus: { outlineStyle: "none" },
 			marginBlockStart: { base: "xl", tablet: "xxl" },
 			padding: { base: "lg", tablet: "xxl" },
 			bg: "surface",

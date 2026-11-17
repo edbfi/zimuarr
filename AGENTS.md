@@ -310,8 +310,10 @@ src/
   routes/
     +layout.svelte               loads the bundled fonts and app.css; marks <html data-hydrated>
                                  once mounted
-    setup/                       `/setup`: the claim, +page.svelte (the form), +page.server.ts
-                                 (its load and action), token-format.ts (the token's dashes)
+    setup/                       `/setup`: the claim, +page.svelte (a skip link to the main
+                                 content, shown only while it has focus, then the form),
+                                 +page.server.ts (its load and action), token-format.ts (the
+                                 token's dashes)
     (public)/+page.svelte        `/`: placeholder page, with the language switcher
     healthz/+server.ts           `/healthz`: public one-word status, from the health check
     bazarr/api/translate/content/+server.ts
@@ -387,6 +389,7 @@ tests/
                                  bootstrap token, the claim, the backup and the setup gate
   e2e/error-summary.test.ts      failed claims without and with JavaScript, and with a late script:
                                  the title, the summary, its links and where focus goes
+  e2e/skip-link.test.ts          the claim's skip link, with and without JavaScript and in Danish
   e2e/server.ts                  starts a built server for one test, with a generated key, a free
                                  port and only the given environment
   e2e/global-setup.ts            claims the web server's instance for the other tests

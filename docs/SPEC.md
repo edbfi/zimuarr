@@ -539,7 +539,7 @@ Setup facts for this stack:
 | `bun run --bun preview` | runs the built server (`bun --no-install ./build`, D14; `PORT`, default 3000, and `HOST`); without a valid key it exits before listening |
 | `bun run --bun check` | `svelte-kit sync`, the Paraglide compile, Panda codegen, then `svelte-check` failing on any error or warning |
 | `bun run --bun test` | Vitest unit tests, once (no watch), with `vite.config.test.ts`, which checks that SvelteKit's own form check and remote functions stay off |
-| `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests, `setup`'s and the error summary's, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
+| `bun run --bun smoke` | Playwright e2e: the browser smoke test, the language tests, the startup tests, `setup`'s, the error summary's and the skip link's, with a key and a temporary database it generates, never a developer's `.env` or exported key; it starts the built server, so `build` comes first, and Chromium comes from `bunx --bun playwright install chromium` |
 | `bun run --bun db:generate` | Drizzle Kit generates a migration in `drizzle/` from the schema, then Biome formats it; review it before committing |
 | `bun run --bun lint` | `biome ci`, read-only; `biome.json` lists the file extensions Biome checks |
 | `bun run --bun contract:up` | starts the throwaway Bazarrs, Sonarr, Radarr, Caddy and nginx under a project of its own and provisions them (needs Docker) |
@@ -669,6 +669,10 @@ export const GET: RequestHandler = async () => healthResponse(await checkHealth(
     the summary and title, a server failure marks no field, and it fits in Danish at 360px and at
     200% zoom; and a claim before a late script loads posts natively, and hydration then takes no
     focus.
+  - `skip-link.test.ts` checks, on the claim page, that the first Tab shows "Skip to main
+    content", which takes no room until then and then shows in full inside the viewport, and that
+    following it moves focus to the main content, whose next Tab reaches the first field, without
+    JavaScript too and in Danish.
 - **Contract (Vitest's `contract` project, Docker):** C1–C12 against real, unmodified Bazarrs
   ([SPEC-contract-spike.md](SPEC-contract-spike.md)), with a master key the harness generates for
   each run and a database under `tests/contract/.state/`. `bun run --bun test` and prek run only the
