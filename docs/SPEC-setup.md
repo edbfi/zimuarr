@@ -273,11 +273,15 @@ order (D17).
 address. A new one is printed every 15 minutes until the claim, and none after it.
 
 **The claim** checks the fields, then checks the token and uses it up with no `await` in between,
-then hashes the password, then creates the owner and moves the step pointer in one
-transaction. The cheap checks come first so a wrong guess never costs a hash, and a field error
-leaves the token unused. The claim stores no address, and nothing but the owner row and the
-pointer. After it, the claim no longer exists: `/setup` answers "not found" once first run is
-complete (D17), and the claim action answers it whenever the instance is claimed.
+then hashes the password, then creates the owner and moves the step pointer in one transaction. The
+cheap checks come first so a wrong guess never costs a hash, and a field error leaves the token
+unused. The claim stores no address, and nothing but the owner row and the pointer. A failed claim
+answers with the "Error: " title and the error summary first in the form (D28): its field problems
+link to their fields, and its page-level one (a server failure) marks no field. It keeps the last
+answer until the next, while a field's own message clears as it is edited. With JavaScript it takes
+focus after each failure; without, nothing is focused. Once the claim succeeds, it no longer exists:
+`/setup` answers "not found" once first run is complete (D17), and the claim action answers it
+whenever the instance is claimed.
 
 **Owner credentials,** in `security/password.ts`, which `sign-in`'s password change and recovery
 reuse:

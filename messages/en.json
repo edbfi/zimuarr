@@ -2,6 +2,8 @@
 	"placeholder_title": "{{name}} is being rebuilt.",
 	"placeholder_status": "Sign-in, the first Bazarr connection and the operator dashboard are on their way back. No translations run yet.",
 	"language_switcher_label": "Language",
+	"error_page_title": "Error: {{title}}",
+	"error_summary_title": "There is a problem",
 	"error_access_denied_title": "Access denied",
 	"error_access_denied_description": "The request was refused because it didn't come from this site.",
 	"setup_page_title": "Claim this {{name}}",
