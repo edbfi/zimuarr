@@ -205,8 +205,9 @@ language, styled only with tokens. The owner chose buttons over a `<select>` for
 - **Sharing the cookie:** it keeps Paraglide's default name. Cookies ignore ports, so every app on
   the same host shares it. A choice made in one edbfi app carries over to the others there. A value
   another app wrote that isn't `en` or `da` is ignored.
-- **Without JavaScript** the switcher does nothing, and the browser's preferred languages still
-  apply.
+- **Without JavaScript** its buttons would do nothing, so the switcher stays hidden until the page
+  has hydrated, keeping its place so nothing moves when it appears; the browser's preferred
+  languages still apply.
 - **Where it shows:** at the top of the placeholder `/`, on its own row before the heading, so a
   viewer who can't read the current language finds it first. zimuarr has no brief for `/`, so no
   brief has it yet: each shell places it when that shell is built (row 3's "the language switcher
