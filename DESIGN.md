@@ -137,10 +137,7 @@ frontmatter mirrors the Panda config; when the two disagree, the config wins and
 refreshed. The claim page at `/setup` is the first built surface. The guidance for components not
 built yet (navigation, tables, dialogs, badges, toasts) is the direction their surfaces build to.
 
-[Product context](PRODUCT.md) and the [surface briefs](.impeccable/surfaces/) define behaviour. The
-mockups in [docs/design](docs/design/) guide composition and visual character; each brief records
-the raster corrections for its board's incidental text. Generated raster pixels are visual guidance:
-they never override named tokens or product requirements.
+[Product context](PRODUCT.md) and the [surface briefs](.impeccable/surfaces/) define behaviour.
 
 **Key Characteristics:**
 
@@ -238,8 +235,7 @@ Mobile first, with two breakpoints: `tablet` from 768px and `desktop` from 1024p
 - **Rhythm:** the spacing tokens, 4 to 64px. Group labels with their fields (8px), put 24px between
   form groups and 48px between major sections.
 
-Keep one dominant action per task area. Composite boards show alternatives or sequential routes side
-by side for review; never combine them into one implementation screen.
+Keep one dominant action per task area.
 
 ## Elevation & Depth
 
@@ -355,8 +351,6 @@ below 768px (Layout).
   supplies.
 - **Do** use the [demo fixtures](tests/fixtures/demo-fixtures.json) for stable visual tests, then
   substitute real server data.
-- **Do** follow each surface brief's raster corrections instead of copying a board's accidental
-  labels or extra actions.
 - **Do** build on Panda CSS and Ark UI, without adding a competing component library.
 
 ### Don't:

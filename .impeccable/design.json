@@ -316,7 +316,7 @@
   ],
   "narrative": {
     "northStar": "Polar Control",
-    "overview": "A control room at the edge of the ice: deep polar blue, seafoam for the actions that move work forward, ice blue for information and focus. Zimuarr is a dense desktop tool with clear subtitle classifications and budget rulers. Typography is clean, panels are flat, and there is no decorative photography or cinematic gradient. It is dark-first: dark is the only colour mode.\n\nThe tokens live in [`panda.config.ts`](panda.config.ts), and components use them only through Panda, with `strictTokens` refusing raw values. This file describes how they are used. The frontmatter mirrors the Panda config; when the two disagree, the config wins and this file is refreshed. The claim page at `/setup` is the first built surface. The guidance for components not built yet (navigation, tables, dialogs, badges, toasts) is the direction their surfaces build to.\n\n[Product context](PRODUCT.md) and the [surface briefs](.impeccable/surfaces/) define behaviour. The mockups in [docs/design](docs/design/) guide composition and visual character; each brief records the raster corrections for its board's incidental text. Generated raster pixels are visual guidance: they never override named tokens or product requirements.",
+    "overview": "A control room at the edge of the ice: deep polar blue, seafoam for the actions that move work forward, ice blue for information and focus. Zimuarr is a dense desktop tool with clear subtitle classifications and budget rulers. Typography is clean, panels are flat, and there is no decorative photography or cinematic gradient. It is dark-first: dark is the only colour mode.\n\nThe tokens live in [`panda.config.ts`](panda.config.ts), and components use them only through Panda, with `strictTokens` refusing raw values. This file describes how they are used. The frontmatter mirrors the Panda config; when the two disagree, the config wins and this file is refreshed. The claim page at `/setup` is the first built surface. The guidance for components not built yet (navigation, tables, dialogs, badges, toasts) is the direction their surfaces build to.\n\n[Product context](PRODUCT.md) and the [surface briefs](.impeccable/surfaces/) define behaviour.",
     "keyCharacteristics": [
       "Flat `surface` panels on the `background` page, separated by 1px borders, not shadows.",
       "One solid seafoam action per task area; ice blue only for information, links and focus.",
@@ -356,7 +356,6 @@
       "**Do** keep welcome and experience screens expressive and operational screens quiet.",
       "**Do** treat permissions, status transitions and budget arithmetic as behaviour the server supplies.",
       "**Do** use the [demo fixtures](tests/fixtures/demo-fixtures.json) for stable visual tests, then substitute real server data.",
-      "**Do** follow each surface brief's raster corrections instead of copying a board's accidental labels or extra actions.",
       "**Do** build on Panda CSS and Ark UI, without adding a competing component library."
     ],
     "donts": [
