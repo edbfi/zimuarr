@@ -17,9 +17,7 @@ Wide aligned subtitle source/candidate comparison table with cue numbers, timest
 
 ## Visual reference
 
-[Detailed mockup](../../docs/design/screens/05-quarantine-review.webp)
-
-Use the shared [design system](../../DESIGN.md). Match hierarchy, density and palette while building real semantic components. This is a screen composition; any side-by-side stages are separate routes or states.
+Use the shared [design system](../../DESIGN.md) and build real semantic components.
 
 ## Required content
 
@@ -27,31 +25,21 @@ Use the shared [design system](../../DESIGN.md). Match hierarchy, density and pa
 
 ## Acceptance criteria
 
-Missing-cue check red failure, never green. No approve-success action for incomplete output. No replacement of protected subtitle.
+Missing-cue check red failure, never green. No approval, release or approve-success action for incomplete output, on any layout. No replacement of protected subtitle.
 
 - Preserve audience boundaries from [product context](../../PRODUCT.md).
-- Use canonical data in [demo fixtures](../../tests/fixtures/demo-fixtures.json); do not infer calculations from raster text.
-- Apply the raster corrections below.
+- Use only configured translation providers; the fixtures use the fictional Demo Translate.
+- Use canonical data in [demo fixtures](../../tests/fixtures/demo-fixtures.json).
 - Make loading, empty, failure, pending and saved states available where the workflow needs them.
 - Test keyboard focus, visible labels, disabled behavior and 200% zoom; target 360, 390, 768 and 1440px viewports.
 - Read reduced-motion preference before animating. Long names and translated text must wrap without hiding the primary action.
 
 ## Mobile (390px)
 
-[Mobile board](../../docs/design/screens/09-mobile-operator.webp), right view.
+Quarantine details at 390px (the classified dashboard and the pause dialog are in the [dashboard brief](route-dashboard.md)). Compact app header, nav drawer closed; persistent Pause control within reach. Do not squeeze the full desktop table into phone width. States stack; primary controls retain labels. No consumer navigation.
 
-Three mobile web views at 390px share one board: classified dashboard, global pause dialog and quarantine details. Compact app header, nav drawer closed; persistent Pause control within reach. Do not squeeze the full desktop table into phone width. States stack; primary controls retain labels. No consumer navigation.
-
-Required content: quarantine detail 311/312 cues returned, Cue count Failed, Re-attempt.
-
-## Raster corrections
-
-Use the images for composition and visual character. Use DESIGN.md, PRODUCT.md, this brief's acceptance criteria and the demo fixtures for exact values and behavior. Body copy, chart axes, tiny icons and font glyphs remain illustrative raster renderings. Rebuild them as native accessible UI and verify them against the specification. A PNG cannot verify focus order, screen-reader announcements, permission checks or real responsiveness.
-
-- Quarantine mobile helper copy must be: 'Rejected output stays quarantined. Re-attempt the translation or discard the result.' Omit the incidental 'Discard only when complete' raster sentence.
-- Use only configured translation providers. The quarantine raster's incidental provider name is not a new integration; use fictional Demo Translate in fixtures.
-- Do not offer approval or release for incomplete output. The final mobile board removes that action; enforce the same invariant on every layout.
+Required content: quarantine detail 311/312 cues returned, Cue count Failed, Re-attempt. Helper copy: 'Rejected output stays quarantined. Re-attempt the translation or discard the result.'
 
 ## Handoff prompt
 
-> Implement only this surface in Zimuarr's existing application. Read PRODUCT.md, DESIGN.md and this brief first. Use the attached detailed image as a composition reference and the named tokens as exact values. Preserve Polar Control. Keep the server's domain decisions authoritative. Reuse existing Panda CSS tokens and Ark UI primitives. Build native accessible controls, then compare desktop/mobile screenshots and audit the required states. Do not add incidental actions visible only in the raster.
+> Implement only this surface in Zimuarr's existing application. Read PRODUCT.md, DESIGN.md and this brief first. Use the named tokens as exact values. Preserve Polar Control. Keep the server's domain decisions authoritative. Reuse existing Panda CSS tokens and Ark UI primitives. Build native accessible controls, then compare desktop/mobile screenshots and audit the required states.
